@@ -1,0 +1,30 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="AutoMerge.UI.Views.Panels.AiChatPanelView">
+  <DockPanel>
+    <Border Background="#1E1E1E" Padding="8" DockPanel.Dock="Top">
+      <TextBlock Foreground="White" Text="AI Chat" />
+    </Border>
+    <Border DockPanel.Dock="Bottom" Padding="8">
+      <StackPanel Spacing="6">
+        <TextBlock Text="{Binding StreamingText}" Foreground="LightGray" />
+        <StackPanel Orientation="Horizontal" Spacing="6">
+          <TextBox Width="260" Text="{Binding CurrentInput, Mode=TwoWay}" />
+          <Button Content="Send" Command="{Binding SendMessageCommand}" IsEnabled="{Binding SendMessageCommand.CanExecute}" />
+        </StackPanel>
+        <Button Content="Clear" Command="{Binding ClearHistoryCommand}" />
+      </StackPanel>
+    </Border>
+    <ScrollViewer>
+      <ItemsControl ItemsSource="{Binding Messages}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border Margin="4" Padding="6" Background="#2D2D2D">
+              <TextBlock Text="{Binding Content}" Foreground="White" TextWrapping="Wrap" />
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+  </DockPanel>
+</UserControl>

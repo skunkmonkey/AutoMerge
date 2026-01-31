@@ -1,0 +1,232 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using AutoMerge.Core.Models;
+
+namespace AutoMerge.App.Startup;
+
+public sealed record CliParseResult(MergeInput? MergeInput, bool ShouldExit, int ExitCode, bool WaitForGui, bool NoGui);
+
+public static class CliParser
+{
+    private const string HelpText = @"USAGE:
+    automerge [OPTIONS] [BASE LOCAL REMOTE MERGED]
+
+ARGUMENTS:
+    BASE      Path to the base (common ancestor) file
+    LOCAL     Path to the local (ours) file  
+    REMOTE    Path to the remote (theirs) file
+    MERGED    Path to write the merged output
+
+OPTIONS:
+    --base <PATH>       Path to base file (alternative to positional)
+    --local <PATH>      Path to local file (alternative to positional)
+    --remote <PATH>     Path to remote file (alternative to positional)
+    --merged <PATH>     Path to merged output file (alternative to positional)
+    --wait              Wait for GUI to close before returning (default: true)
+    --no-gui            Run in headless mode (future feature)
+    --help, -h          Show this help message
+    --version, -v       Show version information
+
+EXIT CODES:
+    0    Resolution accepted and saved
+    1    Resolution cancelled or error occurred
+
+EXAMPLES:
+    # Standard 4-file merge (for git mergetool)
+    automerge BASE LOCAL REMOTE MERGED
+    
+    # Named arguments
+    automerge --base=file.base --local=file.ours --remote=file.theirs --merged=file.out
+    
+    # SourceTree integration
+    automerge ""$BASE"" ""$LOCAL"" ""$REMOTE"" ""$MERGED""";
+
+    public static CliParseResult Parse(string[] args)
+    {
+        if (HasFlag(args, "--help", "-h"))
+        {
+            Console.WriteLine(HelpText);
+            return new CliParseResult(null, true, 0, true, false);
+        }
+
+        if (HasFlag(args, "--version", "-v"))
+        {
+            Console.WriteLine($"AutoMerge {GetVersionString()}");
+            return new CliParseResult(null, true, 0, true, false);
+        }
+        string? basePath = null;
+        string? localPath = null;
+        string? remotePath = null;
+        string? mergedPath = null;
+        var waitForGui = true;
+        var noGui = false;
+        var positionals = new List<string>();
+
+        for (var i = 0; i < args.Length; i++)
+        {
+            var arg = args[i];
+
+            if (arg.StartsWith("--base=", StringComparison.OrdinalIgnoreCase))
+            {
+                basePath = arg["--base=".Length..];
+                continue;
+            }
+
+            if (string.Equals(arg, "--base", StringComparison.OrdinalIgnoreCase))
+            {
+                if (i + 1 >= args.Length)
+                {
+                    Console.WriteLine(HelpText);
+                    return new CliParseResult(null, true, 1, waitForGui, noGui);
+                }
+
+                basePath = args[++i];
+                continue;
+            }
+
+            if (arg.StartsWith("--local=", StringComparison.OrdinalIgnoreCase))
+            {
+                localPath = arg["--local=".Length..];
+                continue;
+            }
+
+            if (string.Equals(arg, "--local", StringComparison.OrdinalIgnoreCase))
+            {
+                if (i + 1 >= args.Length)
+                {
+                    Console.WriteLine(HelpText);
+                    return new CliParseResult(null, true, 1, waitForGui, noGui);
+                }
+
+                localPath = args[++i];
+                continue;
+            }
+
+            if (arg.StartsWith("--remote=", StringComparison.OrdinalIgnoreCase))
+            {
+                remotePath = arg["--remote=".Length..];
+                continue;
+            }
+
+            if (string.Equals(arg, "--remote", StringComparison.OrdinalIgnoreCase))
+            {
+                if (i + 1 >= args.Length)
+                {
+                    Console.WriteLine(HelpText);
+                    return new CliParseResult(null, true, 1, waitForGui, noGui);
+                }
+
+                remotePath = args[++i];
+                continue;
+            }
+
+            if (arg.StartsWith("--merged=", StringComparison.OrdinalIgnoreCase))
+            {
+                mergedPath = arg["--merged=".Length..];
+                continue;
+            }
+
+            if (string.Equals(arg, "--merged", StringComparison.OrdinalIgnoreCase))
+            {
+                if (i + 1 >= args.Length)
+                {
+                    Console.WriteLine(HelpText);
+                    return new CliParseResult(null, true, 1, waitForGui, noGui);
+                }
+
+                mergedPath = args[++i];
+                continue;
+            }
+
+            if (string.Equals(arg, "--wait", StringComparison.OrdinalIgnoreCase))
+            {
+                waitForGui = true;
+                continue;
+            }
+
+            if (arg.StartsWith("--wait=", StringComparison.OrdinalIgnoreCase))
+            {
+                var value = arg["--wait=".Length..];
+                if (!bool.TryParse(value, out waitForGui))
+                {
+                    Console.WriteLine(HelpText);
+                    return new CliParseResult(null, true, 1, waitForGui, noGui);
+                }
+
+                continue;
+            }
+
+            if (string.Equals(arg, "--no-gui", StringComparison.OrdinalIgnoreCase))
+            {
+                noGui = true;
+                continue;
+            }
+
+            if (arg.StartsWith("-", StringComparison.Ordinal))
+            {
+                Console.WriteLine(HelpText);
+                return new CliParseResult(null, true, 1, waitForGui, noGui);
+            }
+
+            positionals.Add(arg);
+        }
+
+        if (positionals.Count > 0)
+        {
+            if (basePath is null && positionals.Count > 0)
+            {
+                basePath = positionals[0];
+            }
+
+            if (localPath is null && positionals.Count > 1)
+            {
+                localPath = positionals[1];
+            }
+
+            if (remotePath is null && positionals.Count > 2)
+            {
+                remotePath = positionals[2];
+            }
+
+            if (mergedPath is null && positionals.Count > 3)
+            {
+                mergedPath = positionals[3];
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(localPath) || string.IsNullOrWhiteSpace(remotePath) || string.IsNullOrWhiteSpace(mergedPath))
+        {
+            Console.WriteLine(HelpText);
+            return new CliParseResult(null, true, 1, waitForGui, noGui);
+        }
+
+        if (string.IsNullOrWhiteSpace(basePath))
+        {
+            basePath = localPath;
+        }
+
+        try
+        {
+            var mergeInput = new MergeInput(basePath, localPath, remotePath, mergedPath);
+            return new CliParseResult(mergeInput, false, 0, waitForGui, noGui);
+        }
+        catch (ArgumentException)
+        {
+            Console.WriteLine(HelpText);
+            return new CliParseResult(null, true, 1, waitForGui, noGui);
+        }
+    }
+
+    private static bool HasFlag(string[] args, string longForm, string shortForm)
+    {
+        return args.Any(arg => string.Equals(arg, longForm, StringComparison.OrdinalIgnoreCase) ||
+                               string.Equals(arg, shortForm, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static string GetVersionString()
+    {
+        return Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0";
+    }
+}

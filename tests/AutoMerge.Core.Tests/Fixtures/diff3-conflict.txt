@@ -1,0 +1,9 @@
+Start
+<<<<<<< ours
+local line
+||||||| base
+base line
+=======
+remote line
+>>>>>>> theirs
+End

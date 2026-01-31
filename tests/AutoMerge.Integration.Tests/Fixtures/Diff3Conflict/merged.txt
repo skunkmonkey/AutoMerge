@@ -1,0 +1,9 @@
+line1
+<<<<<<< LOCAL
+local change
+||||||| BASE
+shared
+=======
+remote change
+>>>>>>> REMOTE
+line3

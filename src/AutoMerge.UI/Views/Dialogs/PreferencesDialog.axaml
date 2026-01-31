@@ -1,0 +1,32 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:models="clr-namespace:AutoMerge.Core.Models;assembly=AutoMerge.Core"
+        x:Class="AutoMerge.UI.Views.Dialogs.PreferencesDialog"
+        Width="480" Height="320"
+        Title="Preferences"
+        WindowStartupLocation="CenterOwner">
+  <StackPanel Margin="16" Spacing="12">
+    <TextBlock Text="Preferences" FontSize="18" FontWeight="Bold" />
+
+    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="8">
+      <TextBlock Grid.Row="0" Grid.Column="0" Text="Default bias" VerticalAlignment="Center" />
+      <ComboBox Grid.Row="0" Grid.Column="1"
+                ItemsSource="{Binding DefaultBiasOptions}"
+                SelectedItem="{Binding DefaultBias}" />
+
+      <TextBlock Grid.Row="1" Grid.Column="0" Text="Auto-analyze on load" VerticalAlignment="Center" />
+      <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding AutoAnalyzeOnLoad}" />
+
+      <TextBlock Grid.Row="2" Grid.Column="0" Text="Theme" VerticalAlignment="Center" />
+      <ComboBox Grid.Row="2" Grid.Column="1"
+                ItemsSource="{Binding ThemeOptions}"
+                SelectedItem="{Binding Theme}" />
+    </Grid>
+
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+      <Button Content="Reset" Command="{Binding ResetToDefaultsCommand}" />
+      <Button Content="Cancel" Click="OnCancelClicked" />
+      <Button Content="Save" Click="OnSaveClicked" />
+    </StackPanel>
+  </StackPanel>
+</Window>

@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AutoMerge.Core\AutoMerge.Core.csproj" />
+    <ProjectReference Include="..\AutoMerge.Application\AutoMerge.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="*" />
+    <PackageReference Include="Avalonia.Desktop" Version="*" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="*" />
+    <PackageReference Include="AvaloniaEdit" Version="*" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="*" />
+  </ItemGroup>
+</Project>

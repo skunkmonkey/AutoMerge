@@ -1,0 +1,15 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:AutoMerge.UI.Controls"
+             x:Class="AutoMerge.UI.Views.Panels.DiffPaneView">
+  <DockPanel>
+    <Border Background="#2D2D2D" Padding="8" DockPanel.Dock="Top">
+      <TextBlock Foreground="White" Text="{Binding Title}" />
+    </Border>
+    <controls:CodeEditorControl
+        Text="{Binding Content, Mode=TwoWay}"
+        IsReadOnly="{Binding IsReadOnly}"
+        SyntaxLanguage="{Binding SyntaxLanguage}"
+        LineChanges="{Binding LineChanges}" />
+  </DockPanel>
+</UserControl>

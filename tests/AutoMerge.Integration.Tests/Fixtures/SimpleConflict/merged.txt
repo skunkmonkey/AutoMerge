@@ -1,0 +1,7 @@
+line1
+<<<<<<< LOCAL
+local change
+=======
+remote change
+>>>>>>> REMOTE
+line3

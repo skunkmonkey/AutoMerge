@@ -1,0 +1,19 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:AutoMerge.UI.Controls"
+             x:Class="AutoMerge.UI.Views.Panels.MergedResultView">
+  <DockPanel>
+    <Border DockPanel.Dock="Top" Padding="8">
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <Button Content="Revert Base" Command="{Binding RevertToBaseCommand}" />
+        <Button Content="Revert Local" Command="{Binding RevertToLocalCommand}" />
+        <Button Content="Revert Remote" Command="{Binding RevertToRemoteCommand}" />
+        <TextBlock Text="Conflict markers detected" Foreground="OrangeRed" IsVisible="{Binding HasConflictMarkers}" />
+      </StackPanel>
+    </Border>
+    <controls:CodeEditorControl
+        Text="{Binding Content, Mode=TwoWay}"
+        IsReadOnly="False"
+        SyntaxLanguage="{Binding SyntaxLanguage}" />
+  </DockPanel>
+</UserControl>

@@ -1,0 +1,6 @@
+alpha
+beta-local
+beta-remote
+gamma
+delta-local
+delta-remote

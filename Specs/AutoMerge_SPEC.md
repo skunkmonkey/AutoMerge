@@ -1,0 +1,818 @@
+# AutoMerge Technical Specification
+
+**Version:** 1.0  
+**Date:** January 31, 2026  
+**Status:** Draft  
+**Related Documents:** [AutoMerge_PRD.md](AutoMerge_PRD.md)
+
+---
+
+## 1. Purpose of This Document
+
+This specification defines the software architecture for AutoMerge. Its purpose is to ensure that any developer (human or AI) working on this codebase understands:
+
+1. **The architectural patterns and principles** that govern the codebase
+2. **The responsibility of each layer and component**
+3. **How components communicate** with each other
+4. **Where specific functionality belongs** when adding new features
+5. **The contracts and interfaces** that must be respected
+
+This document is the **source of truth** for architectural decisions. All code contributions must adhere to this specification.
+
+---
+
+## 2. Architectural Principles
+
+The following principles guide all architectural decisions:
+
+### 2.1 Separation of Concerns
+Each component has a single, well-defined responsibility. UI components do not contain business logic. Business logic does not contain infrastructure concerns. This separation enables independent testing and modification of each layer.
+
+### 2.2 Dependency Inversion
+High-level modules do not depend on low-level modules. Both depend on abstractions (interfaces). This allows swapping implementations (e.g., mock AI service for testing) without changing consuming code.
+
+### 2.3 Explicit Dependencies
+All dependencies are injected via constructor injection. No service locator patterns. No static access to services. This makes dependencies visible and testable.
+
+### 2.4 Immutable Data Transfer
+Data crossing layer boundaries uses immutable record types or read-only interfaces. This prevents unexpected mutations and makes data flow predictable.
+
+### 2.5 Async by Default
+All I/O operations (file access, AI calls, network) are asynchronous. The UI thread is never blocked by external operations.
+
+### 2.6 Fail-Safe Behavior
+The application must remain usable even when external services fail. AI unavailability degrades to manual-only mode. File access errors are handled gracefully with user feedback.
+
+---
+
+## 3. Solution Structure
+
+The solution is organized into five source projects and four test projects:
+
+**Source Projects:**
+
+| Project | Purpose |
+|---------|--------|
+| AutoMerge.Core | Domain layer with zero external dependencies. Contains domain models, interfaces, and pure business logic. |
+| AutoMerge.Application | Application services and use case handlers. Orchestrates domain objects and infrastructure. |
+| AutoMerge.Infrastructure | External integrations including Copilot SDK, file I/O, and configuration persistence. |
+| AutoMerge.UI | Avalonia views (XAML) and ViewModels. All presentation logic. |
+| AutoMerge.App | Composition root and entry point. CLI parsing, DI configuration, application bootstrap. |
+
+**Test Projects:**
+
+| Project | Purpose |
+|---------|--------|
+| AutoMerge.Core.Tests | Domain unit tests |
+| AutoMerge.Application.Tests | Application service and use case handler tests |
+| AutoMerge.Infrastructure.Tests | Integration tests for external services |
+| AutoMerge.UI.Tests | ViewModel logic tests |
+
+### 3.1 Project Dependency Rules
+
+**Dependency Hierarchy (top to bottom):**
+
+1. **AutoMerge.App** (top) — References all projects. Configures DI container.
+2. **AutoMerge.UI** — References Application and Core.
+3. **AutoMerge.Application** — References Core only.
+4. **AutoMerge.Infrastructure** — References Core and Application.
+5. **AutoMerge.Core** (bottom) — References nothing. Zero external dependencies.
+
+**Critical Rule:** Dependencies flow downward only. Lower layers NEVER reference higher layers. This ensures that Core remains pure and testable, and that Infrastructure can be swapped without affecting business logic.
+
+---
+
+## 4. Layer Specifications
+
+### 4.1 AutoMerge.Core (Domain Layer)
+
+**Purpose:** Contains the core domain models, value objects, and domain logic that represent merge conflict concepts. This layer has **zero external dependencies** (no NuGet packages except .NET BCL).
+
+**Contains:**
+- Domain entities and value objects
+- Domain enums and constants
+- Domain exceptions
+- Pure domain logic (conflict parsing, diff computation concepts)
+- Interface definitions for infrastructure services
+
+#### 4.1.1 Domain Models
+
+| Model | Purpose |
+|-------|--------|
+| **MergeSession** | **Aggregate root.** Encapsulates the entire merge operation: input files, current state, detected conflict regions, conversation history, and proposed resolution. |
+| ConflictFile | Represents a file containing one or more conflicts. Holds the original content and detected conflict regions. |
+| ConflictRegion | A single conflict region within a file. Contains the base, local, and remote versions of the conflicting section plus line numbers. |
+| FileVersion | Enumeration: Base, Local, Remote, Merged. Used to identify which version of a file is being referenced. |
+| MergeInput | The four input file paths for a merge operation (base, local, remote, output). Immutable value object. |
+| MergeResolution | The resolved content and metadata including explanation text and confidence indicators. |
+| ConflictAnalysis | AI analysis results including semantic descriptions of what each side changed and why they conflict. |
+| ChatMessage | A message in the AI conversation. Includes role (user/assistant), content, and timestamp. |
+| UserPreferences | User configuration settings such as default bias, formatting preferences, and model selection. |
+| LineChange | Represents a single line's diff status (added, removed, modified, unchanged) with line numbers. |
+
+#### 4.1.2 Core Interfaces
+
+These interfaces define the contracts that Infrastructure must implement. They live in Core so that Application and UI can depend on them without coupling to Infrastructure.
+
+| Interface | Contract |
+|-----------|----------|
+| IAiService | AI interaction: analyze conflicts, propose resolutions, refine with conversation, explain changes. |
+| IFileService | File I/O: read files with encoding detection, write files preserving encoding and line endings. |
+| IConfigurationService | Settings persistence: load, save, and reset user preferences. |
+| IConflictParser | Conflict marker parsing: parse Git conflict markers, validate resolution has no remaining markers. |
+| IDiffCalculator | Diff computation: calculate line-by-line differences between file versions. |
+
+#### 4.1.3 Domain Services
+
+Pure domain logic that doesn't fit in entities. These are stateless services with no external dependencies.
+
+| Service | Responsibility |
+|---------|---------------|
+| ConflictMarkerParser | Parses Git conflict markers from text content. Identifies conflict regions and extracts base/local/remote sections. Pure string manipulation logic. |
+| LineEndingDetector | Detects the line ending style of a file (CRLF, LF, or mixed). Used to preserve original line endings when writing output. |
+| EncodingDetector | Detects the character encoding of a file (UTF-8, UTF-16, etc.). Used to preserve original encoding when writing output. |
+
+---
+
+### 4.2 AutoMerge.Application (Application Layer)
+
+**Purpose:** Orchestrates use cases by coordinating domain objects and infrastructure services. Contains application-specific business rules and workflows.
+
+**Contains:**
+- Use case handlers (one per user action)
+- Application services (cross-cutting coordination)
+- DTOs for cross-layer communication
+- Event definitions for reactive updates
+
+#### 4.2.1 Use Cases
+
+Each use case follows a consistent pattern: a Command (input DTO), a Result (output DTO), and a Handler (orchestration logic). Each handler has a single public `ExecuteAsync` method.
+
+| Use Case | Purpose |
+|----------|--------|
+| **LoadMergeSession** | Reads the four input files, parses conflict markers, creates a MergeSession, and stores it in the session manager. Entry point for the application. |
+| **AnalyzeConflict** | Sends conflict context to AI service, receives structured analysis of what changed and why. Updates session with analysis. |
+| **ProposeResolution** | Requests AI to propose a merged resolution. Handles streaming responses. Updates session with proposed content. |
+| **RefineResolution** | Sends user's refinement message to AI, receives updated resolution while maintaining conversation context. |
+| **AcceptResolution** | Validates the resolution (no conflict markers), writes to output file with correct encoding/line endings, signals success. |
+| **CancelMerge** | Cleans up session state without writing any files. Signals cancellation to calling process. |
+| **SavePreferences** | Persists user preferences to platform-appropriate storage location. |
+| **LoadPreferences** | Loads user preferences from storage, returning defaults if none exist. |
+
+#### 4.2.2 Application Services
+
+| Service | Responsibility |
+|---------|---------------|
+| MergeSessionManager | Manages the active MergeSession instance. Provides access to current session state. Scoped lifetime (one per application run). |
+| AiConversationService | Manages AI conversation context including message history and session continuity. Ensures follow-up messages have proper context. |
+| AutoSaveService | Handles periodic draft saving (every 30 seconds). Saves work-in-progress to temp directory. Cleans up on normal exit. |
+
+#### 4.2.3 Events
+
+Events enable decoupled communication between Application and UI layers using a pub/sub pattern. This is especially important for AI streaming updates.
+
+| Event | When Published |
+|-------|---------------|
+| SessionLoadedEvent | After files are loaded and session is ready |
+| AnalysisStartedEvent | When AI analysis begins |
+| AnalysisCompletedEvent | When AI analysis finishes (success or failure) |
+| ResolutionProposedEvent | When AI returns a proposed resolution |
+| ResolutionUpdatedEvent | When user edits the resolution |
+| AiStreamingChunkEvent | For each token received during AI streaming (enables real-time display) |
+| AiErrorEvent | When an AI operation fails |
+| SessionCompletedEvent | When session ends (accept or cancel) |
+
+---
+
+### 4.3 AutoMerge.Infrastructure (Infrastructure Layer)
+
+**Purpose:** Implements the interfaces defined in Core. Contains all external service integrations, file I/O, and platform-specific code.
+
+**Contains:**
+- Copilot SDK integration
+- File system operations
+- Configuration persistence
+- Platform-specific implementations
+
+#### 4.3.1 AI Integration
+
+The AI integration layer implements `IAiService` using the GitHub Copilot SDK.
+
+**Primary Components:**
+
+| Component | Responsibility |
+|-----------|---------------|
+| CopilotAiService | Implements IAiService. Manages Copilot client lifecycle, creates sessions, handles streaming responses. |
+| CopilotSessionFactory | Creates and configures Copilot sessions with appropriate system prompts and tool registrations. |
+| CopilotToolDefinitions | Defines the custom tools that Copilot can invoke (see Section 8.3 of PRD). |
+| CopilotResponseMapper | Maps Copilot SDK response types to domain models (ConflictAnalysis, MergeResolution). |
+
+**Custom Tools (invoked by Copilot agent):**
+
+| Tool | Purpose |
+|------|--------|
+| AnalyzeConflictTool | Analyzes conflict structure and provides semantic understanding |
+| ProposeResolutionTool | Generates merged content with explanations |
+| ExplainChangesTool | Explains what changed in a specific region |
+| ValidateResultTool | Validates that proposed resolution is valid (no conflict markers) |
+
+**Prompts:**
+
+System prompts and templates are stored as resources. The MergeAgentSystemPrompt configures the Copilot agent's persona as a merge conflict expert. PromptTemplates contains reusable prompt fragments for different operations.
+
+#### 4.3.2 File Operations
+
+| Component | Responsibility |
+|-----------|---------------|
+| FileService | Implements IFileService. Coordinates file reading and writing operations. |
+| ConflictFileReader | Reads conflict files with automatic encoding detection. Returns content and detected encoding. |
+| ResolvedFileWriter | Writes resolved content to output file. Preserves original encoding and line endings. |
+| DraftManager | Manages auto-save drafts in the system temp directory. Handles periodic saves and cleanup. |
+| EncodingHelper | Utility for encoding detection (BOM detection, heuristics) and encoding preservation. |
+
+#### 4.3.3 Configuration
+
+| Component | Responsibility |
+|-----------|---------------|
+| ConfigurationService | Implements IConfigurationService. Coordinates preference loading and saving. |
+| JsonSettingsStore | Persists preferences as JSON. Handles serialization and file I/O. |
+| PlatformPaths | Resolves platform-specific paths. Returns `%APPDATA%\AutoMerge` on Windows, `~/Library/Application Support/AutoMerge` on macOS. |
+
+#### 4.3.4 Diff Calculation
+
+| Component | Responsibility |
+|-----------|---------------|
+| DiffPlexCalculator | Implements IDiffCalculator using the DiffPlex library. Computes line-by-line differences. |
+| DiffResultMapper | Maps DiffPlex result types to domain LineChange models. |
+
+---
+
+### 4.4 AutoMerge.UI (Presentation Layer)
+
+**Purpose:** Contains all Avalonia UI components. Implements MVVM pattern with ViewModels coordinating between Views and Application layer.
+
+**Contains:**
+- Avalonia Views (XAML)
+- ViewModels
+- Value Converters
+- UI-specific services
+- Keyboard shortcut bindings
+
+#### 4.4.1 Views
+
+Views are Avalonia XAML files with minimal code-behind (only UI initialization logic).
+
+**Main Window:**
+- MainWindow — The primary application window. Hosts all panels and dialogs.
+
+**Panels (embedded in main window):**
+
+| Panel | Purpose |
+|-------|--------|
+| DiffPaneView | Displays one version of the file (used three times for base/local/remote). Read-only with syntax highlighting. |
+| MergedResultView | Displays the editable merged result. Full editor with syntax highlighting, undo/redo. |
+| AiChatPanelView | Collapsible panel for AI conversation. Shows message history and input field. |
+| ConflictNavigatorView | Navigation for multi-file merges. Shows progress and previous/next buttons. |
+
+**Dialogs:**
+
+| Dialog | Purpose |
+|--------|--------|
+| PreferencesDialog | Modal dialog for editing user preferences |
+| AuthenticationDialog | Shown when Copilot authentication is needed |
+| ErrorDialog | Modal dialog for critical errors with retry/cancel options |
+
+**Custom Controls:**
+
+| Control | Purpose |
+|---------|--------|
+| CodeEditorControl | Wrapper around AvaloniaEdit. Configures syntax highlighting, read-only mode, etc. |
+| DiffGutterControl | Custom line number gutter that shows diff markers (added/removed/changed) |
+| StreamingTextControl | Specialized control for displaying AI streaming output with typing effect |
+
+#### 4.4.2 ViewModels
+
+**ViewModel Rules:**
+- All ViewModels inherit from ViewModelBase (provides INotifyPropertyChanged via CommunityToolkit.Mvvm)
+- Dependencies are received via constructor injection
+- Commands are exposed for user actions
+- ViewModels do NOT contain business logic — they delegate to Application layer use case handlers
+- Design-time ViewModels provide sample data for XAML previews in the designer
+
+| ViewModel | Responsibility |
+|-----------|---------------|
+| ViewModelBase | Abstract base class. Implements INotifyPropertyChanged. Provides common infrastructure. |
+| MainWindowViewModel | Main window state and commands. Holds child ViewModels. Manages Accept/Cancel commands. |
+| DiffPaneViewModel | State for one diff pane. Holds text content, syntax highlighting language, line changes for gutter. |
+| MergedResultViewModel | State for editable result pane. Tracks dirty state, provides validation, handles undo/redo. |
+| AiChatViewModel | Chat panel state. Holds conversation history, manages streaming state, handles send command. |
+| ConflictNavigatorViewModel | Multi-file navigation state. Tracks resolved/remaining counts, handles previous/next. |
+| PreferencesViewModel | Preferences dialog state. Holds editable preference values, handles save/cancel/reset. |
+
+#### 4.4.3 ViewModel Responsibilities
+
+**MainWindowViewModel:**
+- Holds references to child ViewModels
+- Manages overall application state (loading, ready, processing, etc.)
+- Handles Accept/Cancel commands
+- Coordinates theme switching
+
+**DiffPaneViewModel:**
+- Holds the text content for one version
+- Manages syntax highlighting language detection
+- Provides line change data for gutter display
+- Handles scroll synchronization events
+
+**MergedResultViewModel:**
+- Holds the editable merged content
+- Tracks dirty state (user modifications)
+- Provides validation state (conflict markers present?)
+- Handles undo/redo
+
+**AiChatViewModel:**
+- Holds conversation history
+- Manages streaming state (is AI responding?)
+- Handles send message command
+- Provides suggested quick actions
+
+#### 4.4.4 Converters
+
+Value converters transform data between ViewModel properties and XAML bindings.
+
+| Converter | Purpose |
+|-----------|--------|
+| BoolToVisibilityConverter | Converts boolean to Avalonia visibility (Visible/Collapsed) |
+| LineChangeTypeToColorConverter | Converts LineChange type (added/removed/changed) to appropriate color (green/red/yellow) |
+| SessionStateToIconConverter | Converts SessionState enum to appropriate status icon |
+| NullToBoolConverter | Converts null/non-null to boolean (useful for enabling/disabling based on selection) |
+
+#### 4.4.5 UI Services
+
+UI-specific services that don't belong in lower layers.
+
+| Service | Responsibility |
+|---------|---------------|
+| ThemeService | Manages dark/light theme switching. Detects system preference and applies appropriate theme. |
+| KeyboardShortcutService | Handles global keyboard shortcuts (Cmd/Ctrl+Enter for accept, Escape for cancel, etc.) |
+| DialogService | Manages modal dialog display. Provides async methods to show dialogs and await results. |
+| ScrollSyncService | Synchronizes scroll position across the four diff panes when user scrolls any one pane. |
+| SyntaxHighlightingService | Detects file language from extension/content and loads appropriate TextMate grammar for AvaloniaEdit. |
+
+---
+
+### 4.5 AutoMerge.App (Composition Root)
+
+**Purpose:** The executable entry point. Responsible for:
+- Parsing command-line arguments
+- Configuring dependency injection container
+- Bootstrapping the application
+- Handling application lifecycle
+
+**Contains:**
+- Program.cs (entry point)
+- DI container configuration
+- CLI argument parsing
+- App.axaml (Avalonia application)
+
+#### 4.5.1 Entry Point Flow
+
+The application entry point follows this sequence:
+
+1. **Parse CLI arguments** using System.CommandLine
+   - Validate that required arguments are provided
+   - Handle --help and --version immediately (exit after display)
+   - Extract file paths into MergeInput value object
+
+2. **Build DI container**
+   - Register all services with appropriate lifetimes
+   - Configure Copilot SDK client
+   - Register ViewModels
+
+3. **Create MergeInput** from validated arguments
+   - Verify all input files exist and are readable
+   - Verify output path is writable
+
+4. **Launch Avalonia application**
+   - MainWindow is created and receives MainWindowViewModel from DI
+   - ViewModel receives MergeInput and begins initialization
+
+5. **Return exit code** based on resolution result
+   - Exit code 0: Resolution was accepted and saved
+   - Exit code 1: Resolution was cancelled or an error occurred
+
+#### 4.5.2 Structure
+
+| Component | Responsibility |
+|-----------|---------------|
+| Program.cs | Entry point. Minimal code that calls into startup services. |
+| App.axaml / App.axaml.cs | Avalonia application definition. Handles startup, shutdown, and unhandled exceptions. |
+| CliParser | Command-line argument parsing using System.CommandLine. Defines all supported arguments and options. |
+| ServiceRegistration | DI container configuration. Registers all services with appropriate lifetimes. Single source of truth for dependency wiring. |
+| CopilotConfiguration | Copilot SDK setup. Configures client options and authentication. |
+| appsettings.json | Default configuration values. Can be overridden by user preferences. |
+
+---
+
+## 5. Cross-Cutting Concerns
+
+### 5.1 Dependency Injection
+
+All services are registered in ServiceRegistration using Microsoft.Extensions.DependencyInjection.
+
+**Lifetime Guidelines:**
+
+| Lifetime | When to Use | Examples |
+|----------|-------------|----------|
+| Singleton | Services that maintain state across the app lifetime | ConfigurationService, ThemeService, CopilotAiService |
+| Scoped | Services scoped to a merge session | MergeSessionManager, AiConversationService |
+| Transient | Stateless services created fresh each time | Use case handlers, mappers, ViewModels |
+
+**Registration Pattern:**
+
+Core interface abstractions are mapped to their Infrastructure implementations. For example, `IAiService` is registered with `CopilotAiService` as its implementation. This allows tests to substitute mock implementations without changing consuming code.
+
+ViewModels are registered as transient so each view gets its own instance.
+
+### 5.2 Error Handling Strategy
+
+**Layer-Specific Exceptions:**
+- `Core`: Domain exceptions (e.g., `InvalidConflictFormatException`)
+- `Infrastructure`: Wrapped external exceptions (e.g., `AiServiceException`)
+- `Application`: Use case failures returned as Result types, not exceptions
+- `UI`: ViewModels catch exceptions and update error state properties
+
+**User-Facing Errors:**
+- All exceptions are caught at the ViewModel level
+- Errors display in a non-modal error banner
+- Critical errors show a modal dialog with options
+
+### 5.3 Logging
+
+- Use `Microsoft.Extensions.Logging` abstractions
+- Inject `ILogger<T>` into services
+- Log levels: Debug (development), Information (user actions), Warning (recoverable issues), Error (failures)
+- No file content logged (privacy)
+
+### 5.4 Async/Await Patterns
+
+**Rules:**
+1. All public async methods return `Task` or `Task<T>`
+2. Use `ConfigureAwait(false)` in library code (Core, Application, Infrastructure)
+3. Use `ConfigureAwait(true)` or default in UI code (need UI thread context)
+4. Long-running operations report progress via `IProgress<T>`
+5. Support cancellation via `CancellationToken` parameters
+
+### 5.5 Event Aggregation
+
+For decoupled communication between components (especially for AI streaming), the Application layer publishes events that the UI layer subscribes to.
+
+**Example Flow:**
+
+1. User clicks "Analyze"
+2. ViewModel calls AnalyzeConflictHandler.ExecuteAsync()
+3. Handler calls IAiService.AnalyzeAsync()
+4. CopilotAiService receives streaming chunks from Copilot SDK
+5. CopilotAiService publishes AiStreamingChunkEvent for each chunk
+6. AiChatViewModel (subscribed to event) updates UI with each chunk in real-time
+
+This pattern keeps the Infrastructure layer decoupled from UI concerns while enabling real-time streaming updates.
+
+---
+
+## 6. Data Flow Diagrams
+
+### 6.1 Application Startup Flow
+
+**Trigger:** Git client runs `automerge --base B --local L --remote R --merged M`
+
+**Step 1: Program.Main**
+- Parse CLI arguments into MergeInput (basePath, localPath, remotePath, outputPath)
+- Build ServiceProvider (DI container)
+- Resolve MainWindowViewModel and inject MergeInput
+- Start Avalonia application
+
+**Step 2: MainWindowViewModel.InitializeAsync()**
+- Call LoadMergeSessionHandler.ExecuteAsync(mergeInput)
+- Handler reads all four files via IFileService
+- Handler parses conflicts via IConflictParser
+- Handler creates MergeSession and stores in MergeSessionManager
+- ViewModel updates DiffPaneViewModels with file content
+- If auto-analyze preference is enabled, trigger initial AI analysis
+
+### 6.2 AI Resolution Flow
+
+**Trigger:** User clicks "Get AI Help" button
+
+**Step 1: MainWindowViewModel**
+- Sets IsAnalyzing = true (shows loading indicator)
+- Calls ProposeResolutionHandler.ExecuteAsync(session)
+
+**Step 2: ProposeResolutionHandler**
+- Retrieves MergeSession from MergeSessionManager
+- Builds prompt with conflict context (base, local, remote content)
+- Calls IAiService.ProposeResolutionAsync(context, onChunk callback)
+
+**Step 3: CopilotAiService**
+- Creates or reuses Copilot session
+- Registers custom tools (analyze_conflict, propose_resolution, etc.)
+- Sends prompt to Copilot SDK
+- Subscribes to streaming events from SDK
+- For each streaming chunk: publishes AiStreamingChunkEvent
+- On completion: returns MergeResolution domain object
+
+**Step 4: AiChatViewModel (subscribed to AiStreamingChunkEvent)**
+- Receives each streaming chunk
+- Appends chunk to current message display
+- UI updates in real-time with "typing" effect
+
+**Step 5: MainWindowViewModel (on completion)**
+- Sets IsAnalyzing = false
+- Updates MergedResultViewModel with proposed content
+- User can now edit, refine via chat, or accept
+
+### 6.3 Accept Resolution Flow
+
+**Trigger:** User clicks "Accept" button or presses Cmd/Ctrl+Enter
+
+**Step 1: MainWindowViewModel.AcceptCommand**
+- Retrieves merged content from MergedResultViewModel
+- Validates that no conflict markers remain in content
+- If validation fails: show error, abort
+- If valid: calls AcceptResolutionHandler.ExecuteAsync(content, outputPath)
+
+**Step 2: AcceptResolutionHandler**
+- Detects original encoding from input files (preserves encoding)
+- Detects original line endings from input files (preserves line endings)
+- Calls IFileService.WriteAsync(outputPath, content, encoding, lineEnding)
+- Returns success result
+
+**Step 3: MainWindowViewModel**
+- Sets ExitCode = 0 (signals success to Git)
+- Triggers application shutdown
+
+**Step 4: Program.Main**
+- Returns exit code 0
+- Git mergetool sees success and marks conflict as resolved in the index
+
+---
+
+## 7. Interface Contracts
+
+The following interfaces define the contracts between layers. They are defined in AutoMerge.Core and implemented in AutoMerge.Infrastructure.
+
+### 7.1 IAiService
+
+**Purpose:** Abstracts all AI interaction. Allows swapping Copilot SDK for mocks in tests or alternative providers in the future.
+
+**Methods:**
+
+| Method | Description |
+|--------|-------------|
+| GetStatusAsync | Checks if the AI service is available and authenticated. Returns status object with connection state and any error messages. |
+| AnalyzeConflictAsync | Analyzes a conflict and returns structured analysis. Takes a MergeSession and optional progress callback. Returns ConflictAnalysis domain object. |
+| ProposeResolutionAsync | Proposes a resolution with streaming support. Takes session, user preferences, and optional streaming chunk callback. Returns MergeResolution. |
+| RefineResolutionAsync | Sends a refinement message and returns updated resolution. Maintains conversation context. Takes session, user message, and optional streaming callback. |
+| ExplainChangesAsync | Explains changes in a specific line range. Takes session and line numbers. Returns explanation string. |
+
+**All methods:**
+- Are async and return Task<T>
+- Accept CancellationToken for cancellation support
+- May accept IProgress<string> or Action<string> for progress/streaming updates
+
+### 7.2 IFileService
+
+**Purpose:** Abstracts file system operations. Enables testing without real file I/O.
+
+**Methods:**
+
+| Method | Description |
+|--------|-------------|
+| ReadAsync | Reads file content with automatic encoding detection. Returns FileContent object containing content string and detected encoding. |
+| WriteAsync | Writes content to file, preserving specified encoding and line endings. Takes path, content, encoding, and line ending style. |
+| ExistsAsync | Checks if a file exists and is readable. Returns boolean. |
+| IsBinaryAsync | Detects if a file is binary (non-text). Returns boolean. Used to show appropriate messaging for binary conflicts. |
+
+### 7.3 IConflictParser
+
+**Purpose:** Parses Git conflict markers from file content. Pure logic, no I/O.
+
+**Methods:**
+
+| Method | Description |
+|--------|-------------|
+| Parse | Parses Git conflict markers from content string. Returns list of ConflictRegion objects, each containing the base/local/remote sections and line numbers. Returns empty list if no conflicts found. |
+| HasConflictMarkers | Validates that content has no remaining conflict markers. Returns boolean. Used to validate resolution before saving. |
+
+**Recognized Markers:**
+- `<<<<<<<` — Start of local/ours section
+- `|||||||` — Start of base section (diff3 style)
+- `=======` — Separator between sections
+- `>>>>>>>` — End of remote/theirs section
+
+### 7.4 IConfigurationService
+
+**Purpose:** Persists and retrieves user preferences.
+
+**Methods:**
+
+| Method | Description |
+|--------|-------------|
+| LoadPreferencesAsync | Loads user preferences from storage. Returns default preferences if none saved. |
+| SavePreferencesAsync | Saves user preferences to platform-appropriate storage location. |
+| ResetPreferencesAsync | Deletes saved preferences, resetting to defaults. |
+
+---
+
+## 8. State Management
+
+### 8.1 Application State
+
+The application progresses through the following high-level states:
+
+| State | Description | Transitions To |
+|-------|-------------|----------------|
+| **Startup** | Application launching, parsing arguments | Ready (on load complete) |
+| **Ready** | Files loaded, waiting for user action | Analyzing (on "Get AI Help") |
+| **Analyzing** | AI is processing the conflict | Ready (on complete or error) |
+| **Saving** | Writing resolved content to output file | Success or Error |
+| **Success** | Resolution saved, exiting with code 0 | (terminal state) |
+| **Error** | An error occurred, showing error UI | Ready (on retry) |
+
+**Cancel Path:** From any state, user can press Cancel/Escape to exit immediately with code 1.
+
+### 8.2 MergeSession State
+
+Managed by MergeSessionManager (scoped service). The SessionState enum tracks the session lifecycle:
+
+| State | Description |
+|-------|-------------|
+| Created | Session object created, files not yet loaded |
+| Loading | Currently reading input files from disk |
+| Ready | Files loaded successfully, ready for AI analysis or manual editing |
+| Analyzing | AI is analyzing the conflict |
+| ResolutionProposed | AI has proposed a resolution, shown in merged result pane |
+| Refining | User is having a conversation with AI to refine the resolution |
+| UserEditing | User is manually editing the merged result |
+| Validated | Resolution has been validated (no conflict markers), ready to save |
+| Saved | Successfully written to output file |
+| Cancelled | User cancelled the merge operation |
+
+### 8.3 ViewModel State Properties
+
+Each ViewModel exposes state as observable properties:
+
+**MainWindowViewModel:**
+- `SessionState State` - Current session state
+- `bool IsLoading` - True during initial load
+- `bool IsAiBusy` - True when AI is processing
+- `bool CanAccept` - True when resolution is valid
+- `bool HasError` - True when an error occurred
+- `string? ErrorMessage` - Current error message
+
+---
+
+## 9. Testing Strategy
+
+### 9.1 Unit Testing
+
+**Core Layer:** 100% coverage target
+- Test conflict marker parsing with various Git formats
+- Test encoding detection
+- Test line ending detection
+- Test domain model behavior
+
+**Application Layer:** 90% coverage target
+- Test use case handlers with mocked dependencies
+- Test state transitions
+- Test error handling
+
+**Infrastructure Layer:** 80% coverage target
+- Test file operations with real file system (integration)
+- Test Copilot integration with mocks
+- Test configuration persistence
+
+**UI Layer:** ViewModel logic only
+- Test command enable/disable logic
+- Test state property changes
+- Test error handling in ViewModels
+
+### 9.2 Integration Testing
+
+- End-to-end tests with real files and mocked AI
+- CLI argument parsing tests
+- Exit code verification tests
+
+### 9.3 Test Doubles
+
+**Mocks** (implement interfaces with controllable behavior):
+
+| Mock | Purpose |
+|------|--------|
+| MockAiService | Returns predefined responses for AI methods. Allows testing AI integration without real Copilot calls. |
+| MockFileService | In-memory file system. Reads/writes from dictionary instead of disk. |
+| MockConfigurationService | In-memory preferences storage. |
+
+**Fixtures** (test data):
+
+| Fixture | Content |
+|---------|--------|
+| ConflictSamples/ | Sample conflict files with various Git conflict marker patterns |
+| ExpectedResults/ | Expected resolved outputs for each sample conflict |
+
+---
+
+## 10. Security Considerations
+
+### 10.1 Data Handling
+
+1. **File contents** are only transmitted to GitHub Copilot service
+2. **No local caching** of file contents (only drafts in temp directory, deleted on close)
+3. **Preferences** do not include file paths or repository information
+4. **Logs** never include file contents
+
+### 10.2 Authentication
+
+1. Authentication is delegated entirely to Copilot CLI
+2. No tokens stored by AutoMerge
+3. Re-authentication prompts handled by Copilot CLI
+
+### 10.3 Input Validation
+
+1. All file paths validated before use
+2. Path traversal attacks prevented
+3. File size limits enforced (configurable, default 10MB)
+
+---
+
+## 11. Performance Considerations
+
+### 11.1 Startup Performance
+
+- Lazy initialization of Copilot SDK (don't block UI)
+- Async file loading with progress indication
+- UI renders immediately with loading skeleton
+
+### 11.2 Large File Handling
+
+- Virtualized text rendering (AvaloniaEdit handles this)
+- Diff calculation runs on background thread
+- AI context limited to conflict regions (not entire file) for very large files
+
+### 11.3 Memory Management
+
+- File contents not duplicated unnecessarily
+- Copilot session disposed when merge completes
+- Draft files cleaned up on normal exit
+
+---
+
+## 12. Extensibility Points
+
+The architecture supports future extensions:
+
+### 12.1 Additional AI Providers (BYOK)
+
+`IAiService` can have alternative implementations:
+- `OpenAiService` - Direct OpenAI API
+- `AzureOpenAiService` - Azure-hosted models
+- `OllamaService` - Local models
+
+### 12.2 Additional Version Control Systems
+
+Abstract the conflict parsing:
+- `GitConflictParser` (current)
+- `SvnConflictParser` (future)
+- `MercurialConflictParser` (future)
+
+### 12.3 Plugins for Language-Specific Analysis
+
+Hook points for language-aware resolution:
+- Semantic parsing for known languages
+- AST-aware merging
+- Import/using statement deduplication
+
+---
+
+## 13. Glossary
+
+| Term | Definition |
+|------|------------|
+| **Base** | The common ancestor version of a file before divergent changes |
+| **Local/Ours** | The version from the current branch being merged into |
+| **Remote/Theirs** | The version from the branch being merged |
+| **Merged** | The output file where the resolution is written |
+| **Conflict Region** | A section of code marked by Git conflict markers |
+| **Resolution** | The final merged content chosen by the user |
+| **Session** | A single merge operation from launch to accept/cancel |
+
+---
+
+## 14. Revision History
+
+| Version | Date | Author | Changes |
+|---------|------|--------|---------|
+| 1.0 | 2026-01-31 | AI | Initial specification |
+
+---
+
+*End of Specification*

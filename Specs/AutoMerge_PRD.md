@@ -181,6 +181,7 @@ AutoMerge solves this by providing an intelligent merge resolution experience th
 | FR-CLI-005 | Return exit code 0 on successful resolution, 1 on cancel/failure |
 | FR-CLI-006 | Support `--no-gui` flag for future headless/CI mode |
 | FR-CLI-007 | Support `--wait` flag for synchronous operation (block until closed) |
+| FR-CLI-008 | When no arguments are provided, launch the GUI and allow file selection from the app |
 
 ### 6.2 User Interface
 
@@ -194,6 +195,7 @@ AutoMerge solves this by providing an intelligent merge resolution experience th
 | FR-UI-006 | Provide conflict navigation for multi-file merges |
 | FR-UI-007 | Support dark and light themes matching system preference |
 | FR-UI-008 | Provide keyboard shortcuts for all major actions |
+| FR-UI-009 | Provide an "Open Merge" workflow to choose Local/Remote/Merged and optional Base from the GUI |
 
 ### 6.3 AI Integration (Copilot SDK)
 
@@ -475,6 +477,9 @@ EXIT CODES:
     1    Resolution cancelled or error occurred
 
 EXAMPLES:
+    # GUI mode with file picker
+    automerge
+
     # Standard 4-file merge (for git mergetool)
     automerge BASE LOCAL REMOTE MERGED
     

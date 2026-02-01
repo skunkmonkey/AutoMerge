@@ -60,6 +60,24 @@ public sealed partial class MainWindow : Window
         await dialogService.ShowDialogAsync(this, dialog).ConfigureAwait(true);
     }
 
+    private async Task OpenMergeAsync()
+    {
+        var dialogService = _services.GetRequiredService<DialogService>();
+        var viewModel = _services.GetRequiredService<MergeInputDialogViewModel>();
+        var dialog = new MergeInputDialog { DataContext = viewModel };
+        var input = await dialogService.ShowDialogAsync<AutoMerge.Core.Models.MergeInput>(this, dialog).ConfigureAwait(true);
+
+        if (input is null)
+        {
+            return;
+        }
+
+        if (DataContext is MainWindowViewModel mainViewModel)
+        {
+            await mainViewModel.InitializeAsync(input).ConfigureAwait(true);
+        }
+    }
+
     private async void OnSaveDraftClicked(object? sender, RoutedEventArgs e)
     {
         await SaveDraftAsync().ConfigureAwait(true);
@@ -68,5 +86,10 @@ public sealed partial class MainWindow : Window
     private async void OnOpenPreferencesClicked(object? sender, RoutedEventArgs e)
     {
         await OpenPreferencesAsync().ConfigureAwait(true);
+    }
+
+    private async void OnOpenMergeClicked(object? sender, RoutedEventArgs e)
+    {
+        await OpenMergeAsync().ConfigureAwait(true);
     }
 }

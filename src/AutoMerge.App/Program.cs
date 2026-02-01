@@ -15,7 +15,7 @@ internal static class Program
             return parseResult.ExitCode;
         }
 
-        var mergeInput = parseResult.MergeInput ?? throw new InvalidOperationException("Merge input is required.");
+        var mergeInput = parseResult.MergeInput;
         var services = new ServiceCollection()
             .AddAutoMergeServices()
             .BuildServiceProvider();
@@ -24,10 +24,15 @@ internal static class Program
             .StartWithClassicDesktopLifetime(args);
     }
 
-    private static AppBuilder BuildAvaloniaApp(IServiceProvider services, MergeInput mergeInput)
+    private static AppBuilder BuildAvaloniaApp(IServiceProvider services, MergeInput? mergeInput)
     {
         return AppBuilder
-            .Configure(() => new App(services, mergeInput))
+            .Configure(() =>
+            {
+                var app = new App();
+                app.Configure(services, mergeInput);
+                return app;
+            })
             .UsePlatformDetect()
             .LogToTrace();
     }

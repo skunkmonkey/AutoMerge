@@ -279,6 +279,7 @@ Views are Avalonia XAML files with minimal code-behind (only UI initialization l
 | Dialog | Purpose |
 |--------|--------|
 | PreferencesDialog | Modal dialog for editing user preferences |
+| MergeInputDialog | Modal dialog for selecting merge input files when launched without CLI arguments |
 | AuthenticationDialog | Shown when Copilot authentication is needed |
 | ErrorDialog | Modal dialog for critical errors with retry/cancel options |
 
@@ -308,6 +309,7 @@ Views are Avalonia XAML files with minimal code-behind (only UI initialization l
 | AiChatViewModel | Chat panel state. Holds conversation history, manages streaming state, handles send command. |
 | ConflictNavigatorViewModel | Multi-file navigation state. Tracks resolved/remaining counts, handles previous/next. |
 | PreferencesViewModel | Preferences dialog state. Holds editable preference values, handles save/cancel/reset. |
+| MergeInputDialogViewModel | Merge input dialog state. Holds file paths and validation state. |
 
 #### 4.4.3 ViewModel Responsibilities
 
@@ -379,7 +381,8 @@ UI-specific services that don't belong in lower layers.
 The application entry point follows this sequence:
 
 1. **Parse CLI arguments** using System.CommandLine
-   - Validate that required arguments are provided
+   - If no arguments are provided, launch the GUI without a session and allow file selection from the app
+   - Validate that required arguments are provided when arguments are present
    - Handle --help and --version immediately (exit after display)
    - Extract file paths into MergeInput value object
 
@@ -388,7 +391,7 @@ The application entry point follows this sequence:
    - Configure Copilot SDK client
    - Register ViewModels
 
-3. **Create MergeInput** from validated arguments
+3. **Create MergeInput** from validated arguments (if provided)
    - Verify all input files exist and are readable
    - Verify output path is writable
 
@@ -483,12 +486,13 @@ This pattern keeps the Infrastructure layer decoupled from UI concerns while ena
 
 ### 6.1 Application Startup Flow
 
-**Trigger:** Git client runs `automerge --base B --local L --remote R --merged M`
+**Trigger:** Git client runs `automerge --base B --local L --remote R --merged M` or user runs `automerge` with no arguments
 
 **Step 1: Program.Main**
 - Parse CLI arguments into MergeInput (basePath, localPath, remotePath, outputPath)
+- If no arguments are provided, start the app without a MergeInput
 - Build ServiceProvider (DI container)
-- Resolve MainWindowViewModel and inject MergeInput
+- Resolve MainWindowViewModel and inject MergeInput when available
 - Start Avalonia application
 
 **Step 2: MainWindowViewModel.InitializeAsync()**
@@ -498,6 +502,10 @@ This pattern keeps the Infrastructure layer decoupled from UI concerns while ena
 - Handler creates MergeSession and stores in MergeSessionManager
 - ViewModel updates DiffPaneViewModels with file content
 - If auto-analyze preference is enabled, trigger initial AI analysis
+
+**Step 2a: No-arg GUI launch**
+- User clicks "Open Merge" and selects Local/Remote/Merged (Base optional)
+- ViewModel creates MergeInput and calls InitializeAsync()
 
 ### 6.2 AI Resolution Flow
 

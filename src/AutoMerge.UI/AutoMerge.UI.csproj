@@ -11,10 +11,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="*" />
-    <PackageReference Include="Avalonia.Desktop" Version="*" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="*" />
-    <PackageReference Include="AvaloniaEdit" Version="*" />
+    <PackageReference Include="Avalonia" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.3" />
+    <PackageReference Include="Avalonia.AvaloniaEdit" Version="11.2.0" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="*" />
   </ItemGroup>
 </Project>

@@ -14,9 +14,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="*" />
-    <PackageReference Include="Avalonia.Desktop" Version="*" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="*" />
+    <PackageReference Include="Avalonia" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.3" />
     <PackageReference Include="System.CommandLine" Version="*" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="*" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="*" />

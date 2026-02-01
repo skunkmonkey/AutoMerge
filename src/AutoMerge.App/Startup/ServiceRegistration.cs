@@ -51,6 +51,7 @@ public static class ServiceRegistration
         services.AddTransient<DiffPaneViewModel>();
         services.AddTransient<MergedResultViewModel>();
         services.AddTransient<AiChatViewModel>();
+        services.AddTransient<MergeInputDialogViewModel>();
         services.AddTransient<PreferencesViewModel>();
         services.AddTransient<MainWindowViewModel>();
 

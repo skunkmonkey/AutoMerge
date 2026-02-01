@@ -8,16 +8,16 @@
   <StackPanel Margin="16" Spacing="12">
     <TextBlock Text="Preferences" FontSize="18" FontWeight="Bold" />
 
-    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="8">
-      <TextBlock Grid.Row="0" Grid.Column="0" Text="Default bias" VerticalAlignment="Center" />
+    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto">
+      <TextBlock Grid.Row="0" Grid.Column="0" Text="Default bias" VerticalAlignment="Center" Margin="0,0,12,8" />
       <ComboBox Grid.Row="0" Grid.Column="1"
                 ItemsSource="{Binding DefaultBiasOptions}"
-                SelectedItem="{Binding DefaultBias}" />
+                SelectedItem="{Binding DefaultBias}" Margin="0,0,0,8" />
 
-      <TextBlock Grid.Row="1" Grid.Column="0" Text="Auto-analyze on load" VerticalAlignment="Center" />
-      <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding AutoAnalyzeOnLoad}" />
+      <TextBlock Grid.Row="1" Grid.Column="0" Text="Auto-analyze on load" VerticalAlignment="Center" Margin="0,0,12,8" />
+      <CheckBox Grid.Row="1" Grid.Column="1" IsChecked="{Binding AutoAnalyzeOnLoad}" Margin="0,0,0,8" />
 
-      <TextBlock Grid.Row="2" Grid.Column="0" Text="Theme" VerticalAlignment="Center" />
+      <TextBlock Grid.Row="2" Grid.Column="0" Text="Theme" VerticalAlignment="Center" Margin="0,0,12,0" />
       <ComboBox Grid.Row="2" Grid.Column="1"
                 ItemsSource="{Binding ThemeOptions}"
                 SelectedItem="{Binding Theme}" />

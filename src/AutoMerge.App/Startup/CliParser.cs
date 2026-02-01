@@ -34,6 +34,9 @@ EXIT CODES:
     1    Resolution cancelled or error occurred
 
 EXAMPLES:
+    # GUI mode with file picker
+    automerge
+
     # Standard 4-file merge (for git mergetool)
     automerge BASE LOCAL REMOTE MERGED
     
@@ -55,6 +58,11 @@ EXAMPLES:
         {
             Console.WriteLine($"AutoMerge {GetVersionString()}");
             return new CliParseResult(null, true, 0, true, false);
+        }
+
+        if (args.Length == 0)
+        {
+            return new CliParseResult(null, false, 0, true, false);
         }
         string? basePath = null;
         string? localPath = null;

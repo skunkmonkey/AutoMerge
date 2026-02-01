@@ -50,10 +50,10 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         MergedResultViewModel = mergedResultViewModel;
         AiChatViewModel = aiChatViewModel;
 
-        AnalyzeCommand = new AsyncRelayCommand(AnalyzeAsync, () => !IsAiBusy && IsAiAvailable);
-        GetAiHelpCommand = new AsyncRelayCommand(ProposeResolutionAsync, () => !IsAiBusy && IsAiAvailable);
+        AnalyzeCommand = new AsyncRelayCommand(AnalyzeAsync, () => !IsAiBusy && IsAiAvailable && IsSessionLoaded);
+        GetAiHelpCommand = new AsyncRelayCommand(ProposeResolutionAsync, () => !IsAiBusy && IsAiAvailable && IsSessionLoaded);
         AcceptCommand = new AsyncRelayCommand(AcceptAsync, () => CanAccept);
-        CancelCommand = new RelayCommand(Cancel);
+        CancelCommand = new RelayCommand(Cancel, () => IsSessionLoaded);
         OpenPreferencesCommand = new RelayCommand(() => { });
         ReconnectAiCommand = new AsyncRelayCommand(CheckAiStatusAsync, () => !IsAiBusy);
         RetryLoadCommand = new AsyncRelayCommand(RetryLoadAsync, () => !IsLoading && _lastInput is not null);
@@ -72,6 +72,9 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private bool _isLoading;
+
+    [ObservableProperty]
+    private bool _isSessionLoaded;
 
     [ObservableProperty]
     private bool _isAiBusy;
@@ -102,8 +105,10 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     public async Task InitializeAsync(MergeInput input)
     {
         _lastInput = input;
+        IsSessionLoaded = false;
         IsLoading = true;
         ErrorMessage = null;
+        ClearContent();
 
         await CheckAiStatusAsync().ConfigureAwait(false);
 
@@ -112,6 +117,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         {
             ErrorMessage = result.ErrorMessage;
             IsLoading = false;
+            IsSessionLoaded = false;
             return;
         }
 
@@ -127,6 +133,18 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         MergedResultViewModel.SetSourceContents(baseFile.Content, localFile.Content, remoteFile.Content, result.Session.CurrentMergedContent);
         UpdateCanAccept();
         IsLoading = false;
+        IsSessionLoaded = true;
+    }
+
+    public void ShowEmptyState()
+    {
+        _lastInput = null;
+        State = SessionState.Created;
+        ErrorMessage = null;
+        IsLoading = false;
+        IsSessionLoaded = false;
+        ClearContent();
+        UpdateCanAccept();
     }
 
     private async Task AnalyzeAsync()
@@ -182,12 +200,13 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
     private void UpdateCanAccept()
     {
-        CanAccept = !IsAiBusy && !MergedResultViewModel.HasConflictMarkers;
+        CanAccept = IsSessionLoaded && !IsAiBusy && !MergedResultViewModel.HasConflictMarkers;
         AcceptCommand.NotifyCanExecuteChanged();
         AnalyzeCommand.NotifyCanExecuteChanged();
         GetAiHelpCommand.NotifyCanExecuteChanged();
         ReconnectAiCommand.NotifyCanExecuteChanged();
         RetryLoadCommand.NotifyCanExecuteChanged();
+        CancelCommand.NotifyCanExecuteChanged();
     }
 
     private async Task RetryLoadAsync()
@@ -238,6 +257,20 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     {
         AnalyzeCommand.NotifyCanExecuteChanged();
         GetAiHelpCommand.NotifyCanExecuteChanged();
+        CancelCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnIsSessionLoadedChanged(bool value)
+    {
+        UpdateCanAccept();
+    }
+
+    private void ClearContent()
+    {
+        BasePaneViewModel.SetContent(string.Empty, Array.Empty<LineChange>());
+        LocalPaneViewModel.SetContent(string.Empty, Array.Empty<LineChange>());
+        RemotePaneViewModel.SetContent(string.Empty, Array.Empty<LineChange>());
+        MergedResultViewModel.SetSourceContents(string.Empty, string.Empty, string.Empty, string.Empty);
     }
 
     partial void OnErrorMessageChanged(string? value)

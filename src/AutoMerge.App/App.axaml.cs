@@ -11,13 +11,18 @@ namespace AutoMerge.App;
 
 public sealed class App : Avalonia.Application
 {
-    private readonly IServiceProvider _services;
-    private readonly MergeInput _mergeInput;
+    private IServiceProvider? _services;
+    private MergeInput? _mergeInput;
 
-    public App(IServiceProvider services, MergeInput mergeInput)
+    public App()
+    {
+        // Required for XAML loader
+    }
+
+    public void Configure(IServiceProvider services, MergeInput? mergeInput)
     {
         _services = services ?? throw new ArgumentNullException(nameof(services));
-        _mergeInput = mergeInput ?? throw new ArgumentNullException(nameof(mergeInput));
+        _mergeInput = mergeInput;
     }
 
     public override void Initialize()
@@ -27,6 +32,11 @@ public sealed class App : Avalonia.Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        if (_services is null)
+        {
+            throw new InvalidOperationException("App.Configure() must be called before framework initialization.");
+        }
+
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             var eventAggregator = _services.GetRequiredService<IEventAggregator>();
@@ -41,7 +51,14 @@ public sealed class App : Avalonia.Application
             mainWindow.DataContext = viewModel;
             desktop.MainWindow = mainWindow;
 
-            _ = viewModel.InitializeAsync(_mergeInput);
+            if (_mergeInput is not null)
+            {
+                _ = viewModel.InitializeAsync(_mergeInput);
+            }
+            else
+            {
+                viewModel.ShowEmptyState();
+            }
         }
 
         base.OnFrameworkInitializationCompleted();

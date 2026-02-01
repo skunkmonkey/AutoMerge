@@ -10,6 +10,7 @@ public sealed partial class CodeEditorControl : UserControl
 {
     private TextEditor? _editor;
     private bool _isUpdating;
+    private bool _isInitialized;
 
     static CodeEditorControl()
     {
@@ -35,10 +36,11 @@ public sealed partial class CodeEditorControl : UserControl
         _editor = this.FindControl<TextEditor>("Editor");
         if (_editor is not null)
         {
-            _editor.Text = Text;
-            _editor.IsReadOnly = IsReadOnly;
             _editor.TextChanged += OnEditorTextChanged;
+            // Sync initial values now that _editor is available
+            SyncEditorWithProperties();
         }
+        _isInitialized = true;
     }
 
     public string Text
@@ -70,9 +72,28 @@ public sealed partial class CodeEditorControl : UserControl
         AvaloniaXamlLoader.Load(this);
     }
 
+    private void SyncEditorWithProperties()
+    {
+        if (_editor is null)
+        {
+            return;
+        }
+
+        _isUpdating = true;
+        _editor.Text = Text ?? string.Empty;
+        _editor.IsReadOnly = IsReadOnly;
+        _isUpdating = false;
+    }
+
     private void UpdateEditorText(AvaloniaPropertyChangedEventArgs args)
     {
         if (_editor is null || _isUpdating)
+        {
+            return;
+        }
+
+        // If not yet initialized, the sync will happen in constructor
+        if (!_isInitialized)
         {
             return;
         }
@@ -82,7 +103,7 @@ public sealed partial class CodeEditorControl : UserControl
 
     private void UpdateEditorIsReadOnly(AvaloniaPropertyChangedEventArgs args)
     {
-        if (_editor is null)
+        if (_editor is null || !_isInitialized)
         {
             return;
         }
@@ -92,7 +113,7 @@ public sealed partial class CodeEditorControl : UserControl
 
     private void OnEditorTextChanged(object? sender, EventArgs e)
     {
-        if (_editor is null)
+        if (_editor is null || _isUpdating)
         {
             return;
         }

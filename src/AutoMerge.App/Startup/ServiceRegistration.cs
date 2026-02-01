@@ -55,7 +55,9 @@ public static class ServiceRegistration
         services.AddTransient<PreferencesViewModel>();
         services.AddTransient<MainWindowViewModel>();
 
-        services.AddSingleton<IAiService>(_ => new MockAiService());
+        // Register the real Copilot AI service
+        // Requires GitHub Copilot CLI to be installed and authenticated (run 'copilot auth login')
+        services.AddSingleton<IAiService, CopilotAiService>();
 
         return services;
     }

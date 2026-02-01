@@ -1,7 +1,7 @@
 # AutoMerge Technical Specification
 
-**Version:** 1.0  
-**Date:** January 31, 2026  
+**Version:** 1.1  
+**Date:** February 1, 2026  
 **Status:** Draft  
 **Related Documents:** [AutoMerge_PRD.md](AutoMerge_PRD.md)
 
@@ -196,29 +196,58 @@ Events enable decoupled communication between Application and UI layers using a 
 
 #### 4.3.1 AI Integration
 
-The AI integration layer implements `IAiService` using the GitHub Copilot SDK.
+The AI integration layer implements `IAiService` using the GitHub Copilot SDK (`GitHub.Copilot.SDK` NuGet package).
+
+**Prerequisites:**
+- GitHub Copilot CLI must be installed and available in PATH
+- User must be authenticated via `copilot auth login` before first use
+- Requires an active GitHub Copilot subscription
+
+**Authentication Flow:**
+1. On startup, `CopilotAiService.GetStatusAsync()` attempts to connect to the Copilot CLI
+2. If CLI is not found, UI shows "GitHub Copilot CLI not found" with installation link
+3. If CLI is found but user not authenticated, UI shows "Please authenticate with GitHub Copilot CLI: run 'copilot auth login'"
+4. Once authenticated, the SDK uses the logged-in user's credentials automatically
+5. No tokens are stored by AutoMerge - authentication is fully delegated to Copilot CLI
 
 **Primary Components:**
 
 | Component | Responsibility |
 |-----------|---------------|
-| CopilotAiService | Implements IAiService. Manages Copilot client lifecycle, creates sessions, handles streaming responses. |
-| CopilotSessionFactory | Creates and configures Copilot sessions with appropriate system prompts and tool registrations. |
-| CopilotToolDefinitions | Defines the custom tools that Copilot can invoke (see Section 8.3 of PRD). |
-| CopilotResponseMapper | Maps Copilot SDK response types to domain models (ConflictAnalysis, MergeResolution). |
+| CopilotAiService | Implements IAiService. Manages CopilotClient lifecycle, creates sessions, handles streaming responses, and provides clear authentication status messages. |
+| SystemPrompts | Contains the merge agent system prompt and templates for analysis, resolution, and refinement operations. |
+| MockAiService | Test double for unit testing. Provides canned responses without requiring Copilot CLI. |
 
-**Custom Tools (invoked by Copilot agent):**
+**CopilotClient Configuration:**
+```csharp
+new CopilotClientOptions
+{
+    AutoStart = false,        // Manual control over lifecycle
+    UseLoggedInUser = true    // Use Copilot CLI's existing authentication
+}
+```
 
-| Tool | Purpose |
-|------|--------|
-| AnalyzeConflictTool | Analyzes conflict structure and provides semantic understanding |
-| ProposeResolutionTool | Generates merged content with explanations |
-| ExplainChangesTool | Explains what changed in a specific region |
-| ValidateResultTool | Validates that proposed resolution is valid (no conflict markers) |
+**Session Configuration:**
+```csharp
+new SessionConfig
+{
+    Model = "gpt-4.1",        // Model selection
+    Streaming = true,          // Enable real-time streaming
+    SystemMessage = new SystemMessageConfig
+    {
+        Mode = SystemMessageMode.Append,
+        Content = SystemPrompts.MergeAgentSystemPrompt
+    }
+}
+```
 
 **Prompts:**
 
-System prompts and templates are stored as resources. The MergeAgentSystemPrompt configures the Copilot agent's persona as a merge conflict expert. PromptTemplates contains reusable prompt fragments for different operations.
+System prompts and templates are stored in `Infrastructure/AI/Prompts/SystemPrompts.cs`:
+- `MergeAgentSystemPrompt` - Configures the Copilot agent's persona as a merge conflict expert
+- `AnalysisPromptTemplate` - Template for conflict analysis requests
+- `ResolutionPromptTemplate` - Template for resolution proposal requests  
+- `RefinementPromptTemplate` - Template for refinement requests
 
 #### 4.3.2 File Operations
 
@@ -820,6 +849,7 @@ Hook points for language-aware resolution:
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-31 | AI | Initial specification |
+| 1.1 | 2026-02-01 | AI | Updated AI Integration section with detailed Copilot SDK usage, authentication flow, and CLI prerequisites |
 
 ---
 

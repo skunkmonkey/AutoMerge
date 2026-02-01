@@ -53,7 +53,20 @@ public sealed class App : Avalonia.Application
 
             if (_mergeInput is not null)
             {
-                _ = viewModel.InitializeAsync(_mergeInput);
+                // Use Dispatcher to ensure initialization runs on UI thread and errors are handled
+                Avalonia.Threading.Dispatcher.UIThread.Post(async () =>
+                {
+                    try
+                    {
+                        await viewModel.InitializeAsync(_mergeInput);
+                    }
+                    catch (Exception ex)
+                    {
+                        viewModel.ShowEmptyState();
+                        // Log or display error - the ViewModel's ErrorMessage property should handle this
+                        System.Diagnostics.Debug.WriteLine($"Initialization error: {ex}");
+                    }
+                });
             }
             else
             {

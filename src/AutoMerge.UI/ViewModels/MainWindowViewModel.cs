@@ -108,32 +108,47 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         IsSessionLoaded = false;
         IsLoading = true;
         ErrorMessage = null;
+        HasError = false;
         ClearContent();
 
-        await CheckAiStatusAsync().ConfigureAwait(false);
-
-        var result = await _loadHandler.ExecuteAsync(new LoadMergeSessionCommand(input)).ConfigureAwait(false);
-        if (!result.Success || result.Session is null)
+        try
         {
-            ErrorMessage = result.ErrorMessage;
+            // Check AI status (can run on background thread)
+            await CheckAiStatusAsync();
+
+            // Load the merge session
+            var result = await _loadHandler.ExecuteAsync(new LoadMergeSessionCommand(input));
+            if (!result.Success || result.Session is null)
+            {
+                ErrorMessage = result.ErrorMessage ?? "Failed to load merge session.";
+                IsLoading = false;
+                IsSessionLoaded = false;
+                return;
+            }
+
+            State = result.Session.State;
+
+            // Read all files
+            var baseFile = await _fileService.ReadAsync(input.BasePath, CancellationToken.None);
+            var localFile = await _fileService.ReadAsync(input.LocalPath, CancellationToken.None);
+            var remoteFile = await _fileService.ReadAsync(input.RemotePath, CancellationToken.None);
+
+            // Update UI on the UI thread via property setters (CommunityToolkit.Mvvm handles this)
+            BasePaneViewModel.SetContent(baseFile.Content, Array.Empty<LineChange>());
+            LocalPaneViewModel.SetContent(localFile.Content, _diffCalculator.CalculateDiff(baseFile.Content, localFile.Content));
+            RemotePaneViewModel.SetContent(remoteFile.Content, _diffCalculator.CalculateDiff(baseFile.Content, remoteFile.Content));
+
+            MergedResultViewModel.SetSourceContents(baseFile.Content, localFile.Content, remoteFile.Content, result.Session.CurrentMergedContent);
+            UpdateCanAccept();
+            IsLoading = false;
+            IsSessionLoaded = true;
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error loading files: {ex.Message}";
             IsLoading = false;
             IsSessionLoaded = false;
-            return;
         }
-
-        State = result.Session.State;
-        var baseFile = await _fileService.ReadAsync(input.BasePath, CancellationToken.None).ConfigureAwait(false);
-        var localFile = await _fileService.ReadAsync(input.LocalPath, CancellationToken.None).ConfigureAwait(false);
-        var remoteFile = await _fileService.ReadAsync(input.RemotePath, CancellationToken.None).ConfigureAwait(false);
-
-        BasePaneViewModel.SetContent(baseFile.Content, Array.Empty<LineChange>());
-        LocalPaneViewModel.SetContent(localFile.Content, _diffCalculator.CalculateDiff(baseFile.Content, localFile.Content));
-        RemotePaneViewModel.SetContent(remoteFile.Content, _diffCalculator.CalculateDiff(baseFile.Content, remoteFile.Content));
-
-        MergedResultViewModel.SetSourceContents(baseFile.Content, localFile.Content, remoteFile.Content, result.Session.CurrentMergedContent);
-        UpdateCanAccept();
-        IsLoading = false;
-        IsSessionLoaded = true;
     }
 
     public void ShowEmptyState()
@@ -150,37 +165,64 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     private async Task AnalyzeAsync()
     {
         IsAiBusy = true;
-        var result = await _analyzeHandler.ExecuteAsync(new AnalyzeConflictCommand()).ConfigureAwait(false);
-        if (!result.Success)
+        try
         {
-            ErrorMessage = result.ErrorMessage;
+            var result = await _analyzeHandler.ExecuteAsync(new AnalyzeConflictCommand());
+            if (!result.Success)
+            {
+                ErrorMessage = result.ErrorMessage;
+            }
         }
-        IsAiBusy = false;
-        UpdateCanAccept();
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Analysis failed: {ex.Message}";
+        }
+        finally
+        {
+            IsAiBusy = false;
+            UpdateCanAccept();
+        }
     }
 
     private async Task ProposeResolutionAsync()
     {
         IsAiBusy = true;
-        var result = await _proposeHandler.ExecuteAsync(new ProposeResolutionCommand()).ConfigureAwait(false);
-        if (result.Success && result.Resolution is not null)
+        try
         {
-            MergedResultViewModel.Content = result.Resolution.ResolvedContent;
+            var result = await _proposeHandler.ExecuteAsync(new ProposeResolutionCommand());
+            if (result.Success && result.Resolution is not null)
+            {
+                MergedResultViewModel.Content = result.Resolution.ResolvedContent;
+            }
+            else if (!result.Success)
+            {
+                ErrorMessage = result.ErrorMessage;
+            }
         }
-        else if (!result.Success)
+        catch (Exception ex)
         {
-            ErrorMessage = result.ErrorMessage;
+            ErrorMessage = $"AI resolution failed: {ex.Message}";
         }
-        IsAiBusy = false;
-        UpdateCanAccept();
+        finally
+        {
+            IsAiBusy = false;
+            UpdateCanAccept();
+        }
     }
 
     private async Task AcceptAsync()
     {
-        var result = await _acceptHandler.ExecuteAsync(new AcceptResolutionCommand(MergedResultViewModel.Content)).ConfigureAwait(false);
-        if (!result.Success)
+        try
         {
-            ErrorMessage = result.ErrorMessage;
+            var result = await _acceptHandler.ExecuteAsync(new AcceptResolutionCommand(MergedResultViewModel.Content));
+            if (!result.Success)
+            {
+                ErrorMessage = result.ErrorMessage;
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Accept failed: {ex.Message}";
         }
     }
 
@@ -216,14 +258,14 @@ public sealed partial class MainWindowViewModel : ViewModelBase
             return;
         }
 
-        await InitializeAsync(_lastInput).ConfigureAwait(false);
+        await InitializeAsync(_lastInput);
     }
 
     private async Task CheckAiStatusAsync()
     {
         try
         {
-            var status = await _aiService.GetStatusAsync(CancellationToken.None).ConfigureAwait(false);
+            var status = await _aiService.GetStatusAsync(CancellationToken.None);
             IsAiAvailable = status.IsAvailable && status.IsAuthenticated;
 
             if (IsAiAvailable)

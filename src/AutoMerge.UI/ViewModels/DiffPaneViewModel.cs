@@ -1,4 +1,5 @@
 using AutoMerge.Core.Models;
+using AutoMerge.UI.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace AutoMerge.UI.ViewModels;
@@ -22,7 +23,10 @@ public sealed partial class DiffPaneViewModel : ViewModelBase
 
     public void SetContent(string content, IReadOnlyList<LineChange> changes)
     {
+        FileLogger.Log($"DiffPaneViewModel[{Title}].SetContent: {content.Length} chars");
+        FileLogger.Log($"DiffPaneViewModel[{Title}] first 50: '{content.Substring(0, Math.Min(50, content.Length))}'");
         Content = content;
+        FileLogger.Log($"DiffPaneViewModel[{Title}].Content after set: {Content.Length} chars");
         LineChanges = changes;
     }
 }

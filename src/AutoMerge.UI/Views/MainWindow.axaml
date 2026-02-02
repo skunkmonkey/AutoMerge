@@ -3,47 +3,227 @@
         xmlns:views="clr-namespace:AutoMerge.UI.Views.Panels"
         xmlns:converters="clr-namespace:AutoMerge.UI.Converters"
         x:Class="AutoMerge.UI.Views.MainWindow"
-        Width="1200" Height="800" Title="AutoMerge">
+        Width="1400" Height="900" 
+        MinWidth="1000" MinHeight="600"
+        Title="AutoMerge — AI-Powered Merge Conflict Resolution"
+        Background="{StaticResource AppBackgroundBrush}">
+  
   <Window.Resources>
     <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
   </Window.Resources>
-  <Grid RowDefinitions="Auto,*" ColumnDefinitions="2*,3*">
-    <Border Padding="8" Grid.ColumnSpan="2">
-      <StackPanel Orientation="Horizontal" Spacing="8">
-        <Button Content="Open Merge..." Click="OnOpenMergeClicked" />
-        <Button Content="Analyze" Command="{Binding AnalyzeCommand}" ToolTip.Tip="{Binding AiStatusMessage}" />
-        <Button Content="Get AI Help" Command="{Binding GetAiHelpCommand}" ToolTip.Tip="{Binding AiStatusMessage}" />
-        <Button Content="Reconnect AI" Command="{Binding ReconnectAiCommand}" IsVisible="{Binding IsAiAvailable, Converter={StaticResource InverseBoolConverter}}" />
-        <Button Content="Save Draft" Click="OnSaveDraftClicked" ToolTip.Tip="Cmd/Ctrl+S" />
-        <Button Content="Preferences" Click="OnOpenPreferencesClicked" ToolTip.Tip="Cmd/Ctrl+," />
-        <Button Content="Accept" Command="{Binding AcceptCommand}" ToolTip.Tip="Cmd/Ctrl+Enter" />
-        <Button Content="Cancel" Command="{Binding CancelCommand}" ToolTip.Tip="Escape" />
-        <Button Content="Retry Load" Command="{Binding RetryLoadCommand}" IsVisible="{Binding HasError}" />
-        <TextBlock Text="{Binding State}" Margin="12,0,0,0" />
-        <TextBlock Text="{Binding ErrorMessage}" Foreground="OrangeRed" Margin="12,0,0,0" />
-      </StackPanel>
+  
+  <Grid RowDefinitions="Auto,*,Auto">
+    
+    <!-- ============================================== -->
+    <!-- Top Toolbar                                    -->
+    <!-- ============================================== -->
+    <Border Grid.Row="0" 
+            Background="{StaticResource SurfaceBrush}" 
+            BorderBrush="{StaticResource BorderSubtleBrush}"
+            BorderThickness="0,0,0,1"
+            Padding="16,12">
+      <Grid ColumnDefinitions="Auto,*,Auto">
+        
+        <!-- Left: File Actions -->
+        <StackPanel Orientation="Horizontal" Spacing="8" Grid.Column="0">
+          <Button Theme="{StaticResource SecondaryButton}" 
+                  Content="📁 Open Merge..." 
+                  Click="OnOpenMergeClicked"
+                  ToolTip.Tip="Open merge files (Ctrl+O)" />
+          
+          <Border Width="1" Background="{StaticResource BorderBrush}" Margin="8,4" />
+          
+          <Button Theme="{StaticResource SubtleButton}" 
+                  Content="💾 Save Draft" 
+                  Click="OnSaveDraftClicked"
+                  ToolTip.Tip="Save current draft (Ctrl+S)" />
+          
+          <Button Theme="{StaticResource SubtleButton}"
+                  Content="⚙️ Preferences" 
+                  Click="OnOpenPreferencesClicked"
+                  ToolTip.Tip="Open preferences (Ctrl+,)" />
+        </StackPanel>
+        
+        <!-- Center: AI Actions -->
+        <StackPanel Orientation="Horizontal" 
+                    Spacing="8" 
+                    Grid.Column="1" 
+                    HorizontalAlignment="Center">
+          <Button Theme="{StaticResource PrimaryButton}"
+                  Content="🔍 Analyze"
+                  Command="{Binding AnalyzeCommand}"
+                  ToolTip.Tip="{Binding AiStatusMessage}"
+                  IsVisible="{Binding IsSessionLoaded}" />
+          
+          <Button Theme="{StaticResource PrimaryButton}"
+                  Content="✨ Get AI Help"
+                  Command="{Binding GetAiHelpCommand}"
+                  ToolTip.Tip="{Binding AiStatusMessage}"
+                  IsVisible="{Binding IsSessionLoaded}" />
+          
+          <Button Theme="{StaticResource SecondaryButton}"
+                  Content="🔄 Reconnect AI"
+                  Command="{Binding ReconnectAiCommand}"
+                  IsVisible="{Binding IsAiAvailable, Converter={StaticResource InverseBoolConverter}}" />
+          
+          <Button Theme="{StaticResource SecondaryButton}"
+                  Content="🔄 Retry Load"
+                  Command="{Binding RetryLoadCommand}"
+                  IsVisible="{Binding HasError}" />
+        </StackPanel>
+        
+        <!-- Right: Resolution Actions -->
+        <StackPanel Orientation="Horizontal" Spacing="8" Grid.Column="2">
+          <Button Theme="{StaticResource DangerButton}"
+                  Content="✕ Cancel"
+                  Command="{Binding CancelCommand}"
+                  ToolTip.Tip="Cancel and exit (Escape)"
+                  IsVisible="{Binding IsSessionLoaded}" />
+          
+          <Button Theme="{StaticResource SuccessButton}"
+                  Content="✓ Accept"
+                  Command="{Binding AcceptCommand}"
+                  ToolTip.Tip="Accept resolution and save (Ctrl+Enter)"
+                  IsVisible="{Binding IsSessionLoaded}" />
+        </StackPanel>
+      </Grid>
     </Border>
 
-    <Grid Grid.Row="1" ColumnDefinitions="2*,3*" IsVisible="{Binding IsSessionLoaded}">
-      <Grid RowDefinitions="*,*,*" Grid.Column="0">
-        <views:DiffPaneView DataContext="{Binding BasePaneViewModel}" />
-        <views:DiffPaneView Grid.Row="1" DataContext="{Binding LocalPaneViewModel}" />
-        <views:DiffPaneView Grid.Row="2" DataContext="{Binding RemotePaneViewModel}" />
-      </Grid>
+    <!-- ============================================== -->
+    <!-- Main Content Area                              -->
+    <!-- ============================================== -->
+    <Grid Grid.Row="1" Margin="12">
+      
+      <!-- Session Loaded: Main Panels -->
+      <Grid ColumnDefinitions="2*,12,3*" IsVisible="{Binding IsSessionLoaded}">
+        
+        <!-- Left Column: Source Files (Base, Local, Remote) -->
+        <Grid Grid.Column="0" RowDefinitions="*,8,*,8,*">
+          <views:DiffPaneView Grid.Row="0" DataContext="{Binding BasePaneViewModel}" />
+          <views:DiffPaneView Grid.Row="2" DataContext="{Binding LocalPaneViewModel}" />
+          <views:DiffPaneView Grid.Row="4" DataContext="{Binding RemotePaneViewModel}" />
+        </Grid>
 
-      <Grid Grid.Column="1" RowDefinitions="3*,2*">
-        <views:MergedResultView DataContext="{Binding MergedResultViewModel}" />
-        <views:AiChatPanelView Grid.Row="1" DataContext="{Binding AiChatViewModel}" />
+        <!-- Right Column: Merged Result + AI Chat -->
+        <Grid Grid.Column="2" RowDefinitions="3*,8,2*">
+          <views:MergedResultView Grid.Row="0" DataContext="{Binding MergedResultViewModel}" />
+          <views:AiChatPanelView Grid.Row="2" DataContext="{Binding AiChatViewModel}" />
+        </Grid>
       </Grid>
+      
+      <!-- No Session: Welcome Screen -->
+      <Border IsVisible="{Binding IsSessionLoaded, Converter={StaticResource InverseBoolConverter}}"
+              Background="{StaticResource SurfaceBrush}"
+              CornerRadius="12"
+              Padding="48"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Center">
+        <StackPanel Spacing="24" MaxWidth="480">
+          
+          <!-- Logo/Brand Area -->
+          <StackPanel Spacing="8" HorizontalAlignment="Center">
+            <TextBlock Text="🔀" FontSize="48" HorizontalAlignment="Center" />
+            <TextBlock Text="AutoMerge" 
+                       FontSize="32" 
+                       FontWeight="Bold" 
+                       Foreground="{StaticResource TextPrimaryBrush}"
+                       HorizontalAlignment="Center" />
+            <TextBlock Text="AI-Powered Merge Conflict Resolution" 
+                       FontSize="14"
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       HorizontalAlignment="Center" />
+          </StackPanel>
+          
+          <!-- Instructions -->
+          <Border Background="{StaticResource SurfaceElevatedBrush}" 
+                  CornerRadius="8" 
+                  Padding="20">
+            <StackPanel Spacing="12">
+              <TextBlock Text="Get Started" 
+                         FontSize="16" 
+                         FontWeight="SemiBold"
+                         Foreground="{StaticResource TextPrimaryBrush}" />
+              <TextBlock Text="Select your merge files to begin resolving conflicts with AI assistance:"
+                         Foreground="{StaticResource TextSecondaryBrush}"
+                         TextWrapping="Wrap" />
+              <StackPanel Spacing="6" Margin="0,8,0,0">
+                <TextBlock Text="• Local (ours) — Your branch's version" 
+                           Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" />
+                <TextBlock Text="• Remote (theirs) — The incoming branch's version" 
+                           Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" />
+                <TextBlock Text="• Merged — Where the resolved output will be saved" 
+                           Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" />
+                <TextBlock Text="• Base (optional) — The common ancestor version" 
+                           Foreground="{StaticResource TextTertiaryBrush}" FontSize="12" FontStyle="Italic" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+          
+          <!-- CTA Button -->
+          <Button Theme="{StaticResource PrimaryButton}"
+                  Content="📁 Open Merge Files..."
+                  HorizontalAlignment="Center"
+                  Padding="24,12"
+                  FontSize="15"
+                  Click="OnOpenMergeClicked" />
+          
+          <!-- Keyboard Hint -->
+          <TextBlock Text="Tip: Configure AutoMerge as your Git merge tool for automatic launch"
+                     FontSize="11"
+                     Foreground="{StaticResource TextTertiaryBrush}"
+                     HorizontalAlignment="Center"
+                     TextAlignment="Center" />
+        </StackPanel>
+      </Border>
     </Grid>
 
-    <Border Grid.Row="1" Grid.ColumnSpan="2" Padding="24"
-            IsVisible="{Binding IsSessionLoaded, Converter={StaticResource InverseBoolConverter}}">
-      <StackPanel Spacing="12" HorizontalAlignment="Center" VerticalAlignment="Center" Width="520">
-        <TextBlock Text="Open merge files to get started" FontSize="20" FontWeight="Bold" TextAlignment="Center" />
-        <TextBlock Text="Select Local (ours), Remote (theirs), and Merged (output). Base is optional." TextWrapping="Wrap" TextAlignment="Center" />
-        <Button Content="Open Merge..." HorizontalAlignment="Center" Click="OnOpenMergeClicked" />
-      </StackPanel>
+    <!-- ============================================== -->
+    <!-- Status Bar                                     -->
+    <!-- ============================================== -->
+    <Border Grid.Row="2" 
+            Background="{StaticResource SurfaceBrush}"
+            BorderBrush="{StaticResource BorderSubtleBrush}"
+            BorderThickness="0,1,0,0"
+            Padding="16,8">
+      <Grid ColumnDefinitions="Auto,*,Auto">
+        
+        <!-- Left: Session State -->
+        <StackPanel Orientation="Horizontal" Spacing="12" Grid.Column="0">
+          <Border Background="{StaticResource SurfaceElevatedBrush}" 
+                  CornerRadius="4" 
+                  Padding="8,4">
+            <TextBlock Text="{Binding State}" 
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       FontSize="12" />
+          </Border>
+          
+          <!-- AI Status Indicator -->
+          <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+            <Ellipse Width="8" Height="8" 
+                     Fill="{Binding IsAiAvailable, Converter={x:Static converters:BoolToColorConverter.Instance}}" />
+            <TextBlock Text="{Binding IsAiAvailable, Converter={x:Static converters:BoolToAiStatusConverter.Instance}}"
+                       Foreground="{StaticResource TextTertiaryBrush}"
+                       FontSize="12" />
+          </StackPanel>
+        </StackPanel>
+        
+        <!-- Center: Error Message -->
+        <TextBlock Grid.Column="1"
+                   Text="{Binding ErrorMessage}" 
+                   Foreground="{StaticResource ErrorBrush}"
+                   FontSize="12"
+                   TextTrimming="CharacterEllipsis"
+                   VerticalAlignment="Center"
+                   Margin="16,0"
+                   IsVisible="{Binding HasError}" />
+        
+        <!-- Right: Version/Branding -->
+        <TextBlock Grid.Column="2"
+                   Text="Powered by GitHub Copilot"
+                   Foreground="{StaticResource TextTertiaryBrush}"
+                   FontSize="11"
+                   VerticalAlignment="Center" />
+      </Grid>
     </Border>
   </Grid>
 </Window>

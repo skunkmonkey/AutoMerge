@@ -4,5 +4,13 @@
              x:Class="AutoMerge.UI.Controls.CodeEditorControl">
   <avaloniaEdit:TextEditor
       Name="Editor"
-      IsReadOnly="{Binding IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+      Background="#1A1A1E"
+      Foreground="#E0E0E0"
+      FontFamily="Cascadia Code, JetBrains Mono, Consolas, Menlo, Monaco, monospace"
+      FontSize="13"
+      ShowLineNumbers="True"
+      HorizontalScrollBarVisibility="Auto"
+      VerticalScrollBarVisibility="Auto"
+      IsReadOnly="{Binding IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}}"
+      Padding="8,4" />
 </UserControl>

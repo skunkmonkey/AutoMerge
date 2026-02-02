@@ -1,30 +1,182 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:models="clr-namespace:AutoMerge.Core.Models;assembly=AutoMerge.Core"
+             xmlns:converters="clr-namespace:AutoMerge.UI.Converters"
              x:Class="AutoMerge.UI.Views.Panels.AiChatPanelView">
-  <DockPanel>
-    <Border Background="#1E1E1E" Padding="8" DockPanel.Dock="Top">
-      <TextBlock Foreground="White" Text="AI Chat" />
-    </Border>
-    <Border DockPanel.Dock="Bottom" Padding="8">
-      <StackPanel Spacing="6">
-        <TextBlock Text="{Binding StreamingText}" Foreground="LightGray" />
-        <StackPanel Orientation="Horizontal" Spacing="6">
-          <TextBox Width="260" Text="{Binding CurrentInput, Mode=TwoWay}" />
-          <Button Content="Send" Command="{Binding SendMessageCommand}" IsEnabled="{Binding SendMessageCommand.CanExecute}" />
-        </StackPanel>
-        <Button Content="Clear" Command="{Binding ClearHistoryCommand}" />
-      </StackPanel>
-    </Border>
-    <ScrollViewer>
-      <ItemsControl ItemsSource="{Binding Messages}">
-        <ItemsControl.ItemTemplate>
-          <DataTemplate>
-            <Border Margin="4" Padding="6" Background="#2D2D2D">
-              <TextBlock Text="{Binding Content}" Foreground="White" TextWrapping="Wrap" />
+  
+  <UserControl.Resources>
+    <converters:ChatRoleToAlignmentConverter x:Key="ChatRoleToAlignmentConverter" />
+    <converters:ChatRoleToBackgroundConverter x:Key="ChatRoleToBackgroundConverter" />
+    <converters:ChatRoleToIconConverter x:Key="ChatRoleToIconConverter" />
+  </UserControl.Resources>
+  
+  <Border Background="{StaticResource SurfaceBrush}"
+          BorderBrush="{StaticResource BorderSubtleBrush}"
+          BorderThickness="1"
+          CornerRadius="8">
+    <Grid RowDefinitions="Auto,*,Auto">
+      
+      <!-- Panel Header -->
+      <Border Grid.Row="0"
+              Background="{StaticResource SurfaceElevatedBrush}"
+              CornerRadius="8,8,0,0"
+              Padding="12,10">
+        <Grid ColumnDefinitions="Auto,*,Auto">
+          
+          <!-- Icon + Title -->
+          <StackPanel Orientation="Horizontal" Spacing="10" Grid.Column="0">
+            <TextBlock Text="🤖" FontSize="14" VerticalAlignment="Center" />
+            <StackPanel Spacing="2">
+              <TextBlock Text="AI Assistant" 
+                         Foreground="{StaticResource TextPrimaryBrush}"
+                         FontWeight="SemiBold"
+                         FontSize="14" />
+              <TextBlock Text="Powered by GitHub Copilot"
+                         Foreground="{StaticResource TextSecondaryBrush}"
+                         FontSize="11"
+                         Opacity="0.8" />
+            </StackPanel>
+          </StackPanel>
+          
+          <!-- Clear History Button -->
+          <Button Grid.Column="2"
+                  Theme="{StaticResource SubtleButton}"
+                  Content="🗑️ Clear"
+                  Command="{Binding ClearHistoryCommand}"
+                  ToolTip.Tip="Clear conversation history"
+                  Padding="10,6"
+                  FontSize="12" />
+        </Grid>
+      </Border>
+      
+      <!-- Messages Area -->
+      <Border Grid.Row="1" 
+              Background="{StaticResource AppBackgroundBrush}"
+              Padding="12">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+          <StackPanel Spacing="12">
+            
+            <!-- Welcome Message (shown when no messages) -->
+            <Border IsVisible="{Binding !Messages.Count}"
+                    Background="{StaticResource SurfaceElevatedBrush}"
+                    CornerRadius="8"
+                    Padding="16">
+              <StackPanel Spacing="8">
+                <TextBlock Text="👋 How can I help?"
+                           Foreground="{StaticResource TextPrimaryBrush}"
+                           FontWeight="SemiBold"
+                           FontSize="14" />
+                <TextBlock Text="Ask me to analyze the conflict, propose a resolution, or explain specific changes. I can help you understand what each side changed and suggest the best way to merge them."
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           FontSize="12"
+                           TextWrapping="Wrap" />
+                <StackPanel Spacing="4" Margin="0,8,0,0">
+                  <TextBlock Text="Try asking:"
+                             Foreground="{StaticResource TextTertiaryBrush}"
+                             FontSize="11"
+                             FontWeight="Medium" />
+                  <TextBlock Text='• "Why do these changes conflict?"'
+                             Foreground="{StaticResource TextTertiaryBrush}"
+                             FontSize="11"
+                             FontStyle="Italic" />
+                  <TextBlock Text='• "Keep the function from local but use remote imports"'
+                             Foreground="{StaticResource TextTertiaryBrush}"
+                             FontSize="11"
+                             FontStyle="Italic" />
+                  <TextBlock Text='• "Explain what the remote branch changed"'
+                             Foreground="{StaticResource TextTertiaryBrush}"
+                             FontSize="11"
+                             FontStyle="Italic" />
+                </StackPanel>
+              </StackPanel>
             </Border>
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-      </ItemsControl>
-    </ScrollViewer>
-  </DockPanel>
+            
+            <!-- Chat Messages -->
+            <ItemsControl ItemsSource="{Binding Messages}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="models:ChatMessage">
+                  <Border Margin="0,4"
+                          Background="{Binding Role, Converter={StaticResource ChatRoleToBackgroundConverter}}"
+                          CornerRadius="8"
+                          Padding="12"
+                          HorizontalAlignment="{Binding Role, Converter={StaticResource ChatRoleToAlignmentConverter}}"
+                          MaxWidth="500">
+                    <StackPanel Spacing="6">
+                      <!-- Role indicator -->
+                      <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBlock Text="{Binding Role, Converter={StaticResource ChatRoleToIconConverter}}"
+                                   FontSize="11" />
+                        <TextBlock Foreground="{StaticResource TextTertiaryBrush}"
+                                   FontSize="11"
+                                   FontWeight="Medium">
+                          <TextBlock.Text>
+                            <MultiBinding StringFormat="{}{0}">
+                              <Binding Path="Role" />
+                            </MultiBinding>
+                          </TextBlock.Text>
+                        </TextBlock>
+                      </StackPanel>
+                      <!-- Message content -->
+                      <TextBlock Text="{Binding Content}" 
+                                 Foreground="{StaticResource TextPrimaryBrush}"
+                                 FontSize="13"
+                                 TextWrapping="Wrap" />
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            
+            <!-- Streaming Response Indicator -->
+            <Border IsVisible="{Binding IsAiResponding}"
+                    Background="{StaticResource SurfaceElevatedBrush}"
+                    CornerRadius="8"
+                    Padding="12"
+                    HorizontalAlignment="Left"
+                    MaxWidth="500">
+              <StackPanel Spacing="6">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <TextBlock Text="🤖" FontSize="11" />
+                  <TextBlock Text="Assistant"
+                             Foreground="{StaticResource TextTertiaryBrush}"
+                             FontSize="11"
+                             FontWeight="Medium" />
+                  <TextBlock Text="typing..."
+                             Foreground="{StaticResource AccentBrush}"
+                             FontSize="11"
+                             FontStyle="Italic" />
+                </StackPanel>
+                <TextBlock Text="{Binding StreamingText}" 
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           FontSize="13"
+                           TextWrapping="Wrap" />
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </ScrollViewer>
+      </Border>
+      
+      <!-- Input Area -->
+      <Border Grid.Row="2"
+              Background="{StaticResource SurfaceElevatedBrush}"
+              CornerRadius="0,0,8,8"
+              Padding="12">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBox Grid.Column="0"
+                   Text="{Binding CurrentInput, Mode=TwoWay}"
+                   Watermark="Ask a question or request a refinement..."
+                   Theme="{StaticResource ModernTextBox}"
+                   AcceptsReturn="False" />
+          
+          <Button Grid.Column="1"
+                  Theme="{StaticResource PrimaryButton}"
+                  Content="Send"
+                  Command="{Binding SendMessageCommand}"
+                  Margin="8,0,0,0"
+                  Padding="20,10"
+                  IsEnabled="{Binding SendMessageCommand.CanExecute}" />
+        </Grid>
+      </Border>
+    </Grid>
+  </Border>
 </UserControl>

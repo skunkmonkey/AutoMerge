@@ -6,6 +6,7 @@ using AutoMerge.Application.UseCases.LoadMergeSession;
 using AutoMerge.Application.UseCases.ProposeResolution;
 using AutoMerge.Core.Abstractions;
 using AutoMerge.Core.Models;
+using AutoMerge.UI.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -104,6 +105,13 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
     public async Task InitializeAsync(MergeInput input)
     {
+        FileLogger.Clear();
+        FileLogger.Log($"=== InitializeAsync started ===");
+        FileLogger.Log($"Input: Base={input.BasePath}");
+        FileLogger.Log($"Input: Local={input.LocalPath}");
+        FileLogger.Log($"Input: Remote={input.RemotePath}");
+        FileLogger.Log($"Input: Output={input.OutputPath}");
+        
         _lastInput = input;
         IsSessionLoaded = false;
         IsLoading = true;
@@ -134,14 +142,22 @@ public sealed partial class MainWindowViewModel : ViewModelBase
             var remoteFile = await _fileService.ReadAsync(input.RemotePath, CancellationToken.None);
 
             // Update UI on the UI thread via property setters (CommunityToolkit.Mvvm handles this)
+            FileLogger.Log($"Files read - Base: {baseFile.Content.Length} chars, Local: {localFile.Content.Length} chars, Remote: {remoteFile.Content.Length} chars");
+            FileLogger.Log($"Base content first 100: {baseFile.Content.Substring(0, Math.Min(100, baseFile.Content.Length))}");
+            
+            FileLogger.Log("Setting BasePaneViewModel content...");
             BasePaneViewModel.SetContent(baseFile.Content, Array.Empty<LineChange>());
+            FileLogger.Log("Setting LocalPaneViewModel content...");
             LocalPaneViewModel.SetContent(localFile.Content, _diffCalculator.CalculateDiff(baseFile.Content, localFile.Content));
+            FileLogger.Log("Setting RemotePaneViewModel content...");
             RemotePaneViewModel.SetContent(remoteFile.Content, _diffCalculator.CalculateDiff(baseFile.Content, remoteFile.Content));
 
+            FileLogger.Log("Setting MergedResultViewModel content...");
             MergedResultViewModel.SetSourceContents(baseFile.Content, localFile.Content, remoteFile.Content, result.Session.CurrentMergedContent);
             UpdateCanAccept();
             IsLoading = false;
             IsSessionLoaded = true;
+            FileLogger.Log($"InitializeAsync complete. IsSessionLoaded={IsSessionLoaded}");
         }
         catch (Exception ex)
         {

@@ -1,37 +1,209 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="AutoMerge.UI.Views.Dialogs.MergeInputDialog"
-        Width="640" Height="360"
+        Width="680" Height="480"
         Title="Open Merge Files"
-        WindowStartupLocation="CenterOwner">
-  <StackPanel Margin="16" Spacing="12">
-    <TextBlock Text="Open Merge Files" FontSize="18" FontWeight="Bold" />
-    <TextBlock Text="Select Local (ours), Remote (theirs), and Merged (output). Base is optional."
-               TextWrapping="Wrap" />
-
-    <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto">
-      <TextBlock Grid.Row="0" Grid.Column="0" Text="Base (optional)" VerticalAlignment="Center" Margin="0,0,8,8" />
-      <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding BasePath}" Margin="0,0,8,8" />
-      <Button Grid.Row="0" Grid.Column="2" Content="Browse..." Click="OnBrowseBaseClicked" Margin="0,0,0,8" />
-
-      <TextBlock Grid.Row="1" Grid.Column="0" Text="Local (ours)" VerticalAlignment="Center" Margin="0,0,8,8" />
-      <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding LocalPath}" Margin="0,0,8,8" />
-      <Button Grid.Row="1" Grid.Column="2" Content="Browse..." Click="OnBrowseLocalClicked" Margin="0,0,0,8" />
-
-      <TextBlock Grid.Row="2" Grid.Column="0" Text="Remote (theirs)" VerticalAlignment="Center" Margin="0,0,8,8" />
-      <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding RemotePath}" Margin="0,0,8,8" />
-      <Button Grid.Row="2" Grid.Column="2" Content="Browse..." Click="OnBrowseRemoteClicked" Margin="0,0,0,8" />
-
-      <TextBlock Grid.Row="3" Grid.Column="0" Text="Merged (output)" VerticalAlignment="Center" Margin="0,0,8,0" />
-      <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding MergedPath}" Margin="0,0,8,0" />
-      <Button Grid.Row="3" Grid.Column="2" Content="Browse..." Click="OnBrowseMergedClicked" />
+        Background="{StaticResource AppBackgroundBrush}"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False">
+  
+  <Border Background="{StaticResource SurfaceBrush}"
+          CornerRadius="0"
+          Margin="0">
+    <Grid RowDefinitions="Auto,*,Auto">
+      
+      <!-- Header -->
+      <Border Grid.Row="0"
+              Background="{StaticResource SurfaceElevatedBrush}"
+              Padding="24,20">
+        <StackPanel Spacing="4">
+          <TextBlock Text="📁 Open Merge Files" 
+                     FontSize="20" 
+                     FontWeight="Bold"
+                     Foreground="{StaticResource TextPrimaryBrush}" />
+          <TextBlock Text="Select the files for your merge conflict resolution"
+                     FontSize="12"
+                     Foreground="{StaticResource TextSecondaryBrush}" />
+        </StackPanel>
+      </Border>
+      
+      <!-- File Selection Content -->
+      <ScrollViewer Grid.Row="1" Padding="24">
+        <StackPanel Spacing="20">
+          
+          <!-- Required Files Section -->
+          <StackPanel Spacing="12">
+            <TextBlock Text="REQUIRED FILES"
+                       FontSize="11"
+                       FontWeight="Bold"
+                       Foreground="{StaticResource TextTertiaryBrush}"
+                       Margin="0,0,0,4" />
+            
+            <Border Background="{StaticResource SurfaceElevatedBrush}"
+                    CornerRadius="8"
+                    Padding="16">
+              <StackPanel Spacing="16">
+                
+                <!-- Local (Ours) -->
+                <StackPanel Spacing="6">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="📝" FontSize="14" />
+                    <TextBlock Text="Local (ours)"
+                               FontSize="13"
+                               FontWeight="Medium"
+                               Foreground="{StaticResource TextPrimaryBrush}" />
+                    <TextBlock Text="— Your branch's version"
+                               FontSize="12"
+                               Foreground="{StaticResource TextTertiaryBrush}" />
+                  </StackPanel>
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBox Grid.Column="0" 
+                             Text="{Binding LocalPath}"
+                             Theme="{StaticResource ModernTextBox}"
+                             Watermark="Select local file..." />
+                    <Button Grid.Column="1"
+                            Theme="{StaticResource SecondaryButton}"
+                            Content="Browse..."
+                            Click="OnBrowseLocalClicked"
+                            Margin="8,0,0,0"
+                            Padding="16,8" />
+                  </Grid>
+                </StackPanel>
+                
+                <Border Height="1" Background="{StaticResource BorderSubtleBrush}" />
+                
+                <!-- Remote (Theirs) -->
+                <StackPanel Spacing="6">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="📥" FontSize="14" />
+                    <TextBlock Text="Remote (theirs)"
+                               FontSize="13"
+                               FontWeight="Medium"
+                               Foreground="{StaticResource TextPrimaryBrush}" />
+                    <TextBlock Text="— The incoming branch's version"
+                               FontSize="12"
+                               Foreground="{StaticResource TextTertiaryBrush}" />
+                  </StackPanel>
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBox Grid.Column="0" 
+                             Text="{Binding RemotePath}"
+                             Theme="{StaticResource ModernTextBox}"
+                             Watermark="Select remote file..." />
+                    <Button Grid.Column="1"
+                            Theme="{StaticResource SecondaryButton}"
+                            Content="Browse..."
+                            Click="OnBrowseRemoteClicked"
+                            Margin="8,0,0,0"
+                            Padding="16,8" />
+                  </Grid>
+                </StackPanel>
+                
+                <Border Height="1" Background="{StaticResource BorderSubtleBrush}" />
+                
+                <!-- Merged (Output) -->
+                <StackPanel Spacing="6">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="✨" FontSize="14" />
+                    <TextBlock Text="Merged (output)"
+                               FontSize="13"
+                               FontWeight="Medium"
+                               Foreground="{StaticResource TextPrimaryBrush}" />
+                    <TextBlock Text="— Where resolved output will be saved"
+                               FontSize="12"
+                               Foreground="{StaticResource TextTertiaryBrush}" />
+                  </StackPanel>
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBox Grid.Column="0" 
+                             Text="{Binding MergedPath}"
+                             Theme="{StaticResource ModernTextBox}"
+                             Watermark="Select output file..." />
+                    <Button Grid.Column="1"
+                            Theme="{StaticResource SecondaryButton}"
+                            Content="Browse..."
+                            Click="OnBrowseMergedClicked"
+                            Margin="8,0,0,0"
+                            Padding="16,8" />
+                  </Grid>
+                </StackPanel>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+          
+          <!-- Optional Files Section -->
+          <StackPanel Spacing="12">
+            <TextBlock Text="OPTIONAL"
+                       FontSize="11"
+                       FontWeight="Bold"
+                       Foreground="{StaticResource TextTertiaryBrush}"
+                       Margin="0,0,0,4" />
+            
+            <Border Background="{StaticResource SurfaceElevatedBrush}"
+                    CornerRadius="8"
+                    Padding="16"
+                    Opacity="0.8">
+              <StackPanel Spacing="6">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <TextBlock Text="📋" FontSize="14" />
+                  <TextBlock Text="Base (common ancestor)"
+                             FontSize="13"
+                             FontWeight="Medium"
+                             Foreground="{StaticResource TextPrimaryBrush}" />
+                  <TextBlock Text="— For 3-way diff (optional)"
+                             FontSize="12"
+                             Foreground="{StaticResource TextTertiaryBrush}"
+                             FontStyle="Italic" />
+                </StackPanel>
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBox Grid.Column="0" 
+                           Text="{Binding BasePath}"
+                           Theme="{StaticResource ModernTextBox}"
+                           Watermark="Select base file (optional)..." />
+                  <Button Grid.Column="1"
+                          Theme="{StaticResource SubtleButton}"
+                          Content="Browse..."
+                          Click="OnBrowseBaseClicked"
+                          Margin="8,0,0,0"
+                          Padding="16,8" />
+                </Grid>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+          
+          <!-- Error Message -->
+          <Border IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                  Background="#40F44336"
+                  CornerRadius="6"
+                  Padding="12">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="⚠️" FontSize="14" />
+              <TextBlock Text="{Binding ErrorMessage}" 
+                         Foreground="{StaticResource ErrorBrush}"
+                         FontSize="13" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
+      
+      <!-- Footer Actions -->
+      <Border Grid.Row="2"
+              Background="{StaticResource SurfaceElevatedBrush}"
+              BorderBrush="{StaticResource BorderSubtleBrush}"
+              BorderThickness="0,1,0,0"
+              Padding="24,16">
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel Grid.Column="1" 
+                      Orientation="Horizontal" 
+                      Spacing="8">
+            <Button Theme="{StaticResource SecondaryButton}"
+                    Content="Cancel"
+                    Click="OnCancelClicked" />
+            <Button Theme="{StaticResource PrimaryButton}"
+                    Content="Open Files"
+                    Click="OnOpenClicked"
+                    IsEnabled="{Binding CanConfirm}" />
+          </StackPanel>
+        </Grid>
+      </Border>
     </Grid>
-
-    <TextBlock Text="{Binding ErrorMessage}" Foreground="OrangeRed" />
-
-    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-      <Button Content="Cancel" Click="OnCancelClicked" />
-      <Button Content="Open" Click="OnOpenClicked" IsEnabled="{Binding CanConfirm}" />
-    </StackPanel>
-  </StackPanel>
+  </Border>
 </Window>

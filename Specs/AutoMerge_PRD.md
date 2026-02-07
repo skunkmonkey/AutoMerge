@@ -1,7 +1,7 @@
 # AutoMerge Product Requirements Document (PRD)
 
-**Version:** 2.0  
-**Date:** January 31, 2026  
+**Version:** 2.3  
+**Date:** February 7, 2026  
 **Status:** Draft  
 **Stakeholders:** Developers, DevOps/Release Engineers, Product Manager, IT/Platform Team  
 
@@ -84,7 +84,20 @@ AutoMerge solves this by providing an intelligent merge resolution experience th
 - Display 3-way diff view (base, ours, theirs) with syntax highlighting
 - AI-generated summary explaining what each side changed
 - Highlight specific lines/regions causing the conflict
+- Conflict navigation (Next/Previous) scrolls all four panels (local, base, remote, merged) to the corresponding region so the user sees context across all versions simultaneously
 - Support common file types (code, config, markdown, JSON, YAML)
+
+### US-002a: Automatic Resolution of Trivial Conflicts
+**As a** developer  
+**I want** trivially resolvable conflicts to be automatically resolved when the diff first loads  
+**So that** I can focus my time on genuinely ambiguous conflicts instead of rubber-stamping obvious merges  
+
+**Acceptance Criteria:**
+- On load, the tool deterministically resolves conflicts where one side is unchanged from base (take the other side) or both sides made identical changes (take either)
+- Auto-resolved regions are visually distinguished from unresolved conflicts (green highlight with left marker vs. red conflict markers)
+- A badge displays the count of auto-resolved conflicts (e.g., "✓ 3 auto-resolved") in both the toolbar and the merged result panel header
+- The conflict counter shows only the remaining unresolved conflicts
+- Auto-resolution uses no AI — it is purely deterministic three-way merge logic
 
 ### US-003: Get AI-Suggested Resolution
 **As a** developer  
@@ -130,6 +143,7 @@ AutoMerge solves this by providing an intelligent merge resolution experience th
 - "Accept" writes resolved content to the output file
 - Application exits with code 0 signaling success to Git
 - "Cancel" exits with code 1, leaving conflict unresolved
+- **Closing the window via the X button (or Alt+F4) is treated as Cancel** — exits with code 1, does not write to the output file, and does not mark the conflict as resolved in the Git client
 - Keyboard shortcuts: Cmd/Ctrl+Enter (accept), Escape (cancel)
 
 ### US-007: Batch Conflict Resolution
@@ -163,8 +177,46 @@ AutoMerge solves this by providing an intelligent merge resolution experience th
 - Preference: Default bias (ours/theirs/balanced)
 - Preference: Formatting style (preserve original/normalize)
 - Preference: Comment style for complex resolutions
-- Preference: Model selection (when multiple available)
+- Preference: AI model selection from a curated list (gpt-4.1, gpt-4o, claude-sonnet-4, etc.) with support for custom model identifiers
 - Preferences persist across sessions
+
+### US-012: Resolution Summary & Color Legend
+**As a** developer who has just loaded a conflicting file  
+**I want to** see a clear summary of how many conflicts were auto-resolved, a color legend explaining diff highlighting, and guidance for resolving remaining conflicts  
+**So that** I immediately understand the state of the merge and know what to do next  
+
+**Acceptance Criteria:**
+- After load, a dismissible summary banner appears above the diff panels
+- The banner headline shows auto-resolved vs. total counts (e.g., "4 / 5 conflicts automatically resolved — 1 remaining")
+- A color legend explains the five diff highlight colors: green (added / auto-resolved), red (removed / conflict), amber (modified), blue (base reference), purple (merged result)
+- When all conflicts are resolved, the banner shows a success message with instructions to review and accept
+- When conflicts remain, the banner provides actionable guidance (navigate with ◀ ▶, edit directly, or use AI help)
+- The user can dismiss the banner with a close button
+- The banner does not appear when there are zero conflicts
+
+### US-011: Synchronized Panel Scrolling
+**As a** developer reviewing a multi-pane diff  
+**I want** all four panels (base, local, remote, merged) to scroll together when I scroll any one of them  
+**So that** I can compare corresponding lines across all versions without manually adjusting each panel  
+
+**Acceptance Criteria:**
+- Scrolling any panel vertically causes all other panels to scroll to the same vertical offset
+- Scrolling any panel horizontally causes all other panels to scroll to the same horizontal offset
+- Scroll synchronization works for both mouse wheel and scrollbar drag interactions
+- There is no visible lag or jitter when scrolling
+
+### US-012: AI Setup Visibility
+**As a** developer launching AutoMerge for the first time  
+**I want to** immediately see whether AI is connected and how to set it up if it isn't  
+**So that** I can start using AI-assisted conflict resolution without guessing  
+
+**Acceptance Criteria:**
+- The welcome screen displays a prominent AI status card showing connection state and active model
+- When AI is connected, the card shows a green indicator, the active model name (e.g., "gpt-4.1"), and a "Ready" message
+- When AI is disconnected, the card shows a warning indicator with step-by-step setup instructions (install CLI, authenticate, retry)
+- The status bar always shows the AI connection state and active model name (e.g., "Copilot · Connected · gpt-4.1")
+- A "Retry Connection" button is available when AI is unavailable
+- The tool remains fully usable in manual-only mode when AI is unavailable
 
 ---
 
@@ -193,9 +245,18 @@ AutoMerge solves this by providing an intelligent merge resolution experience th
 | FR-UI-004 | Provide collapsible AI chat panel for interactive refinement |
 | FR-UI-005 | Show AI "thinking" indicator with streaming progress |
 | FR-UI-006 | Provide conflict navigation for multi-file merges |
+| FR-UI-006a | Conflict navigation (Next/Previous Conflict) scrolls all four panels — local, base, remote, and merged — to the corresponding conflict region simultaneously |
+| FR-UI-006b | On file load, automatically resolve trivially resolvable conflicts (one side unchanged from base, or both sides identical) using deterministic three-way merge logic |
+| FR-UI-006c | Visually distinguish auto-resolved regions (green highlight) from unresolved conflicts (red conflict markers) in the merged result editor |
+| FR-UI-006d | Display an auto-resolved count badge in the toolbar and merged result panel header |
 | FR-UI-007 | Support dark and light themes matching system preference |
 | FR-UI-008 | Provide keyboard shortcuts for all major actions |
 | FR-UI-009 | Provide an "Open Merge" workflow to choose Local/Remote/Merged and optional Base from the GUI |
+| FR-UI-010 | Display a prominent AI connection status card on the welcome screen with setup guidance when disconnected |
+| FR-UI-011 | Show the active AI model name in both the welcome screen status card and the status bar |
+| FR-UI-012 | Provide step-by-step setup instructions (install CLI, authenticate, retry) when AI is unavailable |
+| FR-UI-013 | After file load, display a dismissible resolution summary banner showing auto-resolved count, remaining count, color legend, and actionable guidance |
+| FR-UI-014 | Synchronize vertical and horizontal scroll position across all four diff/merge panels so scrolling any panel scrolls them all |
 
 ### 6.3 AI Integration (Copilot SDK)
 
@@ -209,6 +270,7 @@ AutoMerge solves this by providing an intelligent merge resolution experience th
 | FR-AI-006 | Support conversational refinement within the session |
 | FR-AI-007 | Implement `onPreToolUse` hook to confirm before any file writes |
 | FR-AI-008 | Handle Copilot API rate limits and errors gracefully |
+| FR-AI-009 | Support user-configurable model selection (e.g., gpt-4.1, gpt-4o, claude-sonnet-4) via preferences, with a curated default list and support for custom model identifiers |
 
 ### 6.4 Merge Resolution
 
@@ -384,7 +446,8 @@ Similar custom tool configuration with the same argument pattern.
 1. **User Control:** The user must always be able to review and edit AI output before acceptance.
 2. **No Silent Writes:** The system must not write to any file unless the user explicitly accepts the resolution.
 3. **Exit Code Contract:** Exit code 0 means resolution was accepted and written; exit code 1 means no changes were made.
-4. **Privacy Boundary:** File contents are only transmitted to GitHub Copilot service—no other external services.
+4. **Window Close = Cancel:** Closing the application window via the OS close button (X), Alt+F4, or any non-Accept path must be treated as a cancellation (exit code 1). The output file must not be written, and the Git client must not see the conflict as resolved.
+5. **Privacy Boundary:** File contents are only transmitted to GitHub Copilot service—no other external services.
 
 ---
 

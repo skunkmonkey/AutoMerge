@@ -1,7 +1,7 @@
 # AutoMerge Technical Specification
 
-**Version:** 1.1  
-**Date:** February 1, 2026  
+**Version:** 1.4  
+**Date:** February 7, 2026  
 **Status:** Draft  
 **Related Documents:** [AutoMerge_PRD.md](AutoMerge_PRD.md)
 
@@ -99,7 +99,7 @@ The solution is organized into five source projects and four test projects:
 
 | Model | Purpose |
 |-------|--------|
-| **MergeSession** | **Aggregate root.** Encapsulates the entire merge operation: input files, current state, detected conflict regions, conversation history, and proposed resolution. |
+| **AiServiceStatus** | Represents the current AI connection state. Contains `IsAvailable` (CLI reachable), `IsAuthenticated` (valid token), `ErrorMessage` (human-readable issue), and `ActiveModel` (the model name currently in use, e.g., "gpt-4.1"). |
 | ConflictFile | Represents a file containing one or more conflicts. Holds the original content and detected conflict regions. |
 | ConflictRegion | A single conflict region within a file. Contains the base, local, and remote versions of the conflicting section plus line numbers. |
 | FileVersion | Enumeration: Base, Local, Remote, Merged. Used to identify which version of a file is being referenced. |
@@ -107,8 +107,9 @@ The solution is organized into five source projects and four test projects:
 | MergeResolution | The resolved content and metadata including explanation text and confidence indicators. |
 | ConflictAnalysis | AI analysis results including semantic descriptions of what each side changed and why they conflict. |
 | ChatMessage | A message in the AI conversation. Includes role (user/assistant), content, and timestamp. |
-| UserPreferences | User configuration settings such as default bias, formatting preferences, and model selection. |
+| UserPreferences | User configuration settings: default bias, auto-analyze on load, theme, and AI model selection. Includes a static `AvailableModels` list of well-known Copilot models (gpt-4.1, gpt-4.1-mini, gpt-4o, gpt-4o-mini, claude-sonnet-4, o3-mini). Users may also specify custom model identifiers. |
 | LineChange | Represents a single line's diff status (added, removed, modified, unchanged) with line numbers. |
+| AutoResolvedRegion | Marks a region in the merged content that was automatically resolved by deterministic three-way merge logic (not AI). Carries start and end line numbers. Used by the UI to render green highlighting for auto-resolved sections. |
 
 #### 4.1.2 Core Interfaces
 
@@ -116,7 +117,7 @@ These interfaces define the contracts that Infrastructure must implement. They l
 
 | Interface | Contract |
 |-----------|----------|
-| IAiService | AI interaction: analyze conflicts, propose resolutions, refine with conversation, explain changes. |
+| IAiService | AI interaction: analyze conflicts, propose resolutions, refine with conversation, explain changes. `GetStatusAsync` returns `AiServiceStatus` including the active model name. |
 | IFileService | File I/O: read files with encoding detection, write files preserving encoding and line endings. |
 | IConfigurationService | Settings persistence: load, save, and reset user preferences. |
 | IConflictParser | Conflict marker parsing: parse Git conflict markers, validate resolution has no remaining markers. |
@@ -151,11 +152,12 @@ Each use case follows a consistent pattern: a Command (input DTO), a Result (out
 | Use Case | Purpose |
 |----------|--------|
 | **LoadMergeSession** | Reads the four input files, parses conflict markers, creates a MergeSession, and stores it in the session manager. Entry point for the application. |
+| **AutoResolveConflicts** | Performed automatically on load inside MergedResultViewModel. Deterministically resolves trivial conflicts where one side is unchanged from base (take the other side) or both sides made identical changes (take either). Produces AutoResolvedRegion list for UI highlighting. No AI involved. |
 | **AnalyzeConflict** | Sends conflict context to AI service, receives structured analysis of what changed and why. Updates session with analysis. |
 | **ProposeResolution** | Requests AI to propose a merged resolution. Handles streaming responses. Updates session with proposed content. |
 | **RefineResolution** | Sends user's refinement message to AI, receives updated resolution while maintaining conversation context. |
 | **AcceptResolution** | Validates the resolution (no conflict markers), writes to output file with correct encoding/line endings, signals success. |
-| **CancelMerge** | Cleans up session state without writing any files. Signals cancellation to calling process. |
+| **CancelMerge** | Cleans up session state without writing any files. Signals cancellation to calling process. Also invoked automatically when the window is closed via the OS close button (X) or Alt+F4 to ensure the Git client sees exit code 1. |
 | **SavePreferences** | Persists user preferences to platform-appropriate storage location. |
 | **LoadPreferences** | Loads user preferences from storage, returning defaults if none exist. |
 
@@ -214,7 +216,7 @@ The AI integration layer implements `IAiService` using the GitHub Copilot SDK (`
 
 | Component | Responsibility |
 |-----------|---------------|
-| CopilotAiService | Implements IAiService. Manages CopilotClient lifecycle, creates sessions, handles streaming responses, and provides clear authentication status messages. |
+| CopilotAiService | Implements IAiService. Manages CopilotClient lifecycle, creates sessions with user-selected model, handles streaming responses, provides clear authentication status messages, and exposes `SetModel(string)` to change the active model at runtime. Returns the active model name in `AiServiceStatus.ActiveModel`. |
 | SystemPrompts | Contains the merge agent system prompt and templates for analysis, resolution, and refinement operations. |
 | MockAiService | Test double for unit testing. Provides canned responses without requiring Copilot CLI. |
 
@@ -231,7 +233,7 @@ new CopilotClientOptions
 ```csharp
 new SessionConfig
 {
-    Model = "gpt-4.1",        // Model selection
+    Model = _activeModel,     // User-selected model from preferences (default: "gpt-4.1")
     Streaming = true,          // Enable real-time streaming
     SystemMessage = new SystemMessageConfig
     {
@@ -240,6 +242,12 @@ new SessionConfig
     }
 }
 ```
+
+**Model Selection:**
+- The active model defaults to `UserPreferences.Default.AiModel` ("gpt-4.1")
+- Users configure their preferred model in the Preferences dialog, which offers a curated list of well-known models (gpt-4.1, gpt-4.1-mini, gpt-4o, gpt-4o-mini, claude-sonnet-4, o3-mini) plus support for custom model identifiers
+- `ProposeResolutionAsync` reads the model from the supplied `UserPreferences.AiModel` and calls `SetModel()` before creating a session
+- The selected model is included in `AiServiceStatus.ActiveModel` so the UI can display it
 
 **Prompts:**
 
@@ -298,8 +306,8 @@ Views are Avalonia XAML files with minimal code-behind (only UI initialization l
 
 | Panel | Purpose |
 |-------|--------|
-| DiffPaneView | Displays one version of the file (used three times for base/local/remote). Read-only with syntax highlighting. |
-| MergedResultView | Displays the editable merged result. Full editor with syntax highlighting, undo/redo. |
+| DiffPaneView | Displays one version of the file (used three times for base/local/remote). Read-only with syntax highlighting. Supports scroll-to-line binding for synchronized conflict navigation. Exposes ScrollOffsetX/ScrollOffsetY bindings for cross-panel scroll synchronisation. |
+| MergedResultView | Displays the editable merged result. Full editor with syntax highlighting, undo/redo. Shows auto-resolved region highlighting (green) and unresolved conflict highlighting (red). Displays auto-resolved count badge. Exposes ScrollOffsetX/ScrollOffsetY bindings for cross-panel scroll synchronisation. |
 | AiChatPanelView | Collapsible panel for AI conversation. Shows message history and input field. |
 | ConflictNavigatorView | Navigation for multi-file merges. Shows progress and previous/next buttons. |
 
@@ -316,7 +324,7 @@ Views are Avalonia XAML files with minimal code-behind (only UI initialization l
 
 | Control | Purpose |
 |---------|--------|
-| CodeEditorControl | Wrapper around AvaloniaEdit. Configures syntax highlighting, read-only mode, etc. |
+| CodeEditorControl | Wrapper around AvaloniaEdit. Configures syntax highlighting, read-only mode, scroll-to-line, auto-resolved region highlighting, and diff/conflict background rendering. Exposes `ScrollOffsetX` and `ScrollOffsetY` Avalonia StyledProperties (TwoWay default binding) that synchronise with the underlying `TextArea.TextView.ScrollOffset`. Uses a `_isSyncingScroll` guard to prevent re-entry when the scroll offset is set programmatically. |
 | DiffGutterControl | Custom line number gutter that shows diff markers (added/removed/changed) |
 | StreamingTextControl | Specialized control for displaying AI streaming output with typing effect |
 
@@ -332,12 +340,12 @@ Views are Avalonia XAML files with minimal code-behind (only UI initialization l
 | ViewModel | Responsibility |
 |-----------|---------------|
 | ViewModelBase | Abstract base class. Implements INotifyPropertyChanged. Provides common infrastructure. |
-| MainWindowViewModel | Main window state and commands. Holds child ViewModels. Manages Accept/Cancel commands. |
-| DiffPaneViewModel | State for one diff pane. Holds text content, syntax highlighting language, line changes for gutter. |
-| MergedResultViewModel | State for editable result pane. Tracks dirty state, provides validation, handles undo/redo. |
+| MainWindowViewModel | Main window state and commands. Holds child ViewModels. Manages Accept/Cancel commands. Exposes AI connection status (`IsAiAvailable`, `AiModelName`, `AiDetailedStatus`, `IsAiSetupNeeded`, `AiSetupInstructions`) for the welcome screen status card and status bar. After file load, computes a resolution summary (`ShowResolutionSummary`, `ResolutionSummaryHeadline`, `ResolutionSummaryDetail`, `AllConflictsResolved`, `TotalOriginalConflicts`) and exposes `DismissSummaryCommand`. Orchestrates cross-panel scroll synchronisation: subscribes to `ScrollOffsetX`/`ScrollOffsetY` changes on all child ViewModels and propagates offsets to the other panels using a `_isSyncingScroll` re-entrancy guard. |
+| DiffPaneViewModel | State for one diff pane. Holds text content, syntax highlighting language, line changes for gutter, scroll-to-line target for synchronized conflict navigation, and `ScrollOffsetX`/`ScrollOffsetY` observable properties for cross-panel scroll synchronisation. |
+| MergedResultViewModel | State for editable result pane. Tracks dirty state, provides validation, handles undo/redo. Performs deterministic auto-resolution of trivial conflicts on load and exposes AutoResolvedRegions, AutoResolvedCount, and HasAutoResolved properties for UI highlighting. Exposes parsed ConflictRegions for cross-panel scroll synchronization. Exposes `ScrollOffsetX`/`ScrollOffsetY` observable properties for cross-panel scroll synchronisation. |
 | AiChatViewModel | Chat panel state. Holds conversation history, manages streaming state, handles send command. |
 | ConflictNavigatorViewModel | Multi-file navigation state. Tracks resolved/remaining counts, handles previous/next. |
-| PreferencesViewModel | Preferences dialog state. Holds editable preference values, handles save/cancel/reset. |
+| PreferencesViewModel | Preferences dialog state. Holds editable preference values including AI model selection (`AiModel`, `AiModelOptions`), handles save/cancel/reset. |
 | MergeInputDialogViewModel | Merge input dialog state. Holds file paths and validation state. |
 
 #### 4.4.3 ViewModel Responsibilities
@@ -347,18 +355,29 @@ Views are Avalonia XAML files with minimal code-behind (only UI initialization l
 - Manages overall application state (loading, ready, processing, etc.)
 - Handles Accept/Cancel commands
 - Coordinates theme switching
+- **Exposes AI connection and model state:** `IsAiAvailable`, `AiModelName` (active model), `AiDetailedStatus` (e.g., "Connected · gpt-4.1"), `IsAiSetupNeeded`, `AiSetupInstructions` (step-by-step guidance when AI is unavailable). These are consumed by the welcome screen AI status card and the status bar.
+- **Synchronises conflict navigation across panels:** When the user navigates to a conflict in the merged result (Next/Previous Conflict), finds the corresponding content in each source file and scrolls the local, base, and remote DiffPaneViewModels to the matching line.
+- **Computes resolution summary:** After file load, calls `UpdateResolutionSummary()` to set headline, detail, and `AllConflictsResolved` state based on `MergedResultViewModel.AutoResolvedCount` and `TotalConflictCount`. The summary banner is visible until dismissed by the user.
+- **Orchestrates cross-panel scroll synchronisation:** Subscribes to `PropertyChanged` on all four child ViewModels (Base, Local, Remote, MergedResult). When `ScrollOffsetX` or `ScrollOffsetY` changes on any panel, propagates the new offset to all other panels. A `_isSyncingScroll` flag prevents infinite re-entry.
+- **Sets State on Accept/Cancel:** Updates `State` to `Saved` or `Cancelled` so the window close handler knows whether the session concluded intentionally.
 
 **DiffPaneViewModel:**
 - Holds the text content for one version
 - Manages syntax highlighting language detection
 - Provides line change data for gutter display
 - Handles scroll synchronization events
+- Exposes ScrollToLine property so the parent ViewModel can scroll the panel to a specific line during conflict navigation
+- Exposes `ScrollOffsetX` and `ScrollOffsetY` observable properties (via `[ObservableProperty]`) so that MainWindowViewModel can propagate scroll offsets across panels
 
 **MergedResultViewModel:**
 - Holds the editable merged content
 - Tracks dirty state (user modifications)
 - Provides validation state (conflict markers present?)
 - Handles undo/redo
+- **Auto-resolves trivial conflicts on load:** When `SetSourceContents` is called, runs deterministic three-way merge logic to resolve conflicts where one side is unchanged from base or both sides agree. Replaces conflict markers with clean content for those regions.
+- **Exposes `AutoResolvedRegions`:** Read-only list of line ranges that were auto-resolved, used by the editor for green background highlighting.
+- **Exposes `AutoResolvedCount` and `HasAutoResolved`:** For toolbar and panel header badges showing how many conflicts were auto-resolved.
+- **Exposes `ConflictRegions`:** The parsed conflict regions from current content, used by MainWindowViewModel to find corresponding positions in source files during conflict navigation.
 
 **AiChatViewModel:**
 - Holds conversation history
@@ -373,6 +392,9 @@ Value converters transform data between ViewModel properties and XAML bindings.
 | Converter | Purpose |
 |-----------|--------|
 | BoolToVisibilityConverter | Converts boolean to Avalonia visibility (Visible/Collapsed) |
+| BoolToColorConverter | Converts boolean AI availability to green (connected) or red (disconnected) brush for status indicators |
+| BoolToAiStatusConverter | Converts boolean AI availability to human-readable status string |
+| BoolToSetupCardColorConverter | Converts boolean AI availability to a subtle background color for the welcome screen AI status card (green tint when connected, amber tint when disconnected) |
 | LineChangeTypeToColorConverter | Converts LineChange type (added/removed/changed) to appropriate color (green/red/yellow) |
 | SessionStateToIconConverter | Converts SessionState enum to appropriate status icon |
 | NullToBoolConverter | Converts null/non-null to boolean (useful for enabling/disabling based on selection) |
@@ -386,7 +408,7 @@ UI-specific services that don't belong in lower layers.
 | ThemeService | Manages dark/light theme switching. Detects system preference and applies appropriate theme. |
 | KeyboardShortcutService | Handles global keyboard shortcuts (Cmd/Ctrl+Enter for accept, Escape for cancel, etc.) |
 | DialogService | Manages modal dialog display. Provides async methods to show dialogs and await results. |
-| ScrollSyncService | Synchronizes scroll position across the four diff panes when user scrolls any one pane. |
+| ScrollSyncService | Synchronizes scroll position across the four diff panes when user scrolls any one pane (implemented in MainWindowViewModel via `OnPaneScrollChanged` handler with `_isSyncingScroll` guard). Also handles conflict-navigation-driven scroll sync: when the user navigates to a conflict in the merged result, all source panes scroll to the corresponding content region. |
 | SyntaxHighlightingService | Detects file language from extension/content and loads appropriate TextMate grammar for AvaloniaEdit. |
 
 ---
@@ -530,6 +552,7 @@ This pattern keeps the Infrastructure layer decoupled from UI concerns while ena
 - Handler parses conflicts via IConflictParser
 - Handler creates MergeSession and stores in MergeSessionManager
 - ViewModel updates DiffPaneViewModels with file content
+- MergedResultViewModel.SetSourceContents triggers deterministic auto-resolution of trivial conflicts (one side unchanged from base, or both sides identical). Auto-resolved regions are highlighted in green; remaining unresolved conflicts stay marked in red.
 - If auto-analyze preference is enabled, trigger initial AI analysis
 
 **Step 2a: No-arg GUI launch**
@@ -585,11 +608,37 @@ This pattern keeps the Infrastructure layer decoupled from UI concerns while ena
 
 **Step 3: MainWindowViewModel**
 - Sets ExitCode = 0 (signals success to Git)
-- Triggers application shutdown
+- Sets State = Saved so the window close handler knows the session was accepted
+- Triggers application shutdown (SessionCompletedEvent with Success=true)
 
 **Step 4: Program.Main**
 - Returns exit code 0
 - Git mergetool sees success and marks conflict as resolved in the index
+
+### 6.4 Cancel / Window Close Flow
+
+**Trigger:** User clicks "Cancel" button, presses Escape, or closes the window via the OS close button (X) / Alt+F4.
+
+**Step 1: MainWindow.OnClosing (window close path only)**
+- If the session is loaded and State is not already Saved or Cancelled, invokes CancelCommand.
+- A `_closingHandled` flag prevents re-entry during shutdown.
+
+**Step 2: MainWindowViewModel.Cancel**
+- Sets State = Cancelled
+- Calls CancelMergeHandler.Execute()
+
+**Step 3: CancelMergeHandler**
+- Sets session state to Cancelled
+- Cleans up auto-save drafts
+- Publishes SessionCompletedEvent(Success=false)
+
+**Step 4: App.OnFrameworkInitializationCompleted handler**
+- Receives SessionCompletedEvent with Success=false
+- Calls desktop.Shutdown(1)
+
+**Step 5: Program.Main**
+- Returns exit code 1
+- Git mergetool sees failure and leaves the conflict unresolved in the index
 
 ---
 
@@ -605,9 +654,9 @@ The following interfaces define the contracts between layers. They are defined i
 
 | Method | Description |
 |--------|-------------|
-| GetStatusAsync | Checks if the AI service is available and authenticated. Returns status object with connection state and any error messages. |
+| GetStatusAsync | Checks if the AI service is available and authenticated. Returns `AiServiceStatus` with connection state, error messages, and the `ActiveModel` name (e.g., "gpt-4.1") when connected. |
 | AnalyzeConflictAsync | Analyzes a conflict and returns structured analysis. Takes a MergeSession and optional progress callback. Returns ConflictAnalysis domain object. |
-| ProposeResolutionAsync | Proposes a resolution with streaming support. Takes session, user preferences, and optional streaming chunk callback. Returns MergeResolution. |
+| ProposeResolutionAsync | Proposes a resolution with streaming support. Takes session, user preferences (including `AiModel` for model selection), and optional streaming chunk callback. Calls `SetModel(preferences.AiModel)` before creating the session. Returns MergeResolution. |
 | RefineResolutionAsync | Sends a refinement message and returns updated resolution. Maintains conversation context. Takes session, user message, and optional streaming callback. |
 | ExplainChangesAsync | Explains changes in a specific line range. Takes session and line numbers. Returns explanation string. |
 
@@ -675,7 +724,7 @@ The application progresses through the following high-level states:
 | **Success** | Resolution saved, exiting with code 0 | (terminal state) |
 | **Error** | An error occurred, showing error UI | Ready (on retry) |
 
-**Cancel Path:** From any state, user can press Cancel/Escape to exit immediately with code 1.
+**Cancel Path:** From any state, user can press Cancel/Escape **or close the window** to exit immediately with code 1. The window close (X) button is treated identically to Cancel — it does not write to the output file and signals failure to the Git client.
 
 ### 8.2 MergeSession State
 
@@ -702,6 +751,11 @@ Each ViewModel exposes state as observable properties:
 - `SessionState State` - Current session state
 - `bool IsLoading` - True during initial load
 - `bool IsAiBusy` - True when AI is processing
+- `bool IsAiAvailable` - True when AI service is connected and authenticated
+- `string AiModelName` - Active AI model name (e.g., "gpt-4.1")
+- `string AiDetailedStatus` - Human-readable AI status (e.g., "Connected · gpt-4.1" or "Authentication required")
+- `bool IsAiSetupNeeded` - True when AI is unavailable and setup instructions should be shown
+- `string? AiSetupInstructions` - Step-by-step setup instructions when AI is unavailable
 - `bool CanAccept` - True when resolution is valid
 - `bool HasError` - True when an error occurred
 - `string? ErrorMessage` - Current error message
@@ -850,7 +904,7 @@ Hook points for language-aware resolution:
 |---------|------|--------|---------|
 | 1.0 | 2026-01-31 | AI | Initial specification |
 | 1.1 | 2026-02-01 | AI | Updated AI Integration section with detailed Copilot SDK usage, authentication flow, and CLI prerequisites |
-
+| 1.2 | 2026-02-07 | AI | Added: deterministic auto-resolution of trivial conflicts on load with green visual highlighting; conflict navigation now syncs all four panels (local, base, remote, merged); window close (X) treated as Cancel (exit code 1); AutoResolvedRegion model; updated data flows and ViewModel responsibilities |
+| 1.3 | 2026-02-07 | AI | AI setup UX overhaul: added UserPreferences.AiModel with curated model list; CopilotAiService now uses user-selected model instead of hard-coded gpt-4.1; AiServiceStatus carries ActiveModel; welcome screen shows prominent AI status card with setup instructions; status bar shows model name; PreferencesDialog includes AI model selector (AutoCompleteBox); added BoolToSetupCardColorConverter; MainWindowViewModel exposes AiModelName, AiDetailedStatus, IsAiSetupNeeded, AiSetupInstructions |
+| 1.4 | 2026-02-07 | AI | Resolution summary banner: after file load, displays dismissible banner with auto-resolved count, remaining conflicts, color legend (green/red/amber/blue/purple), and actionable guidance. Synchronized panel scrolling: CodeEditorControl exposes ScrollOffsetX/ScrollOffsetY StyledProperties; DiffPaneViewModel and MergedResultViewModel expose matching ObservableProperties; MainWindowViewModel orchestrates cross-panel scroll sync via PropertyChanged subscription with re-entrancy guard. Updated US-010, US-011, FR-UI-013, FR-UI-014. |
 ---
-
-*End of Specification*

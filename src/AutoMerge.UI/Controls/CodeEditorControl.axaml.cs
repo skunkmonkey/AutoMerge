@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using Avalonia.VisualTree;
 using AvaloniaEdit;
 using AvaloniaEdit.Folding;
 using AutoMerge.Core.Models;
@@ -12,8 +13,10 @@ namespace AutoMerge.UI.Controls;
 public sealed partial class CodeEditorControl : UserControl
 {
     private TextEditor? _editor;
+    private ScrollViewer? _scrollViewer;
     private DiffLineBackgroundRenderer? _diffRenderer;
     private ConflictMarkerBackgroundRenderer? _conflictRenderer;
+    private AutoResolvedBackgroundRenderer? _autoResolvedRenderer;
     private FoldingManager? _foldingManager;
     private ConflictMarkerFoldingStrategy? _foldingStrategy;
     private bool _isUpdating;
@@ -25,6 +28,9 @@ public sealed partial class CodeEditorControl : UserControl
         LineChangesProperty.Changed.AddClassHandler<CodeEditorControl>((control, args) => control.OnLineChangesPropertyChanged(args));
         ShowConflictMarkersProperty.Changed.AddClassHandler<CodeEditorControl>((control, args) => control.OnShowConflictMarkersPropertyChanged(args));
         ScrollToLineProperty.Changed.AddClassHandler<CodeEditorControl>((control, args) => control.OnScrollToLinePropertyChanged(args));
+        AutoResolvedRegionsProperty.Changed.AddClassHandler<CodeEditorControl>((control, args) => control.OnAutoResolvedRegionsPropertyChanged(args));
+        ScrollOffsetXProperty.Changed.AddClassHandler<CodeEditorControl>((control, args) => control.OnScrollOffsetXPropertyChanged(args));
+        ScrollOffsetYProperty.Changed.AddClassHandler<CodeEditorControl>((control, args) => control.OnScrollOffsetYPropertyChanged(args));
     }
 
     public static readonly StyledProperty<string> TextProperty =
@@ -45,12 +51,19 @@ public sealed partial class CodeEditorControl : UserControl
     public static readonly StyledProperty<int> ScrollToLineProperty =
         AvaloniaProperty.Register<CodeEditorControl, int>(nameof(ScrollToLine), 0);
 
+    public static readonly StyledProperty<IReadOnlyList<AutoResolvedRegion>> AutoResolvedRegionsProperty =
+        AvaloniaProperty.Register<CodeEditorControl, IReadOnlyList<AutoResolvedRegion>>(nameof(AutoResolvedRegions), Array.Empty<AutoResolvedRegion>());
+
+    public static readonly StyledProperty<double> ScrollOffsetXProperty =
+        AvaloniaProperty.Register<CodeEditorControl, double>(nameof(ScrollOffsetX), 0.0, defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
+
+    public static readonly StyledProperty<double> ScrollOffsetYProperty =
+        AvaloniaProperty.Register<CodeEditorControl, double>(nameof(ScrollOffsetY), 0.0, defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
+
     public CodeEditorControl()
     {
-        FileLogger.Log($"CodeEditorControl constructor called");
         InitializeComponent();
         _editor = this.FindControl<TextEditor>("Editor");
-        FileLogger.Log($"CodeEditorControl: _editor found = {_editor is not null}");
         if (_editor is not null)
         {
             ConfigureEditor(_editor);
@@ -61,6 +74,10 @@ public sealed partial class CodeEditorControl : UserControl
             
             // Create the conflict marker renderer (added lazily when enabled)
             _conflictRenderer = new ConflictMarkerBackgroundRenderer(_editor.TextArea.TextView);
+            
+            // Create the auto-resolved background renderer
+            _autoResolvedRenderer = new AutoResolvedBackgroundRenderer(_editor.TextArea.TextView);
+            _editor.TextArea.TextView.BackgroundRenderers.Add(_autoResolvedRenderer);
             
             // Create folding manager to hide conflict marker lines
             _foldingManager = FoldingManager.Install(_editor.TextArea);
@@ -73,11 +90,7 @@ public sealed partial class CodeEditorControl : UserControl
             }
             
             _editor.TextChanged += OnEditorTextChanged;
-            FileLogger.Log($"CodeEditorControl: Using existing Document, TextChanged subscribed");
-        }
-        else
-        {
-            FileLogger.Log($"ERROR: CodeEditorControl._editor is null!");
+            _editor.TextArea.TextView.ScrollOffsetChanged += OnEditorScrollOffsetChanged;
         }
     }
 
@@ -151,6 +164,24 @@ public sealed partial class CodeEditorControl : UserControl
         set => SetValue(ScrollToLineProperty, value);
     }
 
+    public IReadOnlyList<AutoResolvedRegion> AutoResolvedRegions
+    {
+        get => GetValue(AutoResolvedRegionsProperty);
+        set => SetValue(AutoResolvedRegionsProperty, value);
+    }
+
+    public double ScrollOffsetX
+    {
+        get => GetValue(ScrollOffsetXProperty);
+        set => SetValue(ScrollOffsetXProperty, value);
+    }
+
+    public double ScrollOffsetY
+    {
+        get => GetValue(ScrollOffsetYProperty);
+        set => SetValue(ScrollOffsetYProperty, value);
+    }
+
     private void InitializeComponent()
     {
         AvaloniaXamlLoader.Load(this);
@@ -158,10 +189,8 @@ public sealed partial class CodeEditorControl : UserControl
 
     private void OnTextPropertyChanged(AvaloniaPropertyChangedEventArgs args)
     {
-        FileLogger.Log($"CodeEditorControl.OnTextPropertyChanged called. _editor={_editor is not null}, _isUpdating={_isUpdating}");
         if (_editor is null || _isUpdating)
         {
-            FileLogger.Log($"CodeEditorControl.OnTextPropertyChanged: SKIPPING (editor null or updating)");
             return;
         }
 
@@ -169,10 +198,7 @@ public sealed partial class CodeEditorControl : UserControl
         try
         {
             var newText = args.NewValue as string ?? string.Empty;
-            FileLogger.Log($"CodeEditorControl.OnTextPropertyChanged: Setting Text to {newText.Length} chars");
-            FileLogger.Log($"CodeEditorControl first 50: '{newText.Substring(0, Math.Min(50, newText.Length))}'");
             _editor.Text = newText;
-            FileLogger.Log($"CodeEditorControl.OnTextPropertyChanged: Text now = {_editor.Text.Length} chars");
             
             // Update foldings to hide conflict marker lines
             if (ShowConflictMarkers && _foldingManager is not null && _foldingStrategy is not null)
@@ -280,5 +306,125 @@ public sealed partial class CodeEditorControl : UserControl
             _editor.TextArea.Caret.Offset = lineInfo.Offset;
             _editor.TextArea.Caret.BringCaretToView();
         }
+    }
+
+    private void OnAutoResolvedRegionsPropertyChanged(AvaloniaPropertyChangedEventArgs args)
+    {
+        if (_autoResolvedRenderer is null)
+        {
+            return;
+        }
+
+        _autoResolvedRenderer.Regions = args.NewValue as IReadOnlyList<AutoResolvedRegion> ?? Array.Empty<AutoResolvedRegion>();
+    }
+
+    private bool _isSyncingScroll;
+
+    /// <summary>
+    /// Lazily finds and caches the ScrollViewer inside the TextEditor's visual tree.
+    /// Calls ApplyTemplate first to ensure the template has been instantiated.
+    /// </summary>
+    private ScrollViewer? EnsureScrollViewer()
+    {
+        if (_scrollViewer is null && _editor is not null)
+        {
+            _editor.ApplyTemplate();
+            _scrollViewer = _editor.GetVisualDescendants()
+                .OfType<ScrollViewer>()
+                .FirstOrDefault();
+        }
+
+        return _scrollViewer;
+    }
+
+    /// <summary>
+    /// Fired when the user scrolls the editor (mouse wheel, scrollbar drag, etc.).
+    /// Converts the pixel offset to a normalised ratio (0–1) and pushes it to the
+    /// styled properties so other editors can follow at the proportional position.
+    /// </summary>
+    private void OnEditorScrollOffsetChanged(object? sender, EventArgs e)
+    {
+        if (_editor is null || _isSyncingScroll)
+            return;
+
+        _isSyncingScroll = true;
+        try
+        {
+            var offset = _editor.TextArea.TextView.ScrollOffset;
+            var sv = EnsureScrollViewer();
+
+            if (sv is not null)
+            {
+                var maxY = Math.Max(0, sv.Extent.Height - sv.Viewport.Height);
+                var maxX = Math.Max(0, sv.Extent.Width - sv.Viewport.Width);
+                var ratioY = maxY > 0 ? offset.Y / maxY : 0;
+                var ratioX = maxX > 0 ? offset.X / maxX : 0;
+                ScrollOffsetY = ratioY;
+                ScrollOffsetX = ratioX;
+            }
+            else
+            {
+                ScrollOffsetX = offset.X;
+                ScrollOffsetY = offset.Y;
+            }
+        }
+        finally
+        {
+            _isSyncingScroll = false;
+        }
+    }
+
+    /// <summary>
+    /// Receives a normalised horizontal ratio from another panel and converts
+    /// it to the local pixel offset before scrolling.
+    /// The guard flag is cleared asynchronously via Dispatcher.Post so it
+    /// survives the deferred layout pass that fires ScrollOffsetChanged.
+    /// </summary>
+    private void OnScrollOffsetXPropertyChanged(AvaloniaPropertyChangedEventArgs args)
+    {
+        if (_editor is null || _isSyncingScroll)
+            return;
+
+        _isSyncingScroll = true;
+
+        var ratio = args.NewValue is double val ? val : 0.0;
+        var sv = EnsureScrollViewer();
+
+        if (sv is not null)
+        {
+            var maxX = Math.Max(0, sv.Extent.Width - sv.Viewport.Width);
+            sv.Offset = new Avalonia.Vector(ratio * maxX, sv.Offset.Y);
+        }
+
+        Avalonia.Threading.Dispatcher.UIThread.Post(
+            () => _isSyncingScroll = false,
+            Avalonia.Threading.DispatcherPriority.Background);
+    }
+
+    /// <summary>
+    /// Receives a normalised vertical ratio from another panel and converts
+    /// it to the local pixel offset before scrolling.
+    /// The guard flag is cleared asynchronously via Dispatcher.Post so it
+    /// survives the deferred layout pass that fires ScrollOffsetChanged.
+    /// </summary>
+    private void OnScrollOffsetYPropertyChanged(AvaloniaPropertyChangedEventArgs args)
+    {
+        if (_editor is null || _isSyncingScroll)
+            return;
+
+        _isSyncingScroll = true;
+
+        var ratio = args.NewValue is double val ? val : 0.0;
+        var sv = EnsureScrollViewer();
+
+        if (sv is not null)
+        {
+            var maxY = Math.Max(0, sv.Extent.Height - sv.Viewport.Height);
+            sv.Offset = new Avalonia.Vector(sv.Offset.X, ratio * maxY);
+        }
+
+        Avalonia.Threading.Dispatcher.UIThread.Post(
+            () => _isSyncingScroll = false,
+            Avalonia.Threading.DispatcherPriority.Background);
     }
 }

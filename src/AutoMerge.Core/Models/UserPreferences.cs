@@ -14,7 +14,11 @@ public enum Theme
     Dark
 }
 
-public sealed record UserPreferences(DefaultBias DefaultBias, bool AutoAnalyzeOnLoad, Theme Theme)
+public sealed record UserPreferences(
+    DefaultBias DefaultBias,
+    bool AutoAnalyzeOnLoad,
+    Theme Theme,
+    string AiModel = "GPT-5 mini")
 {
-    public static UserPreferences Default { get; } = new(DefaultBias.Balanced, true, Theme.System);
+    public static UserPreferences Default { get; } = new(DefaultBias.Balanced, true, Theme.System, "GPT-5 mini");
 }

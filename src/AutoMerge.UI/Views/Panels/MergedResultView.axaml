@@ -53,6 +53,21 @@
               </TextBlock>
             </Border>
             
+            <!-- Auto-Resolved Success Badge -->
+            <Border Background="#404CAF50"
+                    CornerRadius="3"
+                    Padding="8,3"
+                    IsVisible="{Binding HasAutoResolved}"
+                    VerticalAlignment="Center">
+              <TextBlock Foreground="#4CAF50"
+                         FontSize="11"
+                         FontWeight="Medium">
+                <Run Text="✓ "/>
+                <Run Text="{Binding AutoResolvedCount}"/>
+                <Run Text=" auto-resolved"/>
+              </TextBlock>
+            </Border>
+            
             <Button Theme="{StaticResource SubtleButton}"
                     Content="▶"
                     Command="{Binding NextConflictCommand}"
@@ -100,6 +115,9 @@
             IsReadOnly="False"
             SyntaxLanguage="{Binding SyntaxLanguage}"
             ScrollToLine="{Binding ScrollToLine}"
+            ScrollOffsetX="{Binding ScrollOffsetX, Mode=TwoWay}"
+            ScrollOffsetY="{Binding ScrollOffsetY, Mode=TwoWay}"
+            AutoResolvedRegions="{Binding AutoResolvedRegions}"
             ShowConflictMarkers="True" />
       </Border>
     </Grid>

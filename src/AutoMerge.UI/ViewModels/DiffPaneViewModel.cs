@@ -21,12 +21,28 @@ public sealed partial class DiffPaneViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isReadOnly = true;
 
+    /// <summary>
+    /// The line number to scroll to when navigating conflicts.
+    /// The view subscribes to changes on this property.
+    /// </summary>
+    [ObservableProperty]
+    private int _scrollToLine;
+
+    /// <summary>
+    /// Horizontal scroll offset for synchronized scrolling across panels.
+    /// </summary>
+    [ObservableProperty]
+    private double _scrollOffsetX;
+
+    /// <summary>
+    /// Vertical scroll offset for synchronized scrolling across panels.
+    /// </summary>
+    [ObservableProperty]
+    private double _scrollOffsetY;
+
     public void SetContent(string content, IReadOnlyList<LineChange> changes)
     {
-        FileLogger.Log($"DiffPaneViewModel[{Title}].SetContent: {content.Length} chars");
-        FileLogger.Log($"DiffPaneViewModel[{Title}] first 50: '{content.Substring(0, Math.Min(50, content.Length))}'");
         Content = content;
-        FileLogger.Log($"DiffPaneViewModel[{Title}].Content after set: {Content.Length} chars");
         LineChanges = changes;
     }
 }

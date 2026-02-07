@@ -70,6 +70,21 @@
             </TextBlock>
           </Border>
           
+          <!-- Auto-Resolved Badge -->
+          <Border Background="#404CAF50"
+                  CornerRadius="4"
+                  Padding="10,6"
+                  VerticalAlignment="Center"
+                  IsVisible="{Binding MergedResultViewModel.HasAutoResolved}">
+            <TextBlock Foreground="#4CAF50"
+                       FontSize="12"
+                       FontWeight="Medium">
+              <Run Text="✓ "/>
+              <Run Text="{Binding MergedResultViewModel.AutoResolvedCount}"/>
+              <Run Text=" auto-resolved"/>
+            </TextBlock>
+          </Border>
+          
           <Button Theme="{StaticResource SecondaryButton}"
                   Content="Next Conflict ▶"
                   Command="{Binding MergedResultViewModel.NextConflictCommand}"
@@ -125,10 +140,100 @@
     <Grid Grid.Row="1" Margin="4">
       
       <!-- Session Loaded: Main Panels -->
-      <Grid RowDefinitions="55*,Auto,45*" IsVisible="{Binding IsSessionLoaded}">
+      <Grid RowDefinitions="Auto,55*,Auto,45*" IsVisible="{Binding IsSessionLoaded}">
+        
+        <!-- Row 0: Resolution Summary Banner -->
+        <Border Grid.Row="0"
+                Background="{StaticResource SurfaceElevatedBrush}"
+                CornerRadius="6"
+                Padding="16,12"
+                Margin="4,4,4,6"
+                IsVisible="{Binding ShowResolutionSummary}">
+          <Grid ColumnDefinitions="*,Auto">
+            
+            <StackPanel Grid.Column="0" Spacing="8">
+              
+              <!-- Headline -->
+              <TextBlock Text="{Binding ResolutionSummaryHeadline}"
+                         FontSize="14" FontWeight="SemiBold"
+                         Foreground="{StaticResource TextPrimaryBrush}" />
+              
+              <!-- Detail / guidance -->
+              <TextBlock Text="{Binding ResolutionSummaryDetail}"
+                         FontSize="12"
+                         Foreground="{StaticResource TextSecondaryBrush}"
+                         TextWrapping="Wrap" />
+              
+              <!-- Color Legend -->
+              <Border Background="{StaticResource SurfaceBrush}"
+                      CornerRadius="4"
+                      Padding="12,8"
+                      Margin="0,4,0,0">
+                <StackPanel Spacing="6">
+                  <TextBlock Text="Color Guide"
+                             FontSize="11" FontWeight="SemiBold"
+                             Foreground="{StaticResource TextSecondaryBrush}"
+                             Margin="0,0,0,2" />
+                  <WrapPanel Orientation="Horizontal">
+                    <!-- Green = added / auto-resolved -->
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,20,4">
+                      <Border Width="14" Height="14" CornerRadius="3" Background="#304CAF50">
+                        <Border Width="3" Height="14" Background="#4CAF50" CornerRadius="3,0,0,3" HorizontalAlignment="Left" />
+                      </Border>
+                      <TextBlock Text="Added / Auto-resolved" FontSize="11" 
+                                 Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <!-- Red = removed / unresolved conflict -->
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,20,4">
+                      <Border Width="14" Height="14" CornerRadius="3" Background="#30F44336">
+                        <Border Width="3" Height="14" Background="#F44336" CornerRadius="3,0,0,3" HorizontalAlignment="Left" />
+                      </Border>
+                      <TextBlock Text="Removed / Unresolved conflict" FontSize="11" 
+                                 Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <!-- Amber = modified -->
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,20,4">
+                      <Border Width="14" Height="14" CornerRadius="3" Background="#30FFC107">
+                        <Border Width="3" Height="14" Background="#FFC107" CornerRadius="3,0,0,3" HorizontalAlignment="Left" />
+                      </Border>
+                      <TextBlock Text="Modified" FontSize="11" 
+                                 Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <!-- Blue = base section -->
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,20,4">
+                      <Border Width="14" Height="14" CornerRadius="3" Background="#306A9FD6">
+                        <Border Width="3" Height="14" Background="#6A9FD6" CornerRadius="3,0,0,3" HorizontalAlignment="Left" />
+                      </Border>
+                      <TextBlock Text="Base (common ancestor)" FontSize="11" 
+                                 Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <!-- Purple = merged result -->
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,0,4">
+                      <Border Width="14" Height="14" CornerRadius="3" Background="#30BB86FC">
+                        <Border Width="3" Height="14" Background="#BB86FC" CornerRadius="3,0,0,3" HorizontalAlignment="Left" />
+                      </Border>
+                      <TextBlock Text="Merged result panel" FontSize="11" 
+                                 Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </WrapPanel>
+                </StackPanel>
+              </Border>
+            </StackPanel>
+            
+            <!-- Dismiss button -->
+            <Button Grid.Column="1"
+                    Theme="{StaticResource SubtleButton}"
+                    Content="✕"
+                    Command="{Binding DismissSummaryCommand}"
+                    ToolTip.Tip="Dismiss"
+                    VerticalAlignment="Top"
+                    Padding="8,4"
+                    FontSize="14" />
+          </Grid>
+        </Border>
         
         <!-- Top Row: Three Source Panels Side by Side (Local | Base | Remote) -->
-        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,*,Auto,*">
+        <Grid Grid.Row="1" ColumnDefinitions="*,Auto,*,Auto,*">
           <views:DiffPaneView Grid.Column="0" DataContext="{Binding LocalPaneViewModel}" />
           <GridSplitter Grid.Column="1" Width="5" 
                         Background="{StaticResource SurfaceElevatedBrush}"
@@ -141,13 +246,13 @@
         </Grid>
 
         <!-- Horizontal Splitter between top and bottom -->
-        <GridSplitter Grid.Row="1" Height="5" 
+        <GridSplitter Grid.Row="2" Height="5" 
                       HorizontalAlignment="Stretch"
                       Background="{StaticResource SurfaceElevatedBrush}"
                       ResizeDirection="Rows" />
 
         <!-- Bottom Row: Merged Result + AI Chat Side by Side -->
-        <Grid Grid.Row="2" ColumnDefinitions="3*,Auto,2*">
+        <Grid Grid.Row="3" ColumnDefinitions="3*,Auto,2*">
           <views:MergedResultView Grid.Column="0" DataContext="{Binding MergedResultViewModel}" />
           <GridSplitter Grid.Column="1" Width="5" 
                         Background="{StaticResource SurfaceElevatedBrush}"
@@ -212,6 +317,75 @@
                   FontSize="15"
                   Click="OnOpenMergeClicked" />
           
+          <!-- AI Connection Status Card -->
+          <Border CornerRadius="8" Padding="16" Margin="0,8,0,0">
+            <Border.Background>
+              <SolidColorBrush Color="{Binding IsAiAvailable, Converter={x:Static converters:BoolToSetupCardColorConverter.Instance}}" />
+            </Border.Background>
+            <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto">
+
+              <!-- Status icon -->
+              <Ellipse Grid.Row="0" Grid.Column="0"
+                       Width="12" Height="12"
+                       VerticalAlignment="Center"
+                       Margin="0,0,10,0"
+                       Fill="{Binding IsAiAvailable, Converter={x:Static converters:BoolToColorConverter.Instance}}" />
+
+              <!-- Title -->
+              <TextBlock Grid.Row="0" Grid.Column="1"
+                         FontSize="14" FontWeight="SemiBold"
+                         Foreground="{StaticResource TextPrimaryBrush}"
+                         VerticalAlignment="Center">
+                <TextBlock.Text>
+                  <MultiBinding StringFormat="GitHub Copilot · {0}">
+                    <Binding Path="AiDetailedStatus" />
+                  </MultiBinding>
+                </TextBlock.Text>
+              </TextBlock>
+
+              <!-- Retry button -->
+              <Button Grid.Row="0" Grid.Column="2"
+                      Theme="{StaticResource SubtleButton}"
+                      Content="🔄 Retry Connection"
+                      Command="{Binding ReconnectAiCommand}"
+                      IsVisible="{Binding IsAiAvailable, Converter={StaticResource InverseBoolConverter}}"
+                      Padding="8,4"
+                      FontSize="12" />
+
+              <!-- Model badge when connected -->
+              <StackPanel Grid.Row="1" Grid.Column="1"
+                          Orientation="Horizontal" Spacing="8"
+                          Margin="0,6,0,0"
+                          IsVisible="{Binding IsAiAvailable}">
+                <Border Background="#304CAF50" CornerRadius="4" Padding="8,3">
+                  <TextBlock Text="{Binding AiModelName, StringFormat='Model: {0}'}"
+                             FontSize="11" Foreground="#4CAF50" FontWeight="Medium" />
+                </Border>
+                <TextBlock Text="Ready for AI-assisted conflict resolution"
+                           FontSize="11" Foreground="{StaticResource TextTertiaryBrush}"
+                           VerticalAlignment="Center" />
+              </StackPanel>
+
+              <!-- Setup instructions when disconnected -->
+              <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
+                      Margin="0,10,0,0"
+                      Background="{StaticResource SurfaceBrush}"
+                      CornerRadius="6" Padding="12"
+                      IsVisible="{Binding IsAiSetupNeeded}">
+                <StackPanel Spacing="6">
+                  <TextBlock Text="Quick Setup" FontSize="12" FontWeight="SemiBold"
+                             Foreground="{StaticResource TextPrimaryBrush}" />
+                  <TextBlock Text="{Binding AiSetupInstructions}"
+                             FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"
+                             TextWrapping="Wrap" LineHeight="18" />
+                  <TextBlock Text="AutoMerge works without AI too — you can always resolve conflicts manually."
+                             FontSize="10" Foreground="{StaticResource TextTertiaryBrush}"
+                             FontStyle="Italic" Margin="0,4,0,0" />
+                </StackPanel>
+              </Border>
+            </Grid>
+          </Border>
+          
           <!-- Keyboard Hint -->
           <TextBlock Text="Tip: Configure AutoMerge as your Git merge tool for automatic launch"
                      FontSize="11"
@@ -242,11 +416,11 @@
                        FontSize="12" />
           </Border>
           
-          <!-- AI Status Indicator -->
+          <!-- AI Status Indicator (enhanced with model name) -->
           <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
             <Ellipse Width="8" Height="8" 
                      Fill="{Binding IsAiAvailable, Converter={x:Static converters:BoolToColorConverter.Instance}}" />
-            <TextBlock Text="{Binding IsAiAvailable, Converter={x:Static converters:BoolToAiStatusConverter.Instance}}"
+            <TextBlock Text="{Binding AiDetailedStatus, StringFormat='Copilot · {0}'}"
                        Foreground="{StaticResource TextTertiaryBrush}"
                        FontSize="12" />
           </StackPanel>

@@ -4,6 +4,7 @@ using AutoMerge.UI.ViewModels;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Avalonia.Platform.Storage;
 
 namespace AutoMerge.UI.Views.Dialogs;
 
@@ -57,24 +58,35 @@ public sealed partial class MergeInputDialog : Window
 
     private async Task<string?> ShowOpenFileAsync(string title)
     {
-        var dialog = new OpenFileDialog
+        var provider = StorageProvider;
+        if (provider is null)
+        {
+            return null;
+        }
+
+        var result = await provider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
             Title = title,
             AllowMultiple = false
-        };
+        }).ConfigureAwait(true);
 
-        var result = await dialog.ShowAsync(this).ConfigureAwait(true);
-        return result?.FirstOrDefault();
+        return result.FirstOrDefault()?.Path.LocalPath;
     }
 
     private async Task<string?> ShowSaveFileAsync(string title)
     {
-        var dialog = new SaveFileDialog
+        var provider = StorageProvider;
+        if (provider is null)
+        {
+            return null;
+        }
+
+        var result = await provider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
             Title = title
-        };
+        }).ConfigureAwait(true);
 
-        return await dialog.ShowAsync(this).ConfigureAwait(true);
+        return result?.Path.LocalPath;
     }
 
     private void OnCancelClicked(object? sender, RoutedEventArgs e)

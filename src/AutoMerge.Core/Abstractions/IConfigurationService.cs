@@ -11,4 +11,6 @@ public interface IConfigurationService
     Task SavePreferencesAsync(UserPreferences preferences, CancellationToken cancellationToken);
 
     Task ResetPreferencesAsync(CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<string>> LoadAiModelOptionsAsync(CancellationToken cancellationToken);
 }

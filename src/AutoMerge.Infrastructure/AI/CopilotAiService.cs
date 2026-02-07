@@ -16,6 +16,7 @@ public sealed class CopilotAiService : IAiService, IAsyncDisposable
     private CopilotClient? _client;
     private CopilotSession? _currentSession;
     private bool _isDisposed;
+    private string _activeModel = UserPreferences.Default.AiModel;
 
     public CopilotAiService(CopilotClientOptions? options = null)
     {
@@ -24,6 +25,15 @@ public sealed class CopilotAiService : IAiService, IAsyncDisposable
             AutoStart = false,
             UseLoggedInUser = true
         };
+    }
+
+    /// <summary>
+    /// Sets the active model used for subsequent AI requests.
+    /// </summary>
+    public void SetModel(string model)
+    {
+        if (!string.IsNullOrWhiteSpace(model))
+            _activeModel = model;
     }
 
     public async Task<AiServiceStatus> GetStatusAsync(CancellationToken cancellationToken)
@@ -39,7 +49,7 @@ public sealed class CopilotAiService : IAiService, IAsyncDisposable
             }
 
             var pingResult = await _client.PingAsync().ConfigureAwait(false);
-            return new AiServiceStatus(true, true, null);
+            return new AiServiceStatus(true, true, null, _activeModel);
         }
         catch (FileNotFoundException)
         {
@@ -96,9 +106,11 @@ public sealed class CopilotAiService : IAiService, IAsyncDisposable
     {
         try
         {
+            var prefs = preferences ?? UserPreferences.Default;
+            SetModel(prefs.AiModel);
             await EnsureClientStartedAsync(cancellationToken).ConfigureAwait(false);
 
-            var prompt = BuildResolutionPrompt(session, preferences ?? UserPreferences.Default);
+            var prompt = BuildResolutionPrompt(session, prefs);
             var response = await SendMessageAsync(
                 SystemPrompts.MergeAgentSystemPrompt,
                 prompt,
@@ -196,7 +208,7 @@ public sealed class CopilotAiService : IAiService, IAsyncDisposable
         _currentSession?.DisposeAsync().AsTask().Wait();
         _currentSession = await _client.CreateSessionAsync(new SessionConfig
         {
-            Model = "gpt-4.1",
+            Model = _activeModel,
             Streaming = onChunk is not null,
             SystemMessage = new SystemMessageConfig
             {

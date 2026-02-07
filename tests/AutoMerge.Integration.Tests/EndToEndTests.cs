@@ -144,6 +144,11 @@ public sealed class EndToEndTests
             return Task.FromResult(UserPreferences.Default);
         }
 
+        public Task<IReadOnlyList<string>> LoadAiModelOptionsAsync(CancellationToken cancellationToken)
+        {
+            return Task.FromResult<IReadOnlyList<string>>(new[] { UserPreferences.Default.AiModel });
+        }
+
         public Task SavePreferencesAsync(UserPreferences preferences, CancellationToken cancellationToken)
         {
             return Task.CompletedTask;

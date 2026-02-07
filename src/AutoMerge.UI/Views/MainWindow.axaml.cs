@@ -1,4 +1,5 @@
 using AutoMerge.Application.Services;
+using AutoMerge.Core.Models;
 using AutoMerge.UI.Services;
 using AutoMerge.UI.ViewModels;
 using AutoMerge.UI.Views.Dialogs;
@@ -12,12 +13,31 @@ namespace AutoMerge.UI.Views;
 public sealed partial class MainWindow : Window
 {
     private readonly IServiceProvider _services;
+    private bool _closingHandled;
 
     public MainWindow(IServiceProvider services)
     {
         _services = services ?? throw new ArgumentNullException(nameof(services));
         InitializeComponent();
         RegisterShortcuts();
+    }
+
+    /// <summary>
+    /// When the user closes the window via the X button (or Alt+F4), treat it
+    /// as a cancel so that git/SourceTree sees exit code 1 and does NOT mark
+    /// the conflict as resolved. Skip if the session was already explicitly
+    /// accepted (Saved) or explicitly cancelled.
+    /// </summary>
+    protected override void OnClosing(WindowClosingEventArgs e)
+    {
+        if (!_closingHandled && DataContext is MainWindowViewModel vm && vm.IsSessionLoaded &&
+            vm.State != SessionState.Saved && vm.State != SessionState.Cancelled)
+        {
+            _closingHandled = true;
+            vm.CancelCommand.Execute(null);
+        }
+
+        base.OnClosing(e);
     }
 
     private void InitializeComponent()

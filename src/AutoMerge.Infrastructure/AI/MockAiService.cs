@@ -33,7 +33,7 @@ public sealed class MockAiService : IAiService
 
     public Task<AiServiceStatus> GetStatusAsync(CancellationToken cancellationToken)
     {
-        return Task.FromResult(new AiServiceStatus(true, true, null));
+        return Task.FromResult(new AiServiceStatus(true, true, null, "gpt-4.1"));
     }
 
     public async Task<ConflictAnalysis> AnalyzeConflictAsync(

@@ -3,6 +3,7 @@ using AutoMerge.Application.Services;
 using AutoMerge.Application.UseCases.AcceptResolution;
 using AutoMerge.Application.UseCases.AnalyzeConflict;
 using AutoMerge.Application.UseCases.CancelMerge;
+using AutoMerge.Application.UseCases.LoadAiModelOptions;
 using AutoMerge.Application.UseCases.LoadMergeSession;
 using AutoMerge.Application.UseCases.LoadPreferences;
 using AutoMerge.Application.UseCases.ProposeResolution;
@@ -45,6 +46,7 @@ public static class ServiceRegistration
         services.AddTransient<RefineResolutionHandler>();
         services.AddTransient<AcceptResolutionHandler>();
         services.AddTransient<CancelMergeHandler>();
+        services.AddTransient<LoadAiModelOptionsHandler>();
         services.AddTransient<LoadPreferencesHandler>();
         services.AddTransient<SavePreferencesHandler>();
 

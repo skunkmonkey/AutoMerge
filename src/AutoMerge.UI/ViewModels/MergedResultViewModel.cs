@@ -54,6 +54,43 @@ public sealed partial class MergedResultViewModel : ViewModelBase
     [ObservableProperty]
     private int _scrollToLine;
 
+    /// <summary>
+    /// Horizontal scroll offset for synchronized scrolling across panels.
+    /// </summary>
+    [ObservableProperty]
+    private double _scrollOffsetX;
+
+    /// <summary>
+    /// Vertical scroll offset for synchronized scrolling across panels.
+    /// </summary>
+    [ObservableProperty]
+    private double _scrollOffsetY;
+
+    /// <summary>
+    /// Regions that were automatically resolved by deterministic three-way merge logic.
+    /// Used for visual highlighting (green tint) in the editor.
+    /// </summary>
+    [ObservableProperty]
+    private IReadOnlyList<AutoResolvedRegion> _autoResolvedRegions = Array.Empty<AutoResolvedRegion>();
+
+    /// <summary>
+    /// Number of conflicts that were automatically resolved on load.
+    /// </summary>
+    [ObservableProperty]
+    private int _autoResolvedCount;
+
+    /// <summary>
+    /// True when at least one conflict was auto-resolved, for UI visibility bindings.
+    /// </summary>
+    [ObservableProperty]
+    private bool _hasAutoResolved;
+
+    /// <summary>
+    /// The parsed conflict regions from the current content.
+    /// Used by MainWindowViewModel to sync source pane scrolling.
+    /// </summary>
+    public IReadOnlyList<ConflictRegion> ConflictRegions => _conflictRegions;
+
     public bool CanGoNextConflict => TotalConflictCount > 0 && CurrentConflictIndex < TotalConflictCount;
     public bool CanGoPreviousConflict => TotalConflictCount > 0 && CurrentConflictIndex > 1;
 
@@ -71,7 +108,14 @@ public sealed partial class MergedResultViewModel : ViewModelBase
         _localContent = localContent;
         _remoteContent = remoteContent;
         _initialContent = mergedContent;
-        Content = mergedContent;
+
+        // Attempt auto-resolution of trivially resolvable conflicts
+        var (resolvedContent, autoResolved) = AttemptAutoResolve(mergedContent);
+        AutoResolvedRegions = autoResolved;
+        AutoResolvedCount = autoResolved.Count;
+        HasAutoResolved = autoResolved.Count > 0;
+
+        Content = resolvedContent;
         UpdateValidationState();
     }
 
@@ -143,8 +187,123 @@ public sealed partial class MergedResultViewModel : ViewModelBase
 
     private void UpdateConflictDisplay()
     {
-        CurrentConflictDisplay = TotalConflictCount > 0
-            ? $"{CurrentConflictIndex} / {TotalConflictCount}"
-            : "0 / 0";
+        if (TotalConflictCount > 0)
+        {
+            CurrentConflictDisplay = AutoResolvedCount > 0
+                ? $"{CurrentConflictIndex} / {TotalConflictCount}  ({AutoResolvedCount} auto-resolved)"
+                : $"{CurrentConflictIndex} / {TotalConflictCount}";
+        }
+        else if (AutoResolvedCount > 0)
+        {
+            CurrentConflictDisplay = $"All resolved ({AutoResolvedCount} auto-resolved)";
+        }
+        else
+        {
+            CurrentConflictDisplay = "0 / 0";
+        }
     }
+
+    #region Auto-resolve logic
+
+    /// <summary>
+    /// Attempts to automatically resolve trivially resolvable conflicts using
+    /// deterministic three-way merge logic:
+    /// - One side unchanged from base → take the other side
+    /// - Both sides made the same change → take either
+    /// </summary>
+    private (string NewContent, IReadOnlyList<AutoResolvedRegion> AutoResolved) AttemptAutoResolve(string content)
+    {
+        var regions = _conflictParser.Parse(content);
+        if (regions.Count == 0)
+        {
+            return (content, Array.Empty<AutoResolvedRegion>());
+        }
+
+        var lines = content.Split('\n').ToList();
+        var autoResolved = new List<AutoResolvedRegion>();
+        var lineOffset = 0;
+
+        foreach (var region in regions)
+        {
+            var resolved = TryResolveConflict(region);
+            if (resolved is null)
+            {
+                continue;
+            }
+
+            var startIdx = (region.StartLine - 1) + lineOffset;
+            var endIdx = (region.EndLine - 1) + lineOffset;
+            var originalCount = endIdx - startIdx + 1;
+
+            lines.RemoveRange(startIdx, originalCount);
+
+            var resolvedLines = resolved.Split('\n');
+            for (var j = 0; j < resolvedLines.Length; j++)
+            {
+                lines.Insert(startIdx + j, resolvedLines[j]);
+            }
+
+            var newCount = resolvedLines.Length;
+            var resolvedStartLine = startIdx + 1;
+            var resolvedEndLine = startIdx + newCount;
+
+            if (newCount > 0)
+            {
+                autoResolved.Add(new AutoResolvedRegion(resolvedStartLine, resolvedEndLine));
+            }
+
+            lineOffset += newCount - originalCount;
+        }
+
+        return (string.Join('\n', lines), autoResolved);
+    }
+
+    /// <summary>
+    /// Returns the resolved content if the conflict can be trivially resolved,
+    /// or null if it requires manual/AI intervention.
+    /// </summary>
+    private static string? TryResolveConflict(ConflictRegion region)
+    {
+        var local = NormalizeForComparison(region.LocalContent);
+        var remote = NormalizeForComparison(region.RemoteContent);
+        var baseContent = NormalizeForComparison(region.BaseContent);
+
+        // Both sides made the same change → take either
+        if (local is not null && remote is not null && local == remote)
+        {
+            return region.LocalContent;
+        }
+
+        // Only attempt base-relative resolution if base content is available
+        if (baseContent is null)
+        {
+            return null;
+        }
+
+        // Local side unchanged from base → take remote
+        if (local is not null && local == baseContent)
+        {
+            return region.RemoteContent;
+        }
+
+        // Remote side unchanged from base → take local
+        if (remote is not null && remote == baseContent)
+        {
+            return region.LocalContent;
+        }
+
+        return null;
+    }
+
+    private static string? NormalizeForComparison(string? content)
+    {
+        if (content is null)
+        {
+            return null;
+        }
+
+        return content.Replace("\r\n", "\n").Replace("\r", "\n").Trim();
+    }
+
+    #endregion
 }

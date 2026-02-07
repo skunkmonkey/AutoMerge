@@ -1,3 +1,4 @@
+using AutoMerge.Application.UseCases.LoadAiModelOptions;
 using AutoMerge.Application.UseCases.LoadPreferences;
 using AutoMerge.Application.UseCases.SavePreferences;
 using AutoMerge.Core.Models;
@@ -10,11 +11,16 @@ namespace AutoMerge.UI.ViewModels;
 
 public sealed partial class PreferencesViewModel : ViewModelBase
 {
+    private readonly LoadAiModelOptionsHandler _loadAiModelOptionsHandler;
     private readonly LoadPreferencesHandler _loadHandler;
     private readonly SavePreferencesHandler _saveHandler;
 
-    public PreferencesViewModel(LoadPreferencesHandler loadHandler, SavePreferencesHandler saveHandler)
+    public PreferencesViewModel(
+        LoadAiModelOptionsHandler loadAiModelOptionsHandler,
+        LoadPreferencesHandler loadHandler,
+        SavePreferencesHandler saveHandler)
     {
+        _loadAiModelOptionsHandler = loadAiModelOptionsHandler;
         _loadHandler = loadHandler;
         _saveHandler = saveHandler;
 
@@ -34,6 +40,12 @@ public sealed partial class PreferencesViewModel : ViewModelBase
     [ObservableProperty]
     private Theme _theme;
 
+    [ObservableProperty]
+    private string _aiModel = UserPreferences.Default.AiModel;
+
+    [ObservableProperty]
+    private IReadOnlyList<string> _aiModelOptions = Array.Empty<string>();
+
     public IReadOnlyList<DefaultBias> DefaultBiasOptions { get; } = Enum.GetValues<DefaultBias>();
 
     public IReadOnlyList<Theme> ThemeOptions { get; } = Enum.GetValues<Theme>();
@@ -44,15 +56,17 @@ public sealed partial class PreferencesViewModel : ViewModelBase
 
     private async Task LoadAsync()
     {
+        AiModelOptions = await _loadAiModelOptionsHandler.ExecuteAsync().ConfigureAwait(false);
         var preferences = await _loadHandler.ExecuteAsync().ConfigureAwait(false);
         DefaultBias = preferences.DefaultBias;
         AutoAnalyzeOnLoad = preferences.AutoAnalyzeOnLoad;
         Theme = preferences.Theme;
+        AiModel = preferences.AiModel;
     }
 
     private async Task SaveAsync()
     {
-        var preferences = new UserPreferences(DefaultBias, AutoAnalyzeOnLoad, Theme);
+        var preferences = new UserPreferences(DefaultBias, AutoAnalyzeOnLoad, Theme, AiModel);
         await _saveHandler.ExecuteAsync(new SavePreferencesCommand(preferences)).ConfigureAwait(false);
     }
 
@@ -62,5 +76,6 @@ public sealed partial class PreferencesViewModel : ViewModelBase
         DefaultBias = defaults.DefaultBias;
         AutoAnalyzeOnLoad = defaults.AutoAnalyzeOnLoad;
         Theme = defaults.Theme;
+        AiModel = defaults.AiModel;
     }
 }

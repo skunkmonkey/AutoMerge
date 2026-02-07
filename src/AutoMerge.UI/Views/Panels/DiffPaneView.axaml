@@ -66,6 +66,9 @@
             IsReadOnly="{Binding IsReadOnly}"
             SyntaxLanguage="{Binding SyntaxLanguage}"
             LineChanges="{Binding LineChanges}"
+            ScrollToLine="{Binding ScrollToLine}"
+            ScrollOffsetX="{Binding ScrollOffsetX, Mode=TwoWay}"
+            ScrollOffsetY="{Binding ScrollOffsetY, Mode=TwoWay}"
             ShowConflictMarkers="True" />
       </Border>
     </Grid>

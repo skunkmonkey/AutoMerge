@@ -21,4 +21,8 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="*" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="*" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="ai-models.xml" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

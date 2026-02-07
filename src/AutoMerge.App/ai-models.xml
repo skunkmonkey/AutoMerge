@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<models default="GPT-5 mini">
+  <model>Claude Haiku 4.5</model>
+  <model>Claude Opus 4.6</model>
+  <model>Claude Sonnet 4.5</model>
+  <model>GPT-5 mini</model>
+  <model>GPT-5.2-Codex</model>
+</models>

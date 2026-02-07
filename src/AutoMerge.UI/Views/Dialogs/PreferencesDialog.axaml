@@ -84,13 +84,13 @@
                 
                 <Border Height="1" Background="{StaticResource BorderSubtleBrush}" />
                 
-                <!-- Auto-analyze -->
+                <!-- Auto-resolve -->
                 <Grid ColumnDefinitions="*,Auto">
                   <StackPanel Grid.Column="0" Spacing="2">
-                    <TextBlock Text="Auto-analyze on load"
+                    <TextBlock Text="Auto-resolve on load"
                                FontSize="13"
                                Foreground="{StaticResource TextPrimaryBrush}" />
-                    <TextBlock Text="Automatically start AI analysis when files are loaded"
+                    <TextBlock Text="Automatically run AI resolution when files are loaded"
                                FontSize="11"
                                Foreground="{StaticResource TextTertiaryBrush}" />
                   </StackPanel>

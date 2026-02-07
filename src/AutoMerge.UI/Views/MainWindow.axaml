@@ -394,6 +394,26 @@
                      TextAlignment="Center" />
         </StackPanel>
       </Border>
+
+      <!-- Busy Overlay -->
+      <Border Background="#80000000"
+              IsVisible="{Binding IsBusy}"
+              ZIndex="50">
+        <StackPanel HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Spacing="12">
+          <ProgressBar IsIndeterminate="True" Width="240" Height="6" />
+          <Border Background="#FF000000"
+                  Padding="12,6"
+                  CornerRadius="4">
+            <TextBlock Text="{Binding BusyMessage}"
+                       Foreground="#FFFFFF"
+                       FontSize="13"
+                       FontWeight="SemiBold"
+                       HorizontalAlignment="Center" />
+          </Border>
+        </StackPanel>
+      </Border>
     </Grid>
 
     <!-- ============================================== -->

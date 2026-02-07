@@ -117,8 +117,8 @@ public sealed class CopilotAiService : IAiService, IAsyncDisposable
                 onChunk,
                 cancellationToken).ConfigureAwait(false);
 
-            // Extract the resolution content (between code fences if present)
-            var resolvedContent = ExtractCodeBlock(response) ?? response;
+            // Extract the resolution content using the required output format
+            var resolvedContent = ExtractResolvedContent(response) ?? response;
             var explanation = ExtractSection(response, "Explanation:", null) ?? "AI-proposed resolution";
 
             return new MergeResolution(resolvedContent, explanation, 0.75);
@@ -150,7 +150,7 @@ public sealed class CopilotAiService : IAiService, IAsyncDisposable
                 onChunk,
                 cancellationToken).ConfigureAwait(false);
 
-            var resolvedContent = ExtractCodeBlock(response) ?? response;
+            var resolvedContent = ExtractResolvedContent(response) ?? response;
             return new MergeResolution(resolvedContent, $"Refined: {userMessage}", 0.7);
         }
         catch (Exception ex)
@@ -205,7 +205,12 @@ public sealed class CopilotAiService : IAiService, IAsyncDisposable
         }
 
         // Create or reuse session
-        _currentSession?.DisposeAsync().AsTask().Wait();
+        if (_currentSession is not null)
+        {
+            await _currentSession.DisposeAsync().ConfigureAwait(false);
+            _currentSession = null;
+        }
+
         _currentSession = await _client.CreateSessionAsync(new SessionConfig
         {
             Model = _activeModel,
@@ -219,6 +224,7 @@ public sealed class CopilotAiService : IAiService, IAsyncDisposable
 
         var responseText = new System.Text.StringBuilder();
         var done = new TaskCompletionSource();
+        var receivedDelta = false;
 
         _currentSession.On(evt =>
         {
@@ -226,13 +232,32 @@ public sealed class CopilotAiService : IAiService, IAsyncDisposable
             {
                 case AssistantMessageDeltaEvent delta:
                     var chunk = delta.Data?.DeltaContent ?? string.Empty;
-                    responseText.Append(chunk);
-                    onChunk?.Invoke(chunk);
+                    if (chunk.Length > 0)
+                    {
+                        responseText.Append(chunk);
+                        receivedDelta = true;
+                        onChunk?.Invoke(chunk);
+                    }
                     break;
                 case AssistantMessageEvent msg:
-                    if (onChunk is null)
+                    var content = msg.Data?.Content ?? string.Empty;
+                    if (!string.IsNullOrEmpty(content))
                     {
-                        responseText.Append(msg.Data?.Content ?? string.Empty);
+                        if (!receivedDelta)
+                        {
+                            responseText.Append(content);
+                            onChunk?.Invoke(content);
+                        }
+                        else if (content.Length > responseText.Length)
+                        {
+                            responseText.Clear();
+                            responseText.Append(content);
+                        }
+                    }
+
+                    if (onChunk is null || !receivedDelta)
+                    {
+                        done.TrySetResult();
                     }
                     break;
                 case SessionIdleEvent:
@@ -340,33 +365,173 @@ public sealed class CopilotAiService : IAiService, IAsyncDisposable
         return text[startIndex..endIndex].Trim();
     }
 
-    private static string? ExtractCodeBlock(string text)
+    private static string? ExtractResolvedContent(string text)
     {
-        const string startFence = "```";
-        const string endFence = "```";
-
-        var startIndex = text.IndexOf(startFence, StringComparison.Ordinal);
-        if (startIndex < 0)
+        if (string.IsNullOrWhiteSpace(text))
         {
             return null;
         }
 
-        // Skip the fence and any language identifier
-        var contentStart = text.IndexOf('\n', startIndex);
-        if (contentStart < 0)
+        var labeled = ExtractLabeledResolvedContent(text);
+        if (!string.IsNullOrWhiteSpace(labeled))
+        {
+            return labeled;
+        }
+
+        var blocks = ExtractCodeBlocks(text);
+        if (blocks.Count == 0)
         {
             return null;
         }
 
-        contentStart++;
+        CodeBlock? best = null;
+        var bestScore = int.MinValue;
 
-        var endIndex = text.IndexOf(endFence, contentStart, StringComparison.Ordinal);
-        if (endIndex < 0)
+        foreach (var block in blocks)
         {
-            return text[contentStart..].Trim();
+            if (string.IsNullOrWhiteSpace(block.Content))
+            {
+                continue;
+            }
+
+            var score = block.Content.Length;
+            if (!IsDiffLike(block))
+            {
+                score += 100_000;
+            }
+
+            if (!ContainsConflictMarkers(block.Content))
+            {
+                score += 100_000;
+            }
+
+            if (score > bestScore)
+            {
+                bestScore = score;
+                best = block;
+            }
         }
 
-        return text[contentStart..endIndex].Trim();
+        return best?.Content;
+    }
+
+    private static string? ExtractLabeledResolvedContent(string text)
+    {
+        var labelIndex = IndexOfLabel(text, "RESOLVED_CONTENT");
+        if (labelIndex < 0)
+        {
+            labelIndex = IndexOfLabel(text, "RESOLVED CONTENT");
+        }
+
+        if (labelIndex < 0)
+        {
+            return null;
+        }
+
+        var afterLabel = text[labelIndex..];
+        var blocks = ExtractCodeBlocks(afterLabel);
+        if (blocks.Count > 0)
+        {
+            return blocks[0].Content;
+        }
+
+        var colonIndex = afterLabel.IndexOf(':');
+        var payload = colonIndex >= 0 ? afterLabel[(colonIndex + 1)..] : afterLabel;
+
+        var explanationIndex = IndexOfLabel(payload, "EXPLANATION");
+        if (explanationIndex >= 0)
+        {
+            payload = payload[..explanationIndex];
+        }
+
+        return payload.Trim();
+    }
+
+    private static int IndexOfLabel(string text, string label)
+    {
+        if (string.IsNullOrWhiteSpace(text) || string.IsNullOrWhiteSpace(label))
+        {
+            return -1;
+        }
+
+        return text.IndexOf(label, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private sealed record CodeBlock(string Language, string Content);
+
+    private static IReadOnlyList<CodeBlock> ExtractCodeBlocks(string text)
+    {
+        var blocks = new List<CodeBlock>();
+
+        var index = 0;
+        while (index < text.Length)
+        {
+            var startIndex = text.IndexOf("```", index, StringComparison.Ordinal);
+            if (startIndex < 0)
+            {
+                break;
+            }
+
+            var lineEnd = text.IndexOf('\n', startIndex + 3);
+            if (lineEnd < 0)
+            {
+                break;
+            }
+
+            var language = text.Substring(startIndex + 3, lineEnd - (startIndex + 3)).Trim().TrimEnd('\r');
+            var contentStart = lineEnd + 1;
+
+            var endIndex = text.IndexOf("```", contentStart, StringComparison.Ordinal);
+            if (endIndex < 0)
+            {
+                var content = text[contentStart..].Trim();
+                blocks.Add(new CodeBlock(language, content));
+                break;
+            }
+
+            var blockContent = text[contentStart..endIndex].Trim();
+            blocks.Add(new CodeBlock(language, blockContent));
+            index = endIndex + 3;
+        }
+
+        return blocks;
+    }
+
+    private static bool IsDiffLike(CodeBlock block)
+    {
+        if (!string.IsNullOrWhiteSpace(block.Language))
+        {
+            if (string.Equals(block.Language, "diff", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(block.Language, "patch", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        var lines = block.Content.Split('\n');
+        foreach (var raw in lines)
+        {
+            var line = raw.TrimEnd('\r');
+            if (line.StartsWith("diff ", StringComparison.Ordinal) ||
+                line.StartsWith("index ", StringComparison.Ordinal) ||
+                line.StartsWith("--- ", StringComparison.Ordinal) ||
+                line.StartsWith("+++ ", StringComparison.Ordinal) ||
+                line.StartsWith("@@ ", StringComparison.Ordinal) ||
+                line.StartsWith("@@", StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool ContainsConflictMarkers(string text)
+    {
+        return text.Contains("<<<<<<<", StringComparison.Ordinal) ||
+               text.Contains("|||||||", StringComparison.Ordinal) ||
+               text.Contains("=======", StringComparison.Ordinal) ||
+               text.Contains(">>>>>>>", StringComparison.Ordinal);
     }
 
     public async ValueTask DisposeAsync()

@@ -22,6 +22,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     private readonly IFileService _fileService;
     private readonly IDiffCalculator _diffCalculator;
     private readonly IAiService _aiService;
+    private readonly IConfigurationService _configurationService;
     private MergeInput? _lastInput;
 
     public MainWindowViewModel(
@@ -33,6 +34,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         IFileService fileService,
         IDiffCalculator diffCalculator,
         IAiService aiService,
+        IConfigurationService configurationService,
         MergedResultViewModel mergedResultViewModel,
         AiChatViewModel aiChatViewModel)
     {
@@ -44,6 +46,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         _fileService = fileService;
         _diffCalculator = diffCalculator;
         _aiService = aiService;
+        _configurationService = configurationService;
 
         BasePaneViewModel = new DiffPaneViewModel { Title = "Base", IsReadOnly = true };
         LocalPaneViewModel = new DiffPaneViewModel { Title = "Local", IsReadOnly = true };
@@ -91,6 +94,12 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private bool _isAiAvailable = true;
+
+    [ObservableProperty]
+    private bool _isBusy;
+
+    [ObservableProperty]
+    private string _busyMessage = string.Empty;
 
     [ObservableProperty]
     private string? _aiStatusMessage;
@@ -147,6 +156,12 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     private bool _allConflictsResolved;
 
     /// <summary>
+    /// Number of conflicts resolved by AI (tracked after AI actions).
+    /// </summary>
+    [ObservableProperty]
+    private int _aiResolvedCount;
+
+    /// <summary>
     /// User can dismiss the summary banner.
     /// </summary>
     public IRelayCommand DismissSummaryCommand { get; }
@@ -167,6 +182,13 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         ErrorMessage = null;
         HasError = false;
         ClearContent();
+        AiResolvedCount = 0;
+        _lastKnownRemainingConflicts = 0;
+        TotalOriginalConflicts = 0;
+        ShowResolutionSummary = false;
+        ResolutionSummaryHeadline = string.Empty;
+        ResolutionSummaryDetail = string.Empty;
+        AllConflictsResolved = false;
 
         try
         {
@@ -196,10 +218,13 @@ public sealed partial class MainWindowViewModel : ViewModelBase
             RemotePaneViewModel.SetContent(remoteFile.Content, _diffCalculator.CalculateDiff(baseFile.Content, remoteFile.Content));
 
             MergedResultViewModel.SetSourceContents(baseFile.Content, localFile.Content, remoteFile.Content, result.Session.CurrentMergedContent);
+            _lastKnownRemainingConflicts = MergedResultViewModel.TotalConflictCount;
             UpdateCanAccept();
             IsLoading = false;
             IsSessionLoaded = true;
             UpdateResolutionSummary();
+
+            await TryAutoResolveWithAiAsync();
         }
         catch (Exception ex)
         {
@@ -217,6 +242,13 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         IsLoading = false;
         IsSessionLoaded = false;
         ClearContent();
+        AiResolvedCount = 0;
+        _lastKnownRemainingConflicts = 0;
+        TotalOriginalConflicts = 0;
+        ShowResolutionSummary = false;
+        ResolutionSummaryHeadline = string.Empty;
+        ResolutionSummaryDetail = string.Empty;
+        AllConflictsResolved = false;
         UpdateCanAccept();
     }
 
@@ -244,6 +276,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
     private async Task ProposeResolutionAsync()
     {
+        var beforeRemaining = MergedResultViewModel.TotalConflictCount;
         IsAiBusy = true;
         try
         {
@@ -251,6 +284,9 @@ public sealed partial class MainWindowViewModel : ViewModelBase
             if (result.Success && result.Resolution is not null)
             {
                 MergedResultViewModel.Content = result.Resolution.ResolvedContent;
+                var afterRemaining = MergedResultViewModel.TotalConflictCount;
+                UpdateAiResolvedCount(beforeRemaining, afterRemaining);
+                UpdateResolutionSummary();
             }
             else if (!result.Success)
             {
@@ -300,6 +336,12 @@ public sealed partial class MainWindowViewModel : ViewModelBase
             e.PropertyName == nameof(MergedResultViewModel.IsDirty))
         {
             UpdateCanAccept();
+        }
+
+        if (e.PropertyName == nameof(MergedResultViewModel.TotalConflictCount) ||
+            e.PropertyName == nameof(MergedResultViewModel.AutoResolvedCount))
+        {
+            UpdateResolutionSummary();
         }
 
         // Sync source pane scrolling when conflict navigation occurs
@@ -379,6 +421,16 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         UpdateAiCommandAvailability();
     }
 
+    partial void OnIsLoadingChanged(bool value)
+    {
+        UpdateBusyState();
+    }
+
+    partial void OnIsAiBusyChanged(bool value)
+    {
+        UpdateBusyState();
+    }
+
     private void UpdateAiCommandAvailability()
     {
         AnalyzeCommand.NotifyCanExecuteChanged();
@@ -412,9 +464,12 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     {
         var autoResolved = MergedResultViewModel.AutoResolvedCount;
         var remaining = MergedResultViewModel.TotalConflictCount;
-        var total = autoResolved + remaining;
+        var total = TotalOriginalConflicts > 0 ? TotalOriginalConflicts : autoResolved + remaining;
 
-        TotalOriginalConflicts = total;
+        if (TotalOriginalConflicts == 0 && total > 0)
+        {
+            TotalOriginalConflicts = total;
+        }
 
         if (total == 0)
         {
@@ -425,18 +480,97 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
         AllConflictsResolved = remaining == 0;
 
+        var aiResolved = Math.Max(0, AiResolvedCount);
+        var resolvedByAiText = $"{aiResolved} resolved by AI";
+        var autoResolvedText = autoResolved > 0 ? $" · {autoResolved} auto-resolved" : string.Empty;
+
         if (AllConflictsResolved)
         {
-            ResolutionSummaryHeadline = "✅ All conflicts were resolved by AI. Please verify the result.";
-            ResolutionSummaryDetail = "Every conflict had a clear resolution and was merged automatically. Review the result below carefully and click Accept when you're satisfied.";
+            ResolutionSummaryHeadline = $"✅ All conflicts resolved ({resolvedByAiText}{autoResolvedText})";
+            ResolutionSummaryDetail = "Review the result below carefully and click Accept when you're satisfied.";
         }
         else
         {
-            ResolutionSummaryHeadline = $"⚠ {autoResolved}/{total} conflicts were resolved by AI";
+            ResolutionSummaryHeadline = $"⚠ {resolvedByAiText}{autoResolvedText} · {remaining} remaining";
             ResolutionSummaryDetail = $"{remaining} conflict{(remaining == 1 ? " requires" : "s require")} manual resolution. Navigate conflicts with the ◀ ▶ buttons. Edit the merged result directly, or click \"Get AI Help\" for an AI-suggested resolution.";
         }
 
         ShowResolutionSummary = true;
+    }
+
+    private int _lastKnownRemainingConflicts;
+
+    private void UpdateAiResolvedCount(int beforeRemaining, int afterRemaining)
+    {
+        if (beforeRemaining <= 0)
+        {
+            _lastKnownRemainingConflicts = afterRemaining;
+            return;
+        }
+
+        var resolvedDelta = Math.Max(0, beforeRemaining - afterRemaining);
+        if (resolvedDelta > 0)
+        {
+            AiResolvedCount += resolvedDelta;
+            var maxAiResolved = Math.Max(0, TotalOriginalConflicts - MergedResultViewModel.AutoResolvedCount);
+            if (AiResolvedCount > maxAiResolved)
+            {
+                AiResolvedCount = maxAiResolved;
+            }
+        }
+
+        _lastKnownRemainingConflicts = afterRemaining;
+    }
+
+    private void UpdateBusyState()
+    {
+        IsBusy = IsLoading || IsAiBusy;
+
+        if (IsLoading)
+        {
+            BusyMessage = "Loading merge files and resolving conflicts...";
+        }
+        else if (IsAiBusy)
+        {
+            BusyMessage = "AI is processing the conflicts...";
+        }
+        else
+        {
+            BusyMessage = string.Empty;
+        }
+    }
+
+    private async Task TryAutoResolveWithAiAsync()
+    {
+        if (!IsAiAvailable || !IsSessionLoaded)
+        {
+            return;
+        }
+
+        var remainingConflicts = MergedResultViewModel.TotalConflictCount;
+        if (remainingConflicts <= 0)
+        {
+            return;
+        }
+
+        UserPreferences preferences;
+        try
+        {
+            preferences = await _configurationService.LoadPreferencesAsync(CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Failed to load preferences: {ex.Message}";
+            return;
+        }
+
+        if (!preferences.AutoAnalyzeOnLoad)
+        {
+            return;
+        }
+
+        // Auto-run AI resolution on load when configured.
+        await ProposeResolutionAsync();
     }
 
     #region Cross-panel scroll synchronisation

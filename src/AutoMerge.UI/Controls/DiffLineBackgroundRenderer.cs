@@ -11,15 +11,15 @@ namespace AutoMerge.UI.Controls;
 /// </summary>
 public sealed class DiffLineBackgroundRenderer : IBackgroundRenderer
 {
-    // BeyondCompare-inspired colors - vivid for better visibility
-    private static readonly IBrush AddedBrush = new SolidColorBrush(Color.Parse("#5066BB6A"));      // Bright green tint
-    private static readonly IBrush RemovedBrush = new SolidColorBrush(Color.Parse("#50EF5350"));    // Red tint
-    private static readonly IBrush ModifiedBrush = new SolidColorBrush(Color.Parse("#50FFB74D"));   // Orange tint
+    // BeyondCompare-inspired colors — softer backgrounds with solid marker strips
+    private static readonly IBrush AddedBrush = new SolidColorBrush(Color.Parse("#30A5D6A7"));       // Soft green tint
+    private static readonly IBrush RemovedBrush = new SolidColorBrush(Color.Parse("#30EF9A9A"));     // Soft red/pink tint
+    private static readonly IBrush ModifiedBrush = new SolidColorBrush(Color.Parse("#30FFE082"));    // Soft amber tint
     
-    // Left-side marker strip colors (solid, for clear indication)
-    private static readonly IBrush AddedMarkerBrush = new SolidColorBrush(Color.Parse("#66BB6A"));    // Bright green
-    private static readonly IBrush RemovedMarkerBrush = new SolidColorBrush(Color.Parse("#EF5350"));  // Red
-    private static readonly IBrush ModifiedMarkerBrush = new SolidColorBrush(Color.Parse("#FFB74D")); // Orange
+    // Left-side marker strip colors (solid, BeyondCompare-style)
+    private static readonly IBrush AddedMarkerBrush = new SolidColorBrush(Color.Parse("#4CAF50"));    // Green
+    private static readonly IBrush RemovedMarkerBrush = new SolidColorBrush(Color.Parse("#E53935")); // Red
+    private static readonly IBrush ModifiedMarkerBrush = new SolidColorBrush(Color.Parse("#FB8C00")); // Orange
 
     private readonly TextView _textView;
     private IReadOnlyList<LineChange> _lineChanges = Array.Empty<LineChange>();

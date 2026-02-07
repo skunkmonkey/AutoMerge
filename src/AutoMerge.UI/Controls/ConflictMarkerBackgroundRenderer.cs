@@ -15,19 +15,19 @@ namespace AutoMerge.UI.Controls;
 /// </summary>
 public sealed class ConflictMarkerBackgroundRenderer : IBackgroundRenderer
 {
-    // Section background colors (vivid for better visibility)
-    private static readonly IBrush LocalBrush = new SolidColorBrush(Color.Parse("#5066BB6A"));      // Bright green tint
-    private static readonly IBrush BaseBrush = new SolidColorBrush(Color.Parse("#5042A5F5"));       // Blue tint
-    private static readonly IBrush RemoteBrush = new SolidColorBrush(Color.Parse("#50EF5350"));     // Red tint
+    // Section background colors — BeyondCompare-inspired softer tones
+    private static readonly IBrush LocalBrush = new SolidColorBrush(Color.Parse("#35A5D6A7"));       // Soft green tint
+    private static readonly IBrush BaseBrush = new SolidColorBrush(Color.Parse("#3590CAF9"));       // Soft blue tint
+    private static readonly IBrush RemoteBrush = new SolidColorBrush(Color.Parse("#35EF9A9A"));     // Soft red/pink tint
     
     // Conflict marker line background (the <<<, ===, >>> lines themselves)
-    private static readonly IBrush ConflictMarkerLineBrush = new SolidColorBrush(Color.Parse("#30808080"));  // Dimmed gray
+    private static readonly IBrush ConflictMarkerLineBrush = new SolidColorBrush(Color.Parse("#25808080"));  // Dimmed gray
     
-    // Left edge marker colors (solid strip)
-    private static readonly IBrush LocalMarkerBrush = new SolidColorBrush(Color.Parse("#66BB6A"));    // Bright green
+    // Left edge marker colors (solid strip, BeyondCompare-style)
+    private static readonly IBrush LocalMarkerBrush = new SolidColorBrush(Color.Parse("#4CAF50"));    // Green
     private static readonly IBrush BaseMarkerBrush = new SolidColorBrush(Color.Parse("#42A5F5"));     // Blue
-    private static readonly IBrush RemoteMarkerBrush = new SolidColorBrush(Color.Parse("#EF5350"));   // Red
-    private static readonly IBrush ConflictMarkerLineMarkerBrush = new SolidColorBrush(Color.Parse("#808080"));  // Gray
+    private static readonly IBrush RemoteMarkerBrush = new SolidColorBrush(Color.Parse("#E53935"));   // Red
+    private static readonly IBrush ConflictMarkerLineMarkerBrush = new SolidColorBrush(Color.Parse("#606060"));  // Dim gray
 
     private readonly TextView _textView;
 

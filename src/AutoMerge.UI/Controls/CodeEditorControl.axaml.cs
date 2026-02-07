@@ -24,6 +24,7 @@ public sealed partial class CodeEditorControl : UserControl
         IsReadOnlyProperty.Changed.AddClassHandler<CodeEditorControl>((control, args) => control.OnIsReadOnlyPropertyChanged(args));
         LineChangesProperty.Changed.AddClassHandler<CodeEditorControl>((control, args) => control.OnLineChangesPropertyChanged(args));
         ShowConflictMarkersProperty.Changed.AddClassHandler<CodeEditorControl>((control, args) => control.OnShowConflictMarkersPropertyChanged(args));
+        ScrollToLineProperty.Changed.AddClassHandler<CodeEditorControl>((control, args) => control.OnScrollToLinePropertyChanged(args));
     }
 
     public static readonly StyledProperty<string> TextProperty =
@@ -40,6 +41,9 @@ public sealed partial class CodeEditorControl : UserControl
 
     public static readonly StyledProperty<bool> ShowConflictMarkersProperty =
         AvaloniaProperty.Register<CodeEditorControl, bool>(nameof(ShowConflictMarkers), false);
+
+    public static readonly StyledProperty<int> ScrollToLineProperty =
+        AvaloniaProperty.Register<CodeEditorControl, int>(nameof(ScrollToLine), 0);
 
     public CodeEditorControl()
     {
@@ -139,6 +143,12 @@ public sealed partial class CodeEditorControl : UserControl
     {
         get => GetValue(ShowConflictMarkersProperty);
         set => SetValue(ShowConflictMarkersProperty, value);
+    }
+
+    public int ScrollToLine
+    {
+        get => GetValue(ScrollToLineProperty);
+        set => SetValue(ScrollToLineProperty, value);
     }
 
     private void InitializeComponent()
@@ -252,5 +262,23 @@ public sealed partial class CodeEditorControl : UserControl
         }
 
         _editor.TextArea.TextView.InvalidateVisual();
+    }
+
+    private void OnScrollToLinePropertyChanged(AvaloniaPropertyChangedEventArgs args)
+    {
+        if (_editor is null)
+        {
+            return;
+        }
+
+        var lineNumber = args.NewValue is int line ? line : 0;
+        if (lineNumber > 0 && lineNumber <= _editor.Document.LineCount)
+        {
+            _editor.ScrollToLine(lineNumber);
+            // Also move the caret to that line for visual focus
+            var lineInfo = _editor.Document.GetLineByNumber(lineNumber);
+            _editor.TextArea.Caret.Offset = lineInfo.Offset;
+            _editor.TextArea.Caret.BringCaretToView();
+        }
     }
 }

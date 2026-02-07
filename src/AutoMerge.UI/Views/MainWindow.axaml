@@ -3,8 +3,8 @@
         xmlns:views="clr-namespace:AutoMerge.UI.Views.Panels"
         xmlns:converters="clr-namespace:AutoMerge.UI.Converters"
         x:Class="AutoMerge.UI.Views.MainWindow"
-        Width="1400" Height="900" 
-        MinWidth="1000" MinHeight="600"
+        Width="1600" Height="1000" 
+        MinWidth="1200" MinHeight="700"
         Title="AutoMerge — AI-Powered Merge Conflict Resolution"
         Background="{StaticResource AppBackgroundBrush}">
   
@@ -44,11 +44,41 @@
                   ToolTip.Tip="Open preferences (Ctrl+,)" />
         </StackPanel>
         
-        <!-- Center: AI Actions -->
+        <!-- Center: Conflict Navigation + AI Actions -->
         <StackPanel Orientation="Horizontal" 
                     Spacing="8" 
                     Grid.Column="1" 
                     HorizontalAlignment="Center">
+          
+          <Button Theme="{StaticResource SecondaryButton}"
+                  Content="◀ Prev Conflict"
+                  Command="{Binding MergedResultViewModel.PreviousConflictCommand}"
+                  ToolTip.Tip="Navigate to previous conflict"
+                  IsVisible="{Binding IsSessionLoaded}"
+                  Padding="12,8" />
+          
+          <Border Background="{StaticResource SurfaceElevatedBrush}"
+                  CornerRadius="4"
+                  Padding="10,6"
+                  VerticalAlignment="Center"
+                  IsVisible="{Binding IsSessionLoaded}">
+            <TextBlock Foreground="{StaticResource TextSecondaryBrush}"
+                       FontSize="12"
+                       FontWeight="Medium">
+              <Run Text="Conflict "/>
+              <Run Text="{Binding MergedResultViewModel.CurrentConflictDisplay}"/>
+            </TextBlock>
+          </Border>
+          
+          <Button Theme="{StaticResource SecondaryButton}"
+                  Content="Next Conflict ▶"
+                  Command="{Binding MergedResultViewModel.NextConflictCommand}"
+                  ToolTip.Tip="Navigate to next conflict"
+                  IsVisible="{Binding IsSessionLoaded}"
+                  Padding="12,8" />
+          
+          <Border Width="1" Background="{StaticResource BorderBrush}" Margin="8,4" />
+          
           <Button Theme="{StaticResource PrimaryButton}"
                   Content="🔍 Analyze"
                   Command="{Binding AnalyzeCommand}"
@@ -92,22 +122,37 @@
     <!-- ============================================== -->
     <!-- Main Content Area                              -->
     <!-- ============================================== -->
-    <Grid Grid.Row="1" Margin="12">
+    <Grid Grid.Row="1" Margin="4">
       
       <!-- Session Loaded: Main Panels -->
-      <Grid ColumnDefinitions="2*,12,3*" IsVisible="{Binding IsSessionLoaded}">
+      <Grid RowDefinitions="55*,Auto,45*" IsVisible="{Binding IsSessionLoaded}">
         
-        <!-- Left Column: Source Files (Base, Local, Remote) -->
-        <Grid Grid.Column="0" RowDefinitions="*,8,*,8,*">
-          <views:DiffPaneView Grid.Row="0" DataContext="{Binding BasePaneViewModel}" />
-          <views:DiffPaneView Grid.Row="2" DataContext="{Binding LocalPaneViewModel}" />
-          <views:DiffPaneView Grid.Row="4" DataContext="{Binding RemotePaneViewModel}" />
+        <!-- Top Row: Three Source Panels Side by Side (Local | Base | Remote) -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,*,Auto,*">
+          <views:DiffPaneView Grid.Column="0" DataContext="{Binding LocalPaneViewModel}" />
+          <GridSplitter Grid.Column="1" Width="5" 
+                        Background="{StaticResource SurfaceElevatedBrush}"
+                        ResizeDirection="Columns" />
+          <views:DiffPaneView Grid.Column="2" DataContext="{Binding BasePaneViewModel}" />
+          <GridSplitter Grid.Column="3" Width="5" 
+                        Background="{StaticResource SurfaceElevatedBrush}"
+                        ResizeDirection="Columns" />
+          <views:DiffPaneView Grid.Column="4" DataContext="{Binding RemotePaneViewModel}" />
         </Grid>
 
-        <!-- Right Column: Merged Result + AI Chat -->
-        <Grid Grid.Column="2" RowDefinitions="3*,8,2*">
-          <views:MergedResultView Grid.Row="0" DataContext="{Binding MergedResultViewModel}" />
-          <views:AiChatPanelView Grid.Row="2" DataContext="{Binding AiChatViewModel}" />
+        <!-- Horizontal Splitter between top and bottom -->
+        <GridSplitter Grid.Row="1" Height="5" 
+                      HorizontalAlignment="Stretch"
+                      Background="{StaticResource SurfaceElevatedBrush}"
+                      ResizeDirection="Rows" />
+
+        <!-- Bottom Row: Merged Result + AI Chat Side by Side -->
+        <Grid Grid.Row="2" ColumnDefinitions="3*,Auto,2*">
+          <views:MergedResultView Grid.Column="0" DataContext="{Binding MergedResultViewModel}" />
+          <GridSplitter Grid.Column="1" Width="5" 
+                        Background="{StaticResource SurfaceElevatedBrush}"
+                        ResizeDirection="Columns" />
+          <views:AiChatPanelView Grid.Column="2" DataContext="{Binding AiChatViewModel}" />
         </Grid>
       </Grid>
       

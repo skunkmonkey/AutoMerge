@@ -1,7 +1,6 @@
 using System.Text;
 using AutoMerge.Logic.Services;
 using AutoMerge.Logic.UseCases.AcceptResolution;
-using AutoMerge.Logic.UseCases.AnalyzeConflict;
 using AutoMerge.Logic.UseCases.CancelMerge;
 using AutoMerge.Logic.UseCases.LoadMergeSession;
 using AutoMerge.Logic.UseCases.ProposeResolution;
@@ -33,18 +32,22 @@ public sealed class MainWindowViewModelTests
         context.ViewModel.BasePaneViewModel.Content.Should().Be(context.BaseContent);
         context.ViewModel.LocalPaneViewModel.Content.Should().Be(context.LocalContent);
         context.ViewModel.RemotePaneViewModel.Content.Should().Be(context.RemoteContent);
-        context.ViewModel.MergedResultViewModel.Content.Should().Be(context.MergedContent);
+        // AI auto-resolves on load, so merged content is the mock AI result
+        context.ViewModel.MergedResultViewModel.Content.Should().NotBeNullOrEmpty();
+        context.ViewModel.HasAiResolved.Should().BeTrue();
         context.ViewModel.IsLoading.Should().BeFalse();
     }
 
     [Fact]
-    public async Task Accept_command_disabled_when_conflict_markers_present()
+    public async Task Accept_command_enabled_after_ai_auto_resolves()
     {
         var context = CreateContext(withConflictMarkers: true);
 
         await context.ViewModel.InitializeAsync(context.MergeInput);
 
-        context.ViewModel.AcceptCommand.CanExecute(null).Should().BeFalse();
+        // AI auto-resolves on load, removing conflict markers
+        context.ViewModel.HasAiResolved.Should().BeTrue();
+        context.ViewModel.AcceptCommand.CanExecute(null).Should().BeTrue();
     }
 
     [Fact]
@@ -109,7 +112,6 @@ public sealed class MainWindowViewModelTests
 
         var loadHandler = new LoadMergeSessionHandler(fileService, conflictParser, sessionManager, eventAggregator);
         var aiService = new MockAiService();
-        var analyzeHandler = new AnalyzeConflictHandler(aiService, sessionManager, eventAggregator);
         var proposeHandler = new ProposeResolutionHandler(aiService, sessionManager, eventAggregator, new InMemoryConfigurationService());
         var acceptHandler = new AcceptResolutionHandler(fileService, conflictParser, sessionManager, new AutoSaveService(fileService), eventAggregator);
         var cancelHandler = new CancelMergeHandler(sessionManager, new AutoSaveService(fileService), eventAggregator);
@@ -123,7 +125,6 @@ public sealed class MainWindowViewModelTests
 
         var viewModel = new MainWindowViewModel(
             loadHandler,
-            analyzeHandler,
             proposeHandler,
             acceptHandler,
             cancelHandler,

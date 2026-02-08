@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using AutoMerge.Logic.UseCases.AcceptResolution;
-using AutoMerge.Logic.UseCases.AnalyzeConflict;
 using AutoMerge.Logic.UseCases.CancelMerge;
 using AutoMerge.Logic.UseCases.LoadMergeSession;
 using AutoMerge.Logic.UseCases.ProposeResolution;
@@ -15,38 +14,32 @@ namespace AutoMerge.UI.ViewModels;
 public sealed partial class MainWindowViewModel : ViewModelBase
 {
     private readonly LoadMergeSessionHandler _loadHandler;
-    private readonly AnalyzeConflictHandler _analyzeHandler;
     private readonly ProposeResolutionHandler _proposeHandler;
     private readonly AcceptResolutionHandler _acceptHandler;
     private readonly CancelMergeHandler _cancelHandler;
     private readonly IFileService _fileService;
     private readonly IDiffCalculator _diffCalculator;
     private readonly IAiService _aiService;
-    private readonly IConfigurationService _configurationService;
     private MergeInput? _lastInput;
 
     public MainWindowViewModel(
         LoadMergeSessionHandler loadHandler,
-        AnalyzeConflictHandler analyzeHandler,
         ProposeResolutionHandler proposeHandler,
         AcceptResolutionHandler acceptHandler,
         CancelMergeHandler cancelHandler,
         IFileService fileService,
         IDiffCalculator diffCalculator,
         IAiService aiService,
-        IConfigurationService configurationService,
         MergedResultViewModel mergedResultViewModel,
         AiChatViewModel aiChatViewModel)
     {
         _loadHandler = loadHandler;
-        _analyzeHandler = analyzeHandler;
         _proposeHandler = proposeHandler;
         _acceptHandler = acceptHandler;
         _cancelHandler = cancelHandler;
         _fileService = fileService;
         _diffCalculator = diffCalculator;
         _aiService = aiService;
-        _configurationService = configurationService;
 
         BasePaneViewModel = new DiffPaneViewModel { Title = "Base", IsReadOnly = true };
         LocalPaneViewModel = new DiffPaneViewModel { Title = "Local", IsReadOnly = true };
@@ -54,8 +47,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         MergedResultViewModel = mergedResultViewModel;
         AiChatViewModel = aiChatViewModel;
 
-        AnalyzeCommand = new AsyncRelayCommand(AnalyzeAsync, () => !IsAiBusy && IsAiAvailable && IsSessionLoaded);
-        GetAiHelpCommand = new AsyncRelayCommand(ProposeResolutionAsync, () => !IsAiBusy && IsAiAvailable && IsSessionLoaded);
+        GetAiHelpCommand = new AsyncRelayCommand(ProposeResolutionAsync, () => !IsAiBusy && IsAiAvailable && IsSessionLoaded && !HasAiResolved);
         AcceptCommand = new AsyncRelayCommand(AcceptAsync, () => CanAccept);
         CancelCommand = new RelayCommand(Cancel, () => IsSessionLoaded);
         OpenPreferencesCommand = new RelayCommand(() => { });
@@ -91,6 +83,13 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private bool _isAiBusy;
+
+    /// <summary>
+    /// Whether AI has already attempted to resolve conflicts in this session.
+    /// Once set, the Resolve With AI button is disabled to prevent redundant calls.
+    /// </summary>
+    [ObservableProperty]
+    private bool _hasAiResolved;
 
     [ObservableProperty]
     private bool _isAiAvailable = true;
@@ -166,7 +165,6 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     /// </summary>
     public IRelayCommand DismissSummaryCommand { get; }
 
-    public IAsyncRelayCommand AnalyzeCommand { get; }
     public IAsyncRelayCommand GetAiHelpCommand { get; }
     public IAsyncRelayCommand AcceptCommand { get; }
     public IRelayCommand CancelCommand { get; }
@@ -183,6 +181,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         HasError = false;
         ClearContent();
         AiResolvedCount = 0;
+        HasAiResolved = false;
         _lastKnownRemainingConflicts = 0;
         TotalOriginalConflicts = 0;
         ShowResolutionSummary = false;
@@ -243,6 +242,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         IsSessionLoaded = false;
         ClearContent();
         AiResolvedCount = 0;
+        HasAiResolved = false;
         _lastKnownRemainingConflicts = 0;
         TotalOriginalConflicts = 0;
         ShowResolutionSummary = false;
@@ -250,28 +250,6 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         ResolutionSummaryDetail = string.Empty;
         AllConflictsResolved = false;
         UpdateCanAccept();
-    }
-
-    private async Task AnalyzeAsync()
-    {
-        IsAiBusy = true;
-        try
-        {
-            var result = await _analyzeHandler.ExecuteAsync(new AnalyzeConflictCommand());
-            if (!result.Success)
-            {
-                ErrorMessage = result.ErrorMessage;
-            }
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = $"Analysis failed: {ex.Message}";
-        }
-        finally
-        {
-            IsAiBusy = false;
-            UpdateCanAccept();
-        }
     }
 
     private async Task ProposeResolutionAsync()
@@ -286,6 +264,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
                 MergedResultViewModel.Content = result.Resolution.ResolvedContent;
                 var afterRemaining = MergedResultViewModel.TotalConflictCount;
                 UpdateAiResolvedCount(beforeRemaining, afterRemaining);
+                HasAiResolved = true;
                 UpdateResolutionSummary();
             }
             else if (!result.Success)
@@ -355,7 +334,6 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     {
         CanAccept = IsSessionLoaded && !IsAiBusy && !MergedResultViewModel.HasConflictMarkers;
         AcceptCommand.NotifyCanExecuteChanged();
-        AnalyzeCommand.NotifyCanExecuteChanged();
         GetAiHelpCommand.NotifyCanExecuteChanged();
         ReconnectAiCommand.NotifyCanExecuteChanged();
         RetryLoadCommand.NotifyCanExecuteChanged();
@@ -433,9 +411,13 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
     private void UpdateAiCommandAvailability()
     {
-        AnalyzeCommand.NotifyCanExecuteChanged();
         GetAiHelpCommand.NotifyCanExecuteChanged();
         CancelCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnHasAiResolvedChanged(bool value)
+    {
+        UpdateAiCommandAvailability();
     }
 
     partial void OnIsSessionLoadedChanged(bool value)
@@ -492,7 +474,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         else
         {
             ResolutionSummaryHeadline = $"⚠ {resolvedByAiText}{autoResolvedText} · {remaining} remaining";
-            ResolutionSummaryDetail = $"{remaining} conflict{(remaining == 1 ? " requires" : "s require")} manual resolution. Navigate conflicts with the ◀ ▶ buttons. Edit the merged result directly, or click \"Get AI Help\" for an AI-suggested resolution.";
+            ResolutionSummaryDetail = $"{remaining} conflict{(remaining == 1 ? " requires" : "s require")} manual resolution. Navigate conflicts with the ◀ ▶ buttons. Edit the merged result directly, or click \"Resolve With AI\" for an AI-suggested resolution.";
         }
 
         ShowResolutionSummary = true;
@@ -553,23 +535,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
             return;
         }
 
-        UserPreferences preferences;
-        try
-        {
-            preferences = await _configurationService.LoadPreferencesAsync(CancellationToken.None);
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = $"Failed to load preferences: {ex.Message}";
-            return;
-        }
-
-        if (!preferences.AutoAnalyzeOnLoad)
-        {
-            return;
-        }
-
-        // Auto-run AI resolution on load when configured.
+        // Automatically invoke AI resolution when a diff is loaded.
         await ProposeResolutionAsync();
     }
 

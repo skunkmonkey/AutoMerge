@@ -95,13 +95,7 @@
           <Border Width="1" Background="{StaticResource BorderBrush}" Margin="8,4" />
           
           <Button Theme="{StaticResource PrimaryButton}"
-                  Content="🔍 Analyze"
-                  Command="{Binding AnalyzeCommand}"
-                  ToolTip.Tip="{Binding AiStatusMessage}"
-                  IsVisible="{Binding IsSessionLoaded}" />
-          
-          <Button Theme="{StaticResource PrimaryButton}"
-                  Content="✨ Get AI Help"
+                  Content="✨ Resolve With AI"
                   Command="{Binding GetAiHelpCommand}"
                   ToolTip.Tip="{Binding AiStatusMessage}"
                   IsVisible="{Binding IsSessionLoaded}" />

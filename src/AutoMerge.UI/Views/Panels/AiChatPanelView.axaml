@@ -56,40 +56,7 @@
         <ScrollViewer VerticalScrollBarVisibility="Auto">
           <StackPanel Spacing="12">
             
-            <!-- Welcome Message (shown when no messages) -->
-            <Border IsVisible="{Binding !Messages.Count}"
-                    Background="{StaticResource SurfaceElevatedBrush}"
-                    CornerRadius="8"
-                    Padding="16">
-              <StackPanel Spacing="8">
-                <TextBlock Text="👋 How can I help?"
-                           Foreground="{StaticResource TextPrimaryBrush}"
-                           FontWeight="SemiBold"
-                           FontSize="14" />
-                <TextBlock Text="Ask me to analyze the conflict, propose a resolution, or explain specific changes. I can help you understand what each side changed and suggest the best way to merge them."
-                           Foreground="{StaticResource TextSecondaryBrush}"
-                           FontSize="12"
-                           TextWrapping="Wrap" />
-                <StackPanel Spacing="4" Margin="0,8,0,0">
-                  <TextBlock Text="Try asking:"
-                             Foreground="{StaticResource TextTertiaryBrush}"
-                             FontSize="11"
-                             FontWeight="Medium" />
-                  <TextBlock Text='• "Why do these changes conflict?"'
-                             Foreground="{StaticResource TextTertiaryBrush}"
-                             FontSize="11"
-                             FontStyle="Italic" />
-                  <TextBlock Text='• "Keep the function from local but use remote imports"'
-                             Foreground="{StaticResource TextTertiaryBrush}"
-                             FontSize="11"
-                             FontStyle="Italic" />
-                  <TextBlock Text='• "Explain what the remote branch changed"'
-                             Foreground="{StaticResource TextTertiaryBrush}"
-                             FontSize="11"
-                             FontStyle="Italic" />
-                </StackPanel>
-              </StackPanel>
-            </Border>
+            <!-- Empty state placeholder (shown when no messages) -->
             
             <!-- Chat Messages -->
             <ItemsControl ItemsSource="{Binding Messages}">

@@ -1,6 +1,6 @@
 # AutoMerge Technical Specification
 
-**Version:** 1.4  
+**Version:** 1.5  
 **Date:** February 7, 2026  
 **Status:** Draft  
 **Related Documents:** [AutoMerge_PRD.md](AutoMerge_PRD.md)
@@ -47,7 +47,7 @@ The application must remain usable even when external services fail. AI unavaila
 
 ## 3. Solution Structure
 
-The solution is organized into five source projects and four test projects:
+The solution is organized into five source projects and five test projects:
 
 **Source Projects:**
 
@@ -67,6 +67,7 @@ The solution is organized into five source projects and four test projects:
 | AutoMerge.Application.Tests | Application service and use case handler tests |
 | AutoMerge.Infrastructure.Tests | Integration tests for external services |
 | AutoMerge.UI.Tests | ViewModel logic tests |
+| AutoMerge.Integration.Tests | End-to-end tests with real file I/O and mocked AI |
 
 ### 3.1 Project Dependency Rules
 
@@ -99,7 +100,7 @@ The solution is organized into five source projects and four test projects:
 
 | Model | Purpose |
 |-------|--------|
-| **AiServiceStatus** | Represents the current AI connection state. Contains `IsAvailable` (CLI reachable), `IsAuthenticated` (valid token), `ErrorMessage` (human-readable issue), and `ActiveModel` (the model name currently in use, e.g., "gpt-4.1"). |
+| **AiServiceStatus** | Represents the current AI connection state. Contains `IsAvailable` (CLI reachable), `IsAuthenticated` (valid token), `ErrorMessage` (human-readable issue), and `ActiveModel` (the model name currently in use, e.g., "GPT-5 mini"). |
 | ConflictFile | Represents a file containing one or more conflicts. Holds the original content and detected conflict regions. |
 | ConflictRegion | A single conflict region within a file. Contains the base, local, and remote versions of the conflicting section plus line numbers. |
 | FileVersion | Enumeration: Base, Local, Remote, Merged. Used to identify which version of a file is being referenced. |
@@ -107,7 +108,7 @@ The solution is organized into five source projects and four test projects:
 | MergeResolution | The resolved content and metadata including explanation text and confidence indicators. |
 | ConflictAnalysis | AI analysis results including semantic descriptions of what each side changed and why they conflict. |
 | ChatMessage | A message in the AI conversation. Includes role (user/assistant), content, and timestamp. |
-| UserPreferences | User configuration settings: default bias, auto-analyze on load, theme, and AI model selection. Includes a static `AvailableModels` list of well-known Copilot models (gpt-4.1, gpt-4.1-mini, gpt-4o, gpt-4o-mini, claude-sonnet-4, o3-mini). Users may also specify custom model identifiers. |
+| UserPreferences | User configuration settings: default bias, auto-analyze on load, theme, and AI model selection. Defaults to `"GPT-5 mini"` as the AI model. Available model options are loaded at runtime from `IConfigurationService.LoadAiModelOptionsAsync()` (backed by a bundled `ai-models.xml` catalog) rather than a hardcoded list. Users may also specify custom model identifiers. |
 | LineChange | Represents a single line's diff status (added, removed, modified, unchanged) with line numbers. |
 | AutoResolvedRegion | Marks a region in the merged content that was automatically resolved by deterministic three-way merge logic (not AI). Carries start and end line numbers. Used by the UI to render green highlighting for auto-resolved sections. |
 
@@ -119,7 +120,7 @@ These interfaces define the contracts that Infrastructure must implement. They l
 |-----------|----------|
 | IAiService | AI interaction: analyze conflicts, propose resolutions, refine with conversation, explain changes. `GetStatusAsync` returns `AiServiceStatus` including the active model name. |
 | IFileService | File I/O: read files with encoding detection, write files preserving encoding and line endings. |
-| IConfigurationService | Settings persistence: load, save, and reset user preferences. |
+| IConfigurationService | Settings persistence: load, save, and reset user preferences. Also loads available AI model options from a bundled catalog. |
 | IConflictParser | Conflict marker parsing: parse Git conflict markers, validate resolution has no remaining markers. |
 | IDiffCalculator | Diff computation: calculate line-by-line differences between file versions. |
 
@@ -160,14 +161,14 @@ Each use case follows a consistent pattern: a Command (input DTO), a Result (out
 | **CancelMerge** | Cleans up session state without writing any files. Signals cancellation to calling process. Also invoked automatically when the window is closed via the OS close button (X) or Alt+F4 to ensure the Git client sees exit code 1. |
 | **SavePreferences** | Persists user preferences to platform-appropriate storage location. |
 | **LoadPreferences** | Loads user preferences from storage, returning defaults if none exist. |
+| **LoadAiModelOptions** | Loads the list of available AI model names from the bundled `ai-models.xml` catalog via `IConfigurationService.LoadAiModelOptionsAsync()`. Returns a fallback list containing only the default model if the catalog is missing or unreadable. |
 
 #### 4.2.2 Application Services
 
 | Service | Responsibility |
 |---------|---------------|
 | MergeSessionManager | Manages the active MergeSession instance. Provides access to current session state. Scoped lifetime (one per application run). |
-| AiConversationService | Manages AI conversation context including message history and session continuity. Ensures follow-up messages have proper context. |
-| AutoSaveService | Handles periodic draft saving (every 30 seconds). Saves work-in-progress to temp directory. Cleans up on normal exit. |
+| AutoSaveService | Handles periodic draft saving (every 30 seconds). Saves work-in-progress to temp directory (`%TEMP%/AutoMerge/draft-{sessionId}.txt`). Cleans up on normal exit. |
 
 #### 4.2.3 Events
 
@@ -179,7 +180,6 @@ Events enable decoupled communication between Application and UI layers using a 
 | AnalysisStartedEvent | When AI analysis begins |
 | AnalysisCompletedEvent | When AI analysis finishes (success or failure) |
 | ResolutionProposedEvent | When AI returns a proposed resolution |
-| ResolutionUpdatedEvent | When user edits the resolution |
 | AiStreamingChunkEvent | For each token received during AI streaming (enables real-time display) |
 | AiErrorEvent | When an AI operation fails |
 | SessionCompletedEvent | When session ends (accept or cancel) |
@@ -216,7 +216,7 @@ The AI integration layer implements `IAiService` using the GitHub Copilot SDK (`
 
 | Component | Responsibility |
 |-----------|---------------|
-| CopilotAiService | Implements IAiService. Manages CopilotClient lifecycle, creates sessions with user-selected model, handles streaming responses, provides clear authentication status messages, and exposes `SetModel(string)` to change the active model at runtime. Returns the active model name in `AiServiceStatus.ActiveModel`. |
+| CopilotAiService | Implements IAiService. Manages CopilotClient lifecycle, creates sessions with user-selected model, handles streaming responses with 60-second timeout, provides clear authentication status messages, and exposes `SetModel(string)` to change the active model at runtime. Parses AI responses by extracting labeled `RESOLVED_CONTENT` blocks. Returns the active model name in `AiServiceStatus.ActiveModel`. |
 | SystemPrompts | Contains the merge agent system prompt and templates for analysis, resolution, and refinement operations. |
 | MockAiService | Test double for unit testing. Provides canned responses without requiring Copilot CLI. |
 
@@ -233,7 +233,7 @@ new CopilotClientOptions
 ```csharp
 new SessionConfig
 {
-    Model = _activeModel,     // User-selected model from preferences (default: "gpt-4.1")
+    Model = _activeModel,     // User-selected model from preferences (default: "GPT-5 mini")
     Streaming = true,          // Enable real-time streaming
     SystemMessage = new SystemMessageConfig
     {
@@ -244,8 +244,8 @@ new SessionConfig
 ```
 
 **Model Selection:**
-- The active model defaults to `UserPreferences.Default.AiModel` ("gpt-4.1")
-- Users configure their preferred model in the Preferences dialog, which offers a curated list of well-known models (gpt-4.1, gpt-4.1-mini, gpt-4o, gpt-4o-mini, claude-sonnet-4, o3-mini) plus support for custom model identifiers
+- The active model defaults to `UserPreferences.Default.AiModel` ("GPT-5 mini")
+- Users configure their preferred model in the Preferences dialog, which offers a list of models loaded from the bundled `ai-models.xml` catalog (GPT-5 mini, GPT-5.2-Codex, Claude Sonnet 4.5, Claude Opus 4.6, Claude Haiku 4.5) plus support for custom model identifiers
 - `ProposeResolutionAsync` reads the model from the supplied `UserPreferences.AiModel` and calls `SetModel()` before creating a session
 - The selected model is included in `AiServiceStatus.ActiveModel` so the UI can display it
 
@@ -261,26 +261,21 @@ System prompts and templates are stored in `Infrastructure/AI/Prompts/SystemProm
 
 | Component | Responsibility |
 |-----------|---------------|
-| FileService | Implements IFileService. Coordinates file reading and writing operations. |
-| ConflictFileReader | Reads conflict files with automatic encoding detection. Returns content and detected encoding. |
-| ResolvedFileWriter | Writes resolved content to output file. Preserves original encoding and line endings. |
-| DraftManager | Manages auto-save drafts in the system temp directory. Handles periodic saves and cleanup. |
-| EncodingHelper | Utility for encoding detection (BOM detection, heuristics) and encoding preservation. |
+| FileService | Implements IFileService. Handles file reading with automatic encoding detection (BOM-based: UTF-8 w/ BOM, UTF-16 LE, UTF-16 BE, fallback UTF-8), writing with encoding and line ending preservation, and binary file detection (probes first 8 KB for null bytes). Line ending normalization preserves the detected style (CRLF, LF, or Mixed). |
+| DraftManager | Manages auto-save drafts in the system temp directory (`%TEMP%/AutoMerge/draft-{sessionId}.txt`). Handles periodic saves and cleanup. |
 
 #### 4.3.3 Configuration
 
 | Component | Responsibility |
 |-----------|---------------|
-| ConfigurationService | Implements IConfigurationService. Coordinates preference loading and saving. |
-| JsonSettingsStore | Persists preferences as JSON. Handles serialization and file I/O. |
-| PlatformPaths | Resolves platform-specific paths. Returns `%APPDATA%\AutoMerge` on Windows, `~/Library/Application Support/AutoMerge` on macOS. |
+| ConfigurationService | Implements IConfigurationService. On Windows, persists preferences as a JSON string in the Windows Registry (`HKCU\Software\AutoMerge\PreferencesJson`). On other platforms, persists to a JSON file via PlatformPaths. Also loads the AI model catalog from `ai-models.xml` in the application base directory. |
+| PlatformPaths | Resolves platform-specific configuration directory. Returns `Environment.SpecialFolder.ApplicationData/AutoMerge` on all platforms (e.g., `%APPDATA%\AutoMerge` on Windows, `~/Library/Application Support/AutoMerge` on macOS). Used by ConfigurationService for non-Windows JSON preference storage. |
 
 #### 4.3.4 Diff Calculation
 
 | Component | Responsibility |
 |-----------|---------------|
-| DiffPlexCalculator | Implements IDiffCalculator using the DiffPlex library. Computes line-by-line differences. |
-| DiffResultMapper | Maps DiffPlex result types to domain LineChange models. |
+| DiffPlexCalculator | Implements IDiffCalculator using the DiffPlex library (`Differ` class). Computes line-by-line differences and maps DiffPlex result types to domain LineChange models internally. |
 
 ---
 
@@ -307,26 +302,25 @@ Views are Avalonia XAML files with minimal code-behind (only UI initialization l
 | Panel | Purpose |
 |-------|--------|
 | DiffPaneView | Displays one version of the file (used three times for base/local/remote). Read-only with syntax highlighting. Supports scroll-to-line binding for synchronized conflict navigation. Exposes ScrollOffsetX/ScrollOffsetY bindings for cross-panel scroll synchronisation. |
-| MergedResultView | Displays the editable merged result. Full editor with syntax highlighting, undo/redo. Shows auto-resolved region highlighting (green) and unresolved conflict highlighting (red). Displays auto-resolved count badge. Exposes ScrollOffsetX/ScrollOffsetY bindings for cross-panel scroll synchronisation. |
-| AiChatPanelView | Collapsible panel for AI conversation. Shows message history and input field. |
-| ConflictNavigatorView | Navigation for multi-file merges. Shows progress and previous/next buttons. |
+| MergedResultView | Displays the editable merged result. Full editor with syntax highlighting, undo/redo. Shows auto-resolved region highlighting (green) and unresolved conflict highlighting (red). Displays auto-resolved count badge. Includes conflict navigation controls (◀/▶) and revert-to-version buttons (Base/Local/Remote) in the panel header. Exposes ScrollOffsetX/ScrollOffsetY bindings for cross-panel scroll synchronisation. |
+| AiChatPanelView | Collapsible panel for AI conversation. Shows message history with role-based bubble styling, streaming indicator, and input field with send button. Includes a welcome prompt with example questions when conversation is empty. |
 
 **Dialogs:**
 
 | Dialog | Purpose |
 |--------|--------|
 | PreferencesDialog | Modal dialog for editing user preferences |
-| MergeInputDialog | Modal dialog for selecting merge input files when launched without CLI arguments |
-| AuthenticationDialog | Shown when Copilot authentication is needed |
-| ErrorDialog | Modal dialog for critical errors with retry/cancel options |
+| MergeInputDialog | Modal dialog for selecting merge input files when launched without CLI arguments. Uses native platform file pickers for browsing. |
 
 **Custom Controls:**
 
 | Control | Purpose |
 |---------|--------|
-| CodeEditorControl | Wrapper around AvaloniaEdit. Configures syntax highlighting, read-only mode, scroll-to-line, auto-resolved region highlighting, and diff/conflict background rendering. Exposes `ScrollOffsetX` and `ScrollOffsetY` Avalonia StyledProperties (TwoWay default binding) that synchronise with the underlying `TextArea.TextView.ScrollOffset`. Uses a `_isSyncingScroll` guard to prevent re-entry when the scroll offset is set programmatically. |
-| DiffGutterControl | Custom line number gutter that shows diff markers (added/removed/changed) |
-| StreamingTextControl | Specialized control for displaying AI streaming output with typing effect |
+| CodeEditorControl | Wrapper around AvaloniaEdit. Configures syntax highlighting, read-only mode, scroll-to-line, auto-resolved region highlighting, and diff/conflict background rendering. Exposes `ScrollOffsetX` and `ScrollOffsetY` Avalonia StyledProperties (TwoWay default binding) that synchronise with the underlying `TextArea.TextView.ScrollOffset`. Uses a `_isSyncingScroll` guard to prevent re-entry when the scroll offset is set programmatically. Hosts pluggable background renderers (see below) and a conflict marker folding strategy. Dark theme: background `#1A1A1E`, text `#E0E0E0`, caret `#00B7C3`, selection `#264F78`, font Cascadia Code / JetBrains Mono / Consolas. |
+| DiffBackgroundRenderer | Background renderer inside CodeEditorControl. Colors added lines green (`#30A5D6A7`), removed lines red (`#30EF9A9A`), and modified lines amber (`#30FFE082`). Draws a 4 px colored left-edge marker strip (BeyondCompare-style) for each change type. |
+| ConflictRegionBackgroundRenderer | Background renderer inside CodeEditorControl. Colors local sections green, base sections blue, and remote sections red. Draws 4 px left-edge marker strips. Supports both 2-way and diff3 conflict formats. Marker lines are rendered with dimmed gray. |
+| AutoResolvedBackgroundRenderer | Background renderer inside CodeEditorControl. Draws a subtle green tint (`#204CAF50`) with a green marker strip (`#4CAF50`) for auto-resolved regions. |
+| ConflictMarkerFoldingStrategy | Folding strategy inside CodeEditorControl. Creates `NewFolding` entries for each conflict marker line (`<<<<<<<`, `|||||||`, `=======`, `>>>>>>>`) and immediately collapses them so users see the section content without visual noise from marker lines. |
 
 #### 4.4.2 ViewModels
 
@@ -344,8 +338,7 @@ Views are Avalonia XAML files with minimal code-behind (only UI initialization l
 | DiffPaneViewModel | State for one diff pane. Holds text content, syntax highlighting language, line changes for gutter, scroll-to-line target for synchronized conflict navigation, and `ScrollOffsetX`/`ScrollOffsetY` observable properties for cross-panel scroll synchronisation. |
 | MergedResultViewModel | State for editable result pane. Tracks dirty state, provides validation, handles undo/redo. Performs deterministic auto-resolution of trivial conflicts on load and exposes AutoResolvedRegions, AutoResolvedCount, and HasAutoResolved properties for UI highlighting. Exposes parsed ConflictRegions for cross-panel scroll synchronization. Exposes `ScrollOffsetX`/`ScrollOffsetY` observable properties for cross-panel scroll synchronisation. |
 | AiChatViewModel | Chat panel state. Holds conversation history, manages streaming state, handles send command. |
-| ConflictNavigatorViewModel | Multi-file navigation state. Tracks resolved/remaining counts, handles previous/next. |
-| PreferencesViewModel | Preferences dialog state. Holds editable preference values including AI model selection (`AiModel`, `AiModelOptions`), handles save/cancel/reset. |
+| PreferencesViewModel | Preferences dialog state. Holds editable preference values including AI model selection (`AiModel`, `AiModelOptions` loaded from catalog), handles save/cancel/reset. |
 | MergeInputDialogViewModel | Merge input dialog state. Holds file paths and validation state. |
 
 #### 4.4.3 ViewModel Responsibilities
@@ -355,7 +348,7 @@ Views are Avalonia XAML files with minimal code-behind (only UI initialization l
 - Manages overall application state (loading, ready, processing, etc.)
 - Handles Accept/Cancel commands
 - Coordinates theme switching
-- **Exposes AI connection and model state:** `IsAiAvailable`, `AiModelName` (active model), `AiDetailedStatus` (e.g., "Connected · gpt-4.1"), `IsAiSetupNeeded`, `AiSetupInstructions` (step-by-step guidance when AI is unavailable). These are consumed by the welcome screen AI status card and the status bar.
+- **Exposes AI connection and model state:** `IsAiAvailable`, `AiModelName` (active model), `AiDetailedStatus` (e.g., "Connected · GPT-5 mini"), `IsAiSetupNeeded`, `AiSetupInstructions` (step-by-step guidance when AI is unavailable). These are consumed by the welcome screen AI status card and the status bar.
 - **Synchronises conflict navigation across panels:** When the user navigates to a conflict in the merged result (Next/Previous Conflict), finds the corresponding content in each source file and scrolls the local, base, and remote DiffPaneViewModels to the matching line.
 - **Computes resolution summary:** After file load, calls `UpdateResolutionSummary()` to set headline, detail, and `AllConflictsResolved` state based on `MergedResultViewModel.AutoResolvedCount` and `TotalConflictCount`. The summary banner is visible until dismissed by the user.
 - **Orchestrates cross-panel scroll synchronisation:** Subscribes to `PropertyChanged` on all four child ViewModels (Base, Local, Remote, MergedResult). When `ScrollOffsetX` or `ScrollOffsetY` changes on any panel, propagates the new offset to all other panels. A `_isSyncingScroll` flag prevents infinite re-entry.
@@ -391,13 +384,19 @@ Value converters transform data between ViewModel properties and XAML bindings.
 
 | Converter | Purpose |
 |-----------|--------|
-| BoolToVisibilityConverter | Converts boolean to Avalonia visibility (Visible/Collapsed) |
-| BoolToColorConverter | Converts boolean AI availability to green (connected) or red (disconnected) brush for status indicators |
-| BoolToAiStatusConverter | Converts boolean AI availability to human-readable status string |
+| BoolToVisibilityConverter | Converts boolean to Avalonia `IsVisible` binding (true/false pass-through) |
+| BoolToColorConverter | Converts boolean AI availability to green (`#4CAF50` connected) or red (`#F44336` disconnected) brush for status indicators |
+| BoolToAiStatusConverter | Converts boolean AI availability to human-readable status string ("AI Connected" / "AI Disconnected") |
 | BoolToSetupCardColorConverter | Converts boolean AI availability to a subtle background color for the welcome screen AI status card (green tint when connected, amber tint when disconnected) |
+| ChatRoleToAlignmentConverter | Converts ChatRole to HorizontalAlignment for message bubbles (User = Right, Assistant = Left) |
+| ChatRoleToBackgroundConverter | Converts ChatRole to SolidColorBrush for message bubbles (User = blue `#1E3A5F`, Assistant = neutral `#2D2D32`) |
+| ChatRoleToIconConverter | Converts ChatRole to emoji icon (User = 👤, Assistant = 🤖) |
+| InverseBoolConverter | Inverts a boolean value (true ↔ false). Two-way converter. |
 | LineChangeTypeToColorConverter | Converts LineChange type (added/removed/changed) to appropriate color (green/red/yellow) |
-| SessionStateToIconConverter | Converts SessionState enum to appropriate status icon |
-| NullToBoolConverter | Converts null/non-null to boolean (useful for enabling/disabling based on selection) |
+| PanelTitleToColorConverter | Converts panel title string to header background brush (Base = deep blue `#1E3A5F`, Local = deep green `#1E5631`, Remote = deep magenta `#5F1E3A`, Merged = deep purple `#3A1E5F`) |
+| PanelTitleToDescriptionConverter | Converts panel title string to subtitle description (e.g., Base = "Common ancestor", Local = "Your changes (ours)", Remote = "Incoming changes (theirs)", Merged = "Final resolved output") |
+| PanelTitleToIconConverter | Converts panel title string to emoji icon (Base = 📋, Local = 📝, Remote = 📥, Merged = ✨) |
+| SessionStateToStringConverter | Converts SessionState enum to its string representation for display in the status bar |
 
 #### 4.4.5 UI Services
 
@@ -405,11 +404,10 @@ UI-specific services that don't belong in lower layers.
 
 | Service | Responsibility |
 |---------|---------------|
-| ThemeService | Manages dark/light theme switching. Detects system preference and applies appropriate theme. |
-| KeyboardShortcutService | Handles global keyboard shortcuts (Cmd/Ctrl+Enter for accept, Escape for cancel, etc.) |
+| ThemeService | Manages dark/light theme switching. Detects system preference and applies appropriate Avalonia theme. Maps the `Theme` enum to Avalonia `ThemeVariant`. |
+| KeyboardShortcutService | Registers window-level `KeyDown` handler for global keyboard shortcuts. Supports: Cmd/Ctrl+Enter (accept), Escape (cancel), Cmd/Ctrl+S (save draft), Cmd/Ctrl+Z (undo), Cmd/Ctrl+Y (redo), Ctrl+, (open preferences). Handles both `Ctrl` (Windows) and `Meta` (macOS) modifiers. |
 | DialogService | Manages modal dialog display. Provides async methods to show dialogs and await results. |
-| ScrollSyncService | Synchronizes scroll position across the four diff panes when user scrolls any one pane (implemented in MainWindowViewModel via `OnPaneScrollChanged` handler with `_isSyncingScroll` guard). Also handles conflict-navigation-driven scroll sync: when the user navigates to a conflict in the merged result, all source panes scroll to the corresponding content region. |
-| SyntaxHighlightingService | Detects file language from extension/content and loads appropriate TextMate grammar for AvaloniaEdit. |
+| ScrollSyncService | Synchronizes scroll position across the four diff panes when user scrolls any one pane (implemented in MainWindowViewModel via `OnPaneScrollChanged` handler with `_isSyncingScroll` guard). Scroll offsets are converted to normalized 0–1 ratios to handle varying document lengths across panels. Also handles conflict-navigation-driven scroll sync: when the user navigates to a conflict in the merged result, all source panes scroll to the corresponding content region. |
 
 ---
 
@@ -431,7 +429,7 @@ UI-specific services that don't belong in lower layers.
 
 The application entry point follows this sequence:
 
-1. **Parse CLI arguments** using System.CommandLine
+1. **Parse CLI arguments** using custom CliParser (manual argument parsing)
    - If no arguments are provided, launch the GUI without a session and allow file selection from the app
    - Validate that required arguments are provided when arguments are present
    - Handle --help and --version immediately (exit after display)
@@ -459,11 +457,10 @@ The application entry point follows this sequence:
 | Component | Responsibility |
 |-----------|---------------|
 | Program.cs | Entry point. Minimal code that calls into startup services. |
-| App.axaml / App.axaml.cs | Avalonia application definition. Handles startup, shutdown, and unhandled exceptions. |
-| CliParser | Command-line argument parsing using System.CommandLine. Defines all supported arguments and options. |
+| App.axaml / App.axaml.cs | Avalonia application definition. Handles startup, shutdown, and unhandled exceptions. Configures FluentTheme, AvaloniaEdit styles, and the application theme resource dictionary. Subscribes to SessionCompletedEvent to trigger desktop shutdown with the appropriate exit code. |
+| CliParser | Command-line argument parsing using manual argument parsing (no external library). Defines all supported arguments and options. Returns a `CliParseResult` record with parsed `MergeInput`, `ShouldExit`, `ExitCode`, `WaitForGui`, and `NoGui` flags. Resolves relative paths to absolute. Falls back to local path as merged output if base is not provided. |
 | ServiceRegistration | DI container configuration. Registers all services with appropriate lifetimes. Single source of truth for dependency wiring. |
-| CopilotConfiguration | Copilot SDK setup. Configures client options and authentication. |
-| appsettings.json | Default configuration values. Can be overridden by user preferences. |
+| ai-models.xml | Bundled XML catalog of available AI model names (e.g., GPT-5 mini, GPT-5.2-Codex, Claude Sonnet 4.5, Claude Opus 4.6, Claude Haiku 4.5). Read by ConfigurationService at runtime. Supports adding custom models by editing the file. |
 
 ---
 
@@ -477,9 +474,9 @@ All services are registered in ServiceRegistration using Microsoft.Extensions.De
 
 | Lifetime | When to Use | Examples |
 |----------|-------------|----------|
-| Singleton | Services that maintain state across the app lifetime | ConfigurationService, ThemeService, CopilotAiService |
-| Scoped | Services scoped to a merge session | MergeSessionManager, AiConversationService |
-| Transient | Stateless services created fresh each time | Use case handlers, mappers, ViewModels |
+| Singleton | Services that maintain state across the app lifetime | ConfigurationService, ThemeService, DialogService, KeyboardShortcutService, CopilotAiService, FileService, ConflictMarkerParser, DiffPlexCalculator, EventAggregator |
+| Scoped | Services scoped to a merge session | MergeSessionManager, AutoSaveService |
+| Transient | Stateless services created fresh each time | Use case handlers (9 total), ViewModels (6 total) |
 
 **Registration Pattern:**
 
@@ -654,7 +651,7 @@ The following interfaces define the contracts between layers. They are defined i
 
 | Method | Description |
 |--------|-------------|
-| GetStatusAsync | Checks if the AI service is available and authenticated. Returns `AiServiceStatus` with connection state, error messages, and the `ActiveModel` name (e.g., "gpt-4.1") when connected. |
+| GetStatusAsync | Checks if the AI service is available and authenticated. Returns `AiServiceStatus` with connection state, error messages, and the `ActiveModel` name (e.g., "GPT-5 mini") when connected. |
 | AnalyzeConflictAsync | Analyzes a conflict and returns structured analysis. Takes a MergeSession and optional progress callback. Returns ConflictAnalysis domain object. |
 | ProposeResolutionAsync | Proposes a resolution with streaming support. Takes session, user preferences (including `AiModel` for model selection), and optional streaming chunk callback. Calls `SetModel(preferences.AiModel)` before creating the session. Returns MergeResolution. |
 | RefineResolutionAsync | Sends a refinement message and returns updated resolution. Maintains conversation context. Takes session, user message, and optional streaming callback. |
@@ -706,6 +703,7 @@ The following interfaces define the contracts between layers. They are defined i
 | LoadPreferencesAsync | Loads user preferences from storage. Returns default preferences if none saved. |
 | SavePreferencesAsync | Saves user preferences to platform-appropriate storage location. |
 | ResetPreferencesAsync | Deletes saved preferences, resetting to defaults. |
+| LoadAiModelOptionsAsync | Loads available AI model names from the bundled `ai-models.xml` catalog. Returns a fallback list containing only the default model if the catalog is missing or unreadable. |
 
 ---
 
@@ -752,8 +750,8 @@ Each ViewModel exposes state as observable properties:
 - `bool IsLoading` - True during initial load
 - `bool IsAiBusy` - True when AI is processing
 - `bool IsAiAvailable` - True when AI service is connected and authenticated
-- `string AiModelName` - Active AI model name (e.g., "gpt-4.1")
-- `string AiDetailedStatus` - Human-readable AI status (e.g., "Connected · gpt-4.1" or "Authentication required")
+- `string AiModelName` - Active AI model name (e.g., "GPT-5 mini")
+- `string AiDetailedStatus` - Human-readable AI status (e.g., "Connected · GPT-5 mini" or "Authentication required")
 - `bool IsAiSetupNeeded` - True when AI is unavailable and setup instructions should be shown
 - `string? AiSetupInstructions` - Step-by-step setup instructions when AI is unavailable
 - `bool CanAccept` - True when resolution is valid
@@ -787,9 +785,10 @@ Each ViewModel exposes state as observable properties:
 - Test state property changes
 - Test error handling in ViewModels
 
-### 9.2 Integration Testing
+### 9.2 Integration Testing (AutoMerge.Integration.Tests)
 
-- End-to-end tests with real files and mocked AI
+- End-to-end tests with real file I/O and mocked AI
+- Full pipeline tests from file load through conflict resolution to file write
 - CLI argument parsing tests
 - Exit code verification tests
 
@@ -799,7 +798,7 @@ Each ViewModel exposes state as observable properties:
 
 | Mock | Purpose |
 |------|--------|
-| MockAiService | Returns predefined responses for AI methods. Allows testing AI integration without real Copilot calls. |
+| MockAiService | Returns predefined responses for AI methods with simulated streaming delay (100 ms chunks of 20 characters). Allows testing AI integration without real Copilot calls. |
 | MockFileService | In-memory file system. Reads/writes from dictionary instead of disk. |
 | MockConfigurationService | In-memory preferences storage. |
 
@@ -807,8 +806,10 @@ Each ViewModel exposes state as observable properties:
 
 | Fixture | Content |
 |---------|--------|
-| ConflictSamples/ | Sample conflict files with various Git conflict marker patterns |
-| ExpectedResults/ | Expected resolved outputs for each sample conflict |
+| SimpleConflict/ | Standard two-way conflict with base, local, remote, merged, and expected files |
+| Diff3Conflict/ | Three-way diff3-style conflict with base section markers |
+| MultipleConflicts/ | File with multiple conflict regions |
+| NoConflict/ | Clean file with no conflict markers (edge case) |
 
 ---
 
@@ -907,4 +908,5 @@ Hook points for language-aware resolution:
 | 1.2 | 2026-02-07 | AI | Added: deterministic auto-resolution of trivial conflicts on load with green visual highlighting; conflict navigation now syncs all four panels (local, base, remote, merged); window close (X) treated as Cancel (exit code 1); AutoResolvedRegion model; updated data flows and ViewModel responsibilities |
 | 1.3 | 2026-02-07 | AI | AI setup UX overhaul: added UserPreferences.AiModel with curated model list; CopilotAiService now uses user-selected model instead of hard-coded gpt-4.1; AiServiceStatus carries ActiveModel; welcome screen shows prominent AI status card with setup instructions; status bar shows model name; PreferencesDialog includes AI model selector (AutoCompleteBox); added BoolToSetupCardColorConverter; MainWindowViewModel exposes AiModelName, AiDetailedStatus, IsAiSetupNeeded, AiSetupInstructions |
 | 1.4 | 2026-02-07 | AI | Resolution summary banner: after file load, displays dismissible banner with auto-resolved count, remaining conflicts, color legend (green/red/amber/blue/purple), and actionable guidance. Synchronized panel scrolling: CodeEditorControl exposes ScrollOffsetX/ScrollOffsetY StyledProperties; DiffPaneViewModel and MergedResultViewModel expose matching ObservableProperties; MainWindowViewModel orchestrates cross-panel scroll sync via PropertyChanged subscription with re-entrancy guard. Updated US-010, US-011, FR-UI-013, FR-UI-014. |
+| 1.5 | 2026-02-07 | AI | Model catalog update: replaced hardcoded model list with bundled `ai-models.xml` catalog (GPT-5 mini, GPT-5.2-Codex, Claude Sonnet 4.5, Claude Opus 4.6, Claude Haiku 4.5); default model changed to GPT-5 mini. Configuration: Windows preferences now stored in Registry (`HKCU\Software\AutoMerge`). Added LoadAiModelOptions use case. Replaced DiffGutterControl and StreamingTextControl with background renderers (DiffBackgroundRenderer, ConflictRegionBackgroundRenderer, AutoResolvedBackgroundRenderer) and ConflictMarkerFoldingStrategy inside CodeEditorControl. Removed ConflictNavigatorView/ViewModel (navigation embedded in MergedResultView). Removed unimplemented AuthenticationDialog and ErrorDialog. Added 7 new converters (ChatRoleTo*, PanelTitleTo*, InverseBool, SessionStateToString). Updated DI registrations to match implementation. |
 ---

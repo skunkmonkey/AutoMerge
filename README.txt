@@ -34,19 +34,57 @@ Notes:
     Merged (output). Base is optional.
   - --no-gui is reserved for a future release.
 
+Git Mergetool Integration
+-------------------------
+Configure AutoMerge as your default merge tool:
+
+    git config --global merge.tool automerge
+    git config --global mergetool.automerge.cmd \
+        'automerge --base "$BASE" --local "$LOCAL" --remote "$REMOTE" --merged "$MERGED"'
+    git config --global mergetool.automerge.trustExitCode true
+
+Works with SourceTree, Fork, GitKraken, Tower, and any client that supports
+custom merge tools. Exit code 0 = resolved, 1 = cancelled.
+
+AI Model Selection
+------------------
+AutoMerge ships with a bundled model catalog (src/AutoMerge.App/ai-models.xml)
+that currently includes:
+
+  - GPT-5 mini (default)
+  - GPT-5.2-Codex
+  - Claude Sonnet 4.5
+  - Claude Opus 4.6
+  - Claude Haiku 4.5
+
+Change the active model in Preferences (Ctrl+,) or edit ai-models.xml to add
+custom model identifiers.
+
 Platform Notes
 --------------
   - Windows 10/11: fully supported.
   - macOS 12+: supported.
   - Linux: not supported yet.
 
+Configuration Storage
+---------------------
+  - Windows: preferences stored in Registry (HKCU\Software\AutoMerge).
+  - macOS: preferences stored as JSON in ~/Library/Application Support/AutoMerge.
+
 Testing
 -------
-Run all tests:
+Run all tests (5 test projects):
     dotnet test AutoMerge.sln
 
+Run tests only (dedicated test solution):
+    dotnet test AutoMerge.Tests.sln
+
 Run a single test project:
+    dotnet test tests/AutoMerge.Core.Tests/AutoMerge.Core.Tests.csproj
+    dotnet test tests/AutoMerge.Application.Tests/AutoMerge.Application.Tests.csproj
+    dotnet test tests/AutoMerge.Infrastructure.Tests/AutoMerge.Infrastructure.Tests.csproj
     dotnet test tests/AutoMerge.UI.Tests/AutoMerge.UI.Tests.csproj
+    dotnet test tests/AutoMerge.Integration.Tests/AutoMerge.Integration.Tests.csproj
 
 Troubleshooting
 ---------------
@@ -56,6 +94,16 @@ Copilot CLI not authenticated:
 SDK package not found:
   - The Copilot SDK is in technical preview. Check the official GitHub repo:
     https://github.com/github/copilot-sdk
+
+Project Structure
+-----------------
+  src/AutoMerge.Core            Domain models, interfaces, pure logic (zero deps)
+  src/AutoMerge.Application     Use-case handlers, session management, events
+  src/AutoMerge.Infrastructure  Copilot SDK, file I/O, diff, configuration
+  src/AutoMerge.UI              Avalonia views, ViewModels, controls, converters
+  src/AutoMerge.App             Entry point, CLI parser, DI composition root
+  tests/                        Five test projects (Core, Application,
+                                Infrastructure, UI, Integration)
 
 More Details
 ------------

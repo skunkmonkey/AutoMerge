@@ -1,6 +1,6 @@
 # AutoMerge Product Requirements Document (PRD)
 
-**Version:** 2.3  
+**Version:** 2.4  
 **Date:** February 7, 2026  
 **Status:** Draft  
 **Stakeholders:** Developers, DevOps/Release Engineers, Product Manager, IT/Platform Team  
@@ -177,7 +177,7 @@ AutoMerge solves this by providing an intelligent merge resolution experience th
 - Preference: Default bias (ours/theirs/balanced)
 - Preference: Formatting style (preserve original/normalize)
 - Preference: Comment style for complex resolutions
-- Preference: AI model selection from a curated list (gpt-4.1, gpt-4o, claude-sonnet-4, etc.) with support for custom model identifiers
+- Preference: AI model selection from a curated list (GPT-5 mini, GPT-5.2-Codex, Claude Sonnet 4.5, Claude Opus 4.6, Claude Haiku 4.5) loaded from a bundled model catalog, with support for custom model identifiers
 - Preferences persist across sessions
 
 ### US-012: Resolution Summary & Color Legend
@@ -212,9 +212,9 @@ AutoMerge solves this by providing an intelligent merge resolution experience th
 
 **Acceptance Criteria:**
 - The welcome screen displays a prominent AI status card showing connection state and active model
-- When AI is connected, the card shows a green indicator, the active model name (e.g., "gpt-4.1"), and a "Ready" message
+- When AI is connected, the card shows a green indicator, the active model name (e.g., "GPT-5 mini"), and a "Ready" message
 - When AI is disconnected, the card shows a warning indicator with step-by-step setup instructions (install CLI, authenticate, retry)
-- The status bar always shows the AI connection state and active model name (e.g., "Copilot · Connected · gpt-4.1")
+- The status bar always shows the AI connection state and active model name (e.g., "Copilot · Connected · GPT-5 mini")
 - A "Retry Connection" button is available when AI is unavailable
 - The tool remains fully usable in manual-only mode when AI is unavailable
 
@@ -253,7 +253,7 @@ AutoMerge solves this by providing an intelligent merge resolution experience th
 | FR-UI-008 | Provide keyboard shortcuts for all major actions |
 | FR-UI-009 | Provide an "Open Merge" workflow to choose Local/Remote/Merged and optional Base from the GUI |
 | FR-UI-010 | Display a prominent AI connection status card on the welcome screen with setup guidance when disconnected |
-| FR-UI-011 | Show the active AI model name in both the welcome screen status card and the status bar |
+| FR-UI-011 | Show the active AI model name (e.g., "GPT-5 mini") in both the welcome screen status card and the status bar |
 | FR-UI-012 | Provide step-by-step setup instructions (install CLI, authenticate, retry) when AI is unavailable |
 | FR-UI-013 | After file load, display a dismissible resolution summary banner showing auto-resolved count, remaining count, color legend, and actionable guidance |
 | FR-UI-014 | Synchronize vertical and horizontal scroll position across all four diff/merge panels so scrolling any panel scrolls them all |
@@ -270,7 +270,7 @@ AutoMerge solves this by providing an intelligent merge resolution experience th
 | FR-AI-006 | Support conversational refinement within the session |
 | FR-AI-007 | Implement `onPreToolUse` hook to confirm before any file writes |
 | FR-AI-008 | Handle Copilot API rate limits and errors gracefully |
-| FR-AI-009 | Support user-configurable model selection (e.g., gpt-4.1, gpt-4o, claude-sonnet-4) via preferences, with a curated default list and support for custom model identifiers |
+| FR-AI-009 | Support user-configurable model selection (e.g., GPT-5 mini, Claude Sonnet 4.5, GPT-5.2-Codex) via preferences, with a curated model catalog loaded from a bundled `ai-models.xml` file and support for custom model identifiers |
 
 ### 6.4 Merge Resolution
 
@@ -287,11 +287,12 @@ AutoMerge solves this by providing an intelligent merge resolution experience th
 
 | Requirement | Description |
 |-------------|-------------|
-| FR-CFG-001 | Store preferences in platform-appropriate location (`%APPDATA%` / `~/Library/Application Support`) |
+| FR-CFG-001 | Store preferences in platform-appropriate location (Windows Registry `HKCU\Software\AutoMerge` on Windows, JSON file in `~/Library/Application Support/AutoMerge` on macOS) |
 | FR-CFG-002 | Never persist file paths or repository information |
 | FR-CFG-003 | Provide UI for viewing and editing preferences |
 | FR-CFG-004 | Support preference reset to defaults |
 | FR-CFG-005 | Cache authentication via Copilot CLI (no custom token storage) |
+| FR-CFG-006 | Load available AI model options from a bundled `ai-models.xml` catalog file shipped with the application |
 
 ---
 

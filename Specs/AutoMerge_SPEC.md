@@ -530,6 +530,24 @@ This pattern keeps the Infrastructure layer decoupled from UI concerns while ena
 
 ---
 
+### 5.6 Build and Packaging (Windows Installer)
+
+AutoMerge uses Inno Setup for the Windows installer. Collaborators must install
+Inno Setup from https://jrsoftware.org/isinfo.php to compile the installer.
+
+**Script Location:**
+- `Installer/Windows/AutoMerge.iss`
+
+**Publish then build installer:**
+1. `dotnet publish src/AutoMerge.App -c Release -r win-x64`
+2. Run ISCC on the script, for example:
+   `"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" Installer/Windows/AutoMerge.iss`
+
+The script expects published output in
+`src/AutoMerge.App/bin/Release/net8.0/publish`.
+
+---
+
 ## 6. Data Flow Diagrams
 
 ### 6.1 Application Startup Flow

@@ -342,6 +342,14 @@ AutoMerge solves this by providing an intelligent merge resolution experience th
 | NFR-A11Y-003 | Minimum 4.5:1 contrast ratio |
 | NFR-A11Y-004 | Respect system font size preferences |
 
+### 7.6 Distribution and Installer
+
+| Requirement | Description |
+|-------------|-------------|
+| NFR-DIST-001 | Windows installer is built with Inno Setup. Script location: `Installer/Windows/AutoMerge.iss`. |
+| NFR-DIST-002 | Collaborators must install Inno Setup from https://jrsoftware.org/isinfo.php to build the installer. |
+| NFR-DIST-003 | Installer build uses published output from `src/AutoMerge.App/bin/Release/net8.0/publish`. |
+
 ---
 
 ## 8. Technical Architecture

@@ -15,6 +15,17 @@ Build:
     dotnet restore
     dotnet build AutoMerge.sln
 
+Windows Installer
+-----------------
+Requires Inno Setup (https://jrsoftware.org/isinfo.php). Install it to get
+ISCC.exe on your machine.
+
+Publish:
+  dotnet publish src/AutoMerge.App -c Release -r win-x64
+
+Build installer:
+  "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" Installer/Windows/AutoMerge.iss
+
 Run (CLI mode):
     dotnet run --project src/AutoMerge.App -- --base path/to/base.txt --local path/to/local.txt --remote path/to/remote.txt --merged path/to/merged.txt
 

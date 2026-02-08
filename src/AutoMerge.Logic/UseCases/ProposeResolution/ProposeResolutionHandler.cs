@@ -39,19 +39,42 @@ public sealed class ProposeResolutionHandler
 
         try
         {
+            // ── Step 1: Research Local intent (new context window) ──
+            command.OnBusyMessageChanged?.Invoke("Researching Local intent", "🔍 Analyzing local changes...");
+
+            var localIntent = await _aiService.ResearchIntentAsync(
+                session,
+                FileVersion.Local,
+                command.OnLocalIntentChunk,
+                cancellationToken).ConfigureAwait(false);
+
+            // ── Step 2: Research Remote intent (new context window) ──
+            command.OnBusyMessageChanged?.Invoke("Researching Remote intent", "🔍 Analyzing remote changes...");
+
+            var remoteIntent = await _aiService.ResearchIntentAsync(
+                session,
+                FileVersion.Remote,
+                command.OnRemoteIntentChunk,
+                cancellationToken).ConfigureAwait(false);
+
+            // ── Step 3: Propose resolution with both intents as context (new context window) ──
+            command.OnBusyMessageChanged?.Invoke("Resolving merge conflicts", "✨ Merging with intent context...");
+
             void OnChunk(string chunk) => _eventAggregator.Publish(new AiStreamingChunkEvent(chunk));
 
             var resolution = await _aiService.ProposeResolutionAsync(
                 session,
                 preferences,
                 OnChunk,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken,
+                localIntent,
+                remoteIntent).ConfigureAwait(false);
 
             session.UpdateResolution(resolution);
             session.SetState(SessionState.ResolutionProposed);
             _eventAggregator.Publish(new ResolutionProposedEvent());
 
-            return new ProposeResolutionResult(true, resolution, null);
+            return new ProposeResolutionResult(true, resolution, null, localIntent, remoteIntent);
         }
         catch (Exception ex)
         {

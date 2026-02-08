@@ -49,7 +49,9 @@ public sealed class MockAiService : IAiService
         MergeSession session,
         UserPreferences? preferences = null,
         Action<string>? onChunk = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        string? localIntent = null,
+        string? remoteIntent = null)
     {
         await StreamAsync(_resolution.ResolvedContent, onChunk, cancellationToken).ConfigureAwait(false);
         return _resolution;
@@ -73,6 +75,20 @@ public sealed class MockAiService : IAiService
         CancellationToken cancellationToken = default)
     {
         return Task.FromResult(_explanation);
+    }
+
+    public async Task<string> ResearchIntentAsync(
+        MergeSession session,
+        FileVersion version,
+        Action<string>? onChunk = null,
+        CancellationToken cancellationToken = default)
+    {
+        var intent = version == FileVersion.Local
+            ? "Local intent: The developer refactored the method to improve readability and added error handling."
+            : "Remote intent: The developer added new functionality and updated the API surface.";
+
+        await StreamAsync(intent, onChunk, cancellationToken).ConfigureAwait(false);
+        return intent;
     }
 
     private async Task StreamAsync(string text, Action<string>? onChunk, CancellationToken cancellationToken)

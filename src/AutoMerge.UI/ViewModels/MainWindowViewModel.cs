@@ -256,11 +256,52 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     {
         var beforeRemaining = MergedResultViewModel.TotalConflictCount;
         IsAiBusy = true;
+
         try
         {
-            var result = await _proposeHandler.ExecuteAsync(new ProposeResolutionCommand());
+            var localIntentBuilder = new System.Text.StringBuilder();
+            var remoteIntentBuilder = new System.Text.StringBuilder();
+
+            var command = new ProposeResolutionCommand(
+                Preferences: null,
+                OnLocalIntentChunk: chunk => localIntentBuilder.Append(chunk),
+                OnRemoteIntentChunk: chunk => remoteIntentBuilder.Append(chunk),
+                OnBusyMessageChanged: (busyMessage, _) =>
+                {
+                    BusyMessage = busyMessage;
+                });
+
+            // Set initial busy message
+            BusyMessage = "Researching Local intent";
+
+            var result = await _proposeHandler.ExecuteAsync(command);
+
             if (result.Success && result.Resolution is not null)
             {
+                // Output Local intent to AI chat
+                if (!string.IsNullOrWhiteSpace(result.LocalIntent))
+                {
+                    AiChatViewModel.Messages.Add(new ChatMessage(
+                        ChatRole.Assistant,
+                        $"📝 **Local Intent**\n\n{result.LocalIntent}",
+                        DateTimeOffset.UtcNow));
+                }
+
+                // Output Remote intent to AI chat
+                if (!string.IsNullOrWhiteSpace(result.RemoteIntent))
+                {
+                    AiChatViewModel.Messages.Add(new ChatMessage(
+                        ChatRole.Assistant,
+                        $"📥 **Remote Intent**\n\n{result.RemoteIntent}",
+                        DateTimeOffset.UtcNow));
+                }
+
+                // Output resolution explanation to AI chat
+                AiChatViewModel.Messages.Add(new ChatMessage(
+                    ChatRole.Assistant,
+                    $"✨ **Merge Resolution**\n\n{result.Resolution.Explanation}",
+                    DateTimeOffset.UtcNow));
+
                 MergedResultViewModel.Content = result.Resolution.ResolvedContent;
                 var afterRemaining = MergedResultViewModel.TotalConflictCount;
                 UpdateAiResolvedCount(beforeRemaining, afterRemaining);

@@ -102,7 +102,9 @@ public sealed class CopilotAiService : IAiService, IAsyncDisposable
         MergeSession session,
         UserPreferences? preferences = null,
         Action<string>? onChunk = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        string? localIntent = null,
+        string? remoteIntent = null)
     {
         try
         {
@@ -110,7 +112,7 @@ public sealed class CopilotAiService : IAiService, IAsyncDisposable
             SetModel(prefs.AiModel);
             await EnsureClientStartedAsync(cancellationToken).ConfigureAwait(false);
 
-            var prompt = BuildResolutionPrompt(session, prefs);
+            var prompt = BuildResolutionPrompt(session, prefs, localIntent, remoteIntent);
             var response = await SendMessageAsync(
                 SystemPrompts.MergeAgentSystemPrompt,
                 prompt,
@@ -182,6 +184,39 @@ public sealed class CopilotAiService : IAiService, IAsyncDisposable
         }
     }
 
+    public async Task<string> ResearchIntentAsync(
+        MergeSession session,
+        FileVersion version,
+        Action<string>? onChunk = null,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await EnsureClientStartedAsync(cancellationToken).ConfigureAwait(false);
+
+            var versionLabel = version == FileVersion.Local ? "LOCAL" : "REMOTE";
+            var contentPath = version == FileVersion.Local
+                ? session.MergeInput.LocalPath
+                : session.MergeInput.RemotePath;
+
+            var prompt = SystemPrompts.IntentResearchPromptTemplate
+                .Replace("{VERSION}", versionLabel)
+                .Replace("{BASE}", SafeReadFile(session.MergeInput.BasePath))
+                .Replace("{CONTENT}", SafeReadFile(contentPath));
+
+            // Each intent research uses a fresh session (new context window)
+            return await SendMessageInFreshSessionAsync(
+                SystemPrompts.MergeAgentSystemPrompt,
+                prompt,
+                onChunk,
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            throw new AiServiceException($"Copilot intent research failed for {version}.", ex);
+        }
+    }
+
     private async Task EnsureClientStartedAsync(CancellationToken cancellationToken)
     {
         if (_client is not null)
@@ -191,6 +226,110 @@ public sealed class CopilotAiService : IAiService, IAsyncDisposable
 
         _client = new CopilotClient(_options);
         await _client.StartAsync().ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Sends a message in a brand-new session (new context window), leaving the main
+    /// session (<see cref="_currentSession"/>) untouched. Used for intent research so
+    /// each research step gets an isolated context.
+    /// </summary>
+    private async Task<string> SendMessageInFreshSessionAsync(
+        string systemPrompt,
+        string userPrompt,
+        Action<string>? onChunk,
+        CancellationToken cancellationToken)
+    {
+        if (_client is null)
+        {
+            throw new InvalidOperationException("Client not started.");
+        }
+
+        var session = await _client.CreateSessionAsync(new SessionConfig
+        {
+            Model = _activeModel,
+            Streaming = onChunk is not null,
+            SystemMessage = new SystemMessageConfig
+            {
+                Mode = SystemMessageMode.Append,
+                Content = systemPrompt
+            }
+        }).ConfigureAwait(false);
+
+        try
+        {
+            var responseText = new System.Text.StringBuilder();
+            var done = new TaskCompletionSource();
+            var receivedDelta = false;
+
+            session.On(evt =>
+            {
+                switch (evt)
+                {
+                    case AssistantMessageDeltaEvent delta:
+                        var chunk = delta.Data?.DeltaContent ?? string.Empty;
+                        if (chunk.Length > 0)
+                        {
+                            responseText.Append(chunk);
+                            receivedDelta = true;
+                            onChunk?.Invoke(chunk);
+                        }
+                        break;
+                    case AssistantMessageEvent msg:
+                        var content = msg.Data?.Content ?? string.Empty;
+                        if (!string.IsNullOrEmpty(content))
+                        {
+                            if (!receivedDelta)
+                            {
+                                responseText.Append(content);
+                                onChunk?.Invoke(content);
+                            }
+                            else if (content.Length > responseText.Length)
+                            {
+                                responseText.Clear();
+                                responseText.Append(content);
+                            }
+                        }
+
+                        if (onChunk is null || !receivedDelta)
+                        {
+                            done.TrySetResult();
+                        }
+                        break;
+                    case SessionIdleEvent:
+                        done.TrySetResult();
+                        break;
+                    case SessionErrorEvent err:
+                        done.TrySetException(new AiServiceException(err.Data?.Message ?? "Session error"));
+                        break;
+                }
+            });
+
+            await session.SendAsync(new MessageOptions { Prompt = userPrompt }).ConfigureAwait(false);
+
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            cts.CancelAfter(DefaultTimeout);
+
+            try
+            {
+                await done.Task.WaitAsync(cts.Token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                await session.AbortAsync().ConfigureAwait(false);
+                throw;
+            }
+            catch (OperationCanceledException)
+            {
+                await session.AbortAsync().ConfigureAwait(false);
+                throw new TimeoutException($"AI request timed out after {DefaultTimeout.TotalSeconds} seconds.");
+            }
+
+            return responseText.ToString();
+        }
+        finally
+        {
+            await session.DisposeAsync().ConfigureAwait(false);
+        }
     }
 
     private async Task<string> SendMessageAsync(
@@ -304,8 +443,26 @@ public sealed class CopilotAiService : IAiService, IAsyncDisposable
 
     private static string BuildResolutionPrompt(MergeSession session, UserPreferences preferences)
     {
+        return BuildResolutionPrompt(session, preferences, null, null);
+    }
+
+    private static string BuildResolutionPrompt(MergeSession session, UserPreferences preferences, string? localIntent, string? remoteIntent)
+    {
         var mergedContent = session.ConflictFile?.OriginalContent ?? string.Empty;
         var preferenceText = $"DefaultBias: {preferences.DefaultBias}; AutoAnalyzeOnLoad: {preferences.AutoAnalyzeOnLoad}; Theme: {preferences.Theme}";
+
+        // When intent research is available, use the intent-aware template
+        if (!string.IsNullOrWhiteSpace(localIntent) && !string.IsNullOrWhiteSpace(remoteIntent))
+        {
+            return SystemPrompts.IntentAwareResolutionPromptTemplate
+                .Replace("{LOCAL_INTENT}", localIntent)
+                .Replace("{REMOTE_INTENT}", remoteIntent)
+                .Replace("{PREFERENCES}", preferenceText)
+                .Replace("{BASE}", SafeReadFile(session.MergeInput.BasePath))
+                .Replace("{LOCAL}", SafeReadFile(session.MergeInput.LocalPath))
+                .Replace("{REMOTE}", SafeReadFile(session.MergeInput.RemotePath))
+                .Replace("{MERGED}", mergedContent);
+        }
 
         return SystemPrompts.ResolutionPromptTemplate
             .Replace("{PREFERENCES}", preferenceText)

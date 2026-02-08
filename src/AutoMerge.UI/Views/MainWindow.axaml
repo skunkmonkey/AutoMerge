@@ -29,14 +29,8 @@
           <Button Theme="{StaticResource SecondaryButton}" 
                   Content="📁 Open Merge..." 
                   Click="OnOpenMergeClicked"
-                  ToolTip.Tip="Open merge files (Ctrl+O)" />
-          
-          <Border Width="1" Background="{StaticResource BorderBrush}" Margin="8,4" />
-          
-          <Button Theme="{StaticResource SubtleButton}" 
-                  Content="💾 Save Draft" 
-                  Click="OnSaveDraftClicked"
-                  ToolTip.Tip="Save current draft (Ctrl+S)" />
+                  ToolTip.Tip="Open merge files (Ctrl+O)"
+                  IsVisible="False" />
           
           <Button Theme="{StaticResource SubtleButton}"
                   Content="⚙️ Preferences" 
@@ -303,13 +297,14 @@
             </StackPanel>
           </Border>
           
-          <!-- CTA Button -->
+          <!-- CTA Button (hidden — AutoMerge is launched from Git clients) -->
           <Button Theme="{StaticResource PrimaryButton}"
                   Content="📁 Open Merge Files..."
                   HorizontalAlignment="Center"
                   Padding="24,12"
                   FontSize="15"
-                  Click="OnOpenMergeClicked" />
+                  Click="OnOpenMergeClicked"
+                  IsVisible="False" />
           
           <!-- AI Connection Status Card -->
           <Border CornerRadius="8" Padding="16" Margin="0,8,0,0">

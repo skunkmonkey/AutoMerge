@@ -18,7 +18,9 @@ public interface IAiService
         MergeSession session,
         UserPreferences? preferences = null,
         Action<string>? onChunk = null,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        string? localIntent = null,
+        string? remoteIntent = null);
 
     Task<MergeResolution> RefineResolutionAsync(
         MergeSession session,
@@ -30,5 +32,15 @@ public interface IAiService
         MergeSession session,
         int startLine,
         int endLine,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Researches the intent behind changes in a specific file version (Local or Remote)
+    /// by comparing it against the base version. Each call uses a fresh context window.
+    /// </summary>
+    Task<string> ResearchIntentAsync(
+        MergeSession session,
+        FileVersion version,
+        Action<string>? onChunk = null,
         CancellationToken cancellationToken = default);
 }

@@ -12,6 +12,7 @@
     <ProjectReference Include="..\AutoMerge.Logic\AutoMerge.Logic.csproj" />
     <ProjectReference Include="..\AutoMerge.Infrastructure\AutoMerge.Infrastructure.csproj" />
     <ProjectReference Include="..\AutoMerge.UI\AutoMerge.UI.csproj" />
+    <ProjectReference Include="..\AutoMerge.Resources\AutoMerge.Resources.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,5 +26,9 @@
 
   <ItemGroup>
     <Content Include="ai-models.xml" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="Resources\Strings.resx" />
   </ItemGroup>
 </Project>

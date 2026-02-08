@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:AutoMerge.UI.Controls"
+             xmlns:localization="clr-namespace:AutoMerge.UI.Localization"
              x:Class="AutoMerge.UI.Views.Panels.MergedResultView">
   
   <Border Background="{StaticResource SurfaceBrush}"
@@ -19,7 +20,7 @@
           <!-- Icon + Title -->
           <StackPanel Orientation="Horizontal" Spacing="8" Grid.Column="0">
             <TextBlock Text="✨" FontSize="13" VerticalAlignment="Center" />
-            <TextBlock Text="Merged Result" 
+            <TextBlock Text="{x:Static localization:UIStrings.PanelTitleMergedResult}" 
                        Foreground="{StaticResource TextPrimaryBrush}"
                        FontWeight="SemiBold"
                        FontSize="13"
@@ -35,7 +36,7 @@
             <Button Theme="{StaticResource SubtleButton}"
                     Content="◀"
                     Command="{Binding PreviousConflictCommand}"
-                    ToolTip.Tip="Previous conflict"
+                    ToolTip.Tip="{x:Static localization:UIStrings.MergedResultPrevConflictTooltip}"
                     Padding="6,3"
                     FontSize="11" />
             
@@ -48,7 +49,10 @@
               <TextBlock Foreground="{StaticResource TextPrimaryBrush}"
                          FontSize="11"
                          FontWeight="Medium">
-                <Run Text="⚠ Conflict "/>
+                                                                <Run Text="⚠"/>
+                                                                <Run Text=" "/>
+                                                                <Run Text="{x:Static localization:UIStrings.MergedResultConflictBadgePrefix}"/>
+                                                                <Run Text=" "/>
                 <Run Text="{Binding CurrentConflictDisplay}"/>
               </TextBlock>
             </Border>
@@ -64,14 +68,15 @@
                          FontWeight="Medium">
                 <Run Text="✓ "/>
                 <Run Text="{Binding AutoResolvedCount}"/>
-                <Run Text=" auto-resolved"/>
+                                                                <Run Text=" "/>
+                                                                <Run Text="{x:Static localization:UIStrings.MergedResultAutoResolvedBadgeLabel}"/>
               </TextBlock>
             </Border>
             
             <Button Theme="{StaticResource SubtleButton}"
                     Content="▶"
                     Command="{Binding NextConflictCommand}"
-                    ToolTip.Tip="Next conflict"
+                    ToolTip.Tip="{x:Static localization:UIStrings.MergedResultNextConflictTooltip}"
                     Padding="6,3"
                     FontSize="11" />
           </StackPanel>
@@ -81,23 +86,23 @@
                       Orientation="Horizontal" 
                       Spacing="4">
             <Button Theme="{StaticResource SubtleButton}"
-                    Content="↩ Base" 
+                    Content="{x:Static localization:UIStrings.MergedResultRevertToBaseButton}" 
                     Command="{Binding RevertToBaseCommand}"
-                    ToolTip.Tip="Revert to base version"
+                    ToolTip.Tip="{x:Static localization:UIStrings.MergedResultRevertToBaseTooltip}"
                     Padding="8,4"
                     FontSize="11" />
             
             <Button Theme="{StaticResource SubtleButton}"
-                    Content="↩ Local" 
+                    Content="{x:Static localization:UIStrings.MergedResultRevertToLocalButton}" 
                     Command="{Binding RevertToLocalCommand}"
-                    ToolTip.Tip="Revert to local (ours) version"
+                    ToolTip.Tip="{x:Static localization:UIStrings.MergedResultRevertToLocalTooltip}"
                     Padding="8,4"
                     FontSize="11" />
             
             <Button Theme="{StaticResource SubtleButton}"
-                    Content="↩ Remote" 
+                    Content="{x:Static localization:UIStrings.MergedResultRevertToRemoteButton}" 
                     Command="{Binding RevertToRemoteCommand}"
-                    ToolTip.Tip="Revert to remote (theirs) version"
+                    ToolTip.Tip="{x:Static localization:UIStrings.MergedResultRevertToRemoteTooltip}"
                     Padding="8,4"
                     FontSize="11" />
           </StackPanel>

@@ -1,5 +1,7 @@
+using System.Globalization;
 using AutoMerge.Core.Abstractions;
 using AutoMerge.Core.Models;
+using AutoMerge.Infrastructure.Localization;
 
 namespace AutoMerge.Infrastructure.AI;
 
@@ -17,23 +19,23 @@ public sealed class MockAiService : IAiService
         TimeSpan? delay = null)
     {
         _analysis = analysis ?? new ConflictAnalysis(
-            "Local change summary",
-            "Remote change summary",
-            "Mock conflict reason",
-            "Mock suggested approach");
+            InfrastructureStrings.MockLocalChangeSummary,
+            InfrastructureStrings.MockRemoteChangeSummary,
+            InfrastructureStrings.MockConflictReason,
+            InfrastructureStrings.MockSuggestedApproach);
 
         _resolution = resolution ?? new MergeResolution(
-            "// Mock resolved content",
-            "Mock resolution explanation",
+            InfrastructureStrings.MockResolvedContent,
+            InfrastructureStrings.MockResolutionExplanation,
             0.75);
 
-        _explanation = explanation ?? "Mock explanation.";
+        _explanation = explanation ?? InfrastructureStrings.MockExplanation;
         _delay = delay ?? TimeSpan.FromMilliseconds(100);
     }
 
     public Task<AiServiceStatus> GetStatusAsync(CancellationToken cancellationToken)
     {
-        return Task.FromResult(new AiServiceStatus(true, true, null, "gpt-4.1"));
+        return Task.FromResult(new AiServiceStatus(true, true, null, InfrastructureStrings.MockModelName));
     }
 
     public async Task<ConflictAnalysis> AnalyzeConflictAsync(
@@ -63,7 +65,13 @@ public sealed class MockAiService : IAiService
         Action<string>? onChunk = null,
         CancellationToken cancellationToken = default)
     {
-        var refined = _resolution with { Explanation = $"Refined: {userMessage}" };
+        var refined = _resolution with
+        {
+            Explanation = string.Format(
+                CultureInfo.CurrentCulture,
+                InfrastructureStrings.RefinedMessageFormat,
+                userMessage)
+        };
         await StreamAsync(refined.ResolvedContent, onChunk, cancellationToken).ConfigureAwait(false);
         return refined;
     }
@@ -84,8 +92,8 @@ public sealed class MockAiService : IAiService
         CancellationToken cancellationToken = default)
     {
         var intent = version == FileVersion.Local
-            ? "Local intent: The developer refactored the method to improve readability and added error handling."
-            : "Remote intent: The developer added new functionality and updated the API surface.";
+            ? InfrastructureStrings.MockLocalIntent
+            : InfrastructureStrings.MockRemoteIntent;
 
         await StreamAsync(intent, onChunk, cancellationToken).ConfigureAwait(false);
         return intent;

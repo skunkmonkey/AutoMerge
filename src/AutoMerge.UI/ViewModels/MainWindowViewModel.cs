@@ -1,10 +1,12 @@
 using System.ComponentModel;
+using System.Globalization;
 using AutoMerge.Logic.UseCases.AcceptResolution;
 using AutoMerge.Logic.UseCases.CancelMerge;
 using AutoMerge.Logic.UseCases.LoadMergeSession;
 using AutoMerge.Logic.UseCases.ProposeResolution;
 using AutoMerge.Core.Abstractions;
 using AutoMerge.Core.Models;
+using AutoMerge.UI.Localization;
 using AutoMerge.UI.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -41,9 +43,9 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         _diffCalculator = diffCalculator;
         _aiService = aiService;
 
-        BasePaneViewModel = new DiffPaneViewModel { Title = "Base", IsReadOnly = true };
-        LocalPaneViewModel = new DiffPaneViewModel { Title = "Local", IsReadOnly = true };
-        RemotePaneViewModel = new DiffPaneViewModel { Title = "Remote", IsReadOnly = true };
+        BasePaneViewModel = new DiffPaneViewModel { Title = UIStrings.PanelTitleBase, IsReadOnly = true };
+        LocalPaneViewModel = new DiffPaneViewModel { Title = UIStrings.PanelTitleLocal, IsReadOnly = true };
+        RemotePaneViewModel = new DiffPaneViewModel { Title = UIStrings.PanelTitleRemote, IsReadOnly = true };
         MergedResultViewModel = mergedResultViewModel;
         AiChatViewModel = aiChatViewModel;
 
@@ -107,7 +109,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     private string _aiModelName = UserPreferences.Default.AiModel;
 
     [ObservableProperty]
-    private string _aiDetailedStatus = "Checking AI connection...";
+    private string _aiDetailedStatus = UIStrings.AiDetailedStatusChecking;
 
     [ObservableProperty]
     private bool _isAiSetupNeeded;
@@ -198,7 +200,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
             var result = await _loadHandler.ExecuteAsync(new LoadMergeSessionCommand(input));
             if (!result.Success || result.Session is null)
             {
-                ErrorMessage = result.ErrorMessage ?? "Failed to load merge session.";
+                ErrorMessage = result.ErrorMessage ?? UIStrings.LoadMergeFailed;
                 IsLoading = false;
                 IsSessionLoaded = false;
                 return;
@@ -227,7 +229,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Error loading files: {ex.Message}";
+            ErrorMessage = string.Format(CultureInfo.CurrentUICulture, UIStrings.ErrorLoadingFilesFormat, ex.Message);
             IsLoading = false;
             IsSessionLoaded = false;
         }
@@ -272,7 +274,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
                 });
 
             // Set initial busy message
-            BusyMessage = "Researching Local intent";
+            BusyMessage = UIStrings.BusyMessageResearchingLocalIntent;
 
             var result = await _proposeHandler.ExecuteAsync(command);
 
@@ -283,7 +285,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
                 {
                     AiChatViewModel.Messages.Add(new ChatMessage(
                         ChatRole.Assistant,
-                        $"📝 **Local Intent**\n\n{result.LocalIntent}",
+                        string.Format(CultureInfo.CurrentUICulture, UIStrings.AiChatLocalIntentFormat, result.LocalIntent),
                         DateTimeOffset.UtcNow));
                 }
 
@@ -292,14 +294,14 @@ public sealed partial class MainWindowViewModel : ViewModelBase
                 {
                     AiChatViewModel.Messages.Add(new ChatMessage(
                         ChatRole.Assistant,
-                        $"📥 **Remote Intent**\n\n{result.RemoteIntent}",
+                        string.Format(CultureInfo.CurrentUICulture, UIStrings.AiChatRemoteIntentFormat, result.RemoteIntent),
                         DateTimeOffset.UtcNow));
                 }
 
                 // Output resolution explanation to AI chat
                 AiChatViewModel.Messages.Add(new ChatMessage(
                     ChatRole.Assistant,
-                    $"✨ **Merge Resolution**\n\n{result.Resolution.Explanation}",
+                    string.Format(CultureInfo.CurrentUICulture, UIStrings.AiChatResolutionFormat, result.Resolution.Explanation),
                     DateTimeOffset.UtcNow));
 
                 MergedResultViewModel.Content = result.Resolution.ResolvedContent;
@@ -315,7 +317,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"AI resolution failed: {ex.Message}";
+            ErrorMessage = string.Format(CultureInfo.CurrentUICulture, UIStrings.AiResolutionFailedFormat, ex.Message);
         }
         finally
         {
@@ -340,7 +342,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Accept failed: {ex.Message}";
+            ErrorMessage = string.Format(CultureInfo.CurrentUICulture, UIStrings.AcceptFailedFormat, ex.Message);
         }
     }
 
@@ -402,34 +404,34 @@ public sealed partial class MainWindowViewModel : ViewModelBase
             {
                 AiStatusMessage = null;
                 AiModelName = status.ActiveModel ?? UserPreferences.Default.AiModel;
-                AiDetailedStatus = $"Connected · {AiModelName}";
+                AiDetailedStatus = string.Format(CultureInfo.CurrentUICulture, UIStrings.AiConnectedWithModelFormat, AiModelName);
                 IsAiSetupNeeded = false;
                 AiSetupInstructions = null;
             }
             else if (!status.IsAvailable)
             {
-                AiStatusMessage = status.ErrorMessage ?? "AI service unavailable.";
-                AiDetailedStatus = "Not connected";
+                AiStatusMessage = status.ErrorMessage ?? UIStrings.AiServiceUnavailable;
+                AiDetailedStatus = UIStrings.AiNotConnected;
                 IsAiSetupNeeded = true;
                 AiSetupInstructions = status.ErrorMessage?.Contains("CLI not found", StringComparison.OrdinalIgnoreCase) == true
-                    ? "Step 1: Install GitHub Copilot CLI from https://github.com/github/copilot-cli\nStep 2: Run 'copilot auth login' in your terminal\nStep 3: Click 'Retry Connection' below"
-                    : "Step 1: Ensure GitHub Copilot CLI is installed and in PATH\nStep 2: Run 'copilot auth login' in your terminal\nStep 3: Click 'Retry Connection' below";
+                    ? UIStrings.AiSetupInstructionsCliMissing
+                    : UIStrings.AiSetupInstructionsCliNotFound;
             }
             else
             {
-                AiStatusMessage = "AI authentication required.";
-                AiDetailedStatus = "Authentication required";
+                AiStatusMessage = UIStrings.AiAuthenticationRequired;
+                AiDetailedStatus = UIStrings.AiAuthenticationRequiredShort;
                 IsAiSetupNeeded = true;
-                AiSetupInstructions = "Step 1: Open a terminal and run 'copilot auth login'\nStep 2: Complete the GitHub authentication flow\nStep 3: Click 'Retry Connection' below";
+                AiSetupInstructions = UIStrings.AiSetupInstructionsAuth;
             }
         }
         catch (Exception ex)
         {
             IsAiAvailable = false;
             AiStatusMessage = ex.Message;
-            AiDetailedStatus = "Connection error";
+            AiDetailedStatus = UIStrings.AiConnectionError;
             IsAiSetupNeeded = true;
-            AiSetupInstructions = "An unexpected error occurred while connecting to GitHub Copilot.\nCheck that the Copilot CLI is installed and try again.";
+            AiSetupInstructions = UIStrings.AiUnexpectedError;
         }
 
         UpdateAiCommandAvailability();
@@ -504,18 +506,23 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         AllConflictsResolved = remaining == 0;
 
         var aiResolved = Math.Max(0, AiResolvedCount);
-        var resolvedByAiText = $"{aiResolved} resolved by AI";
-        var autoResolvedText = autoResolved > 0 ? $" · {autoResolved} auto-resolved" : string.Empty;
+        var resolvedByAiText = string.Format(CultureInfo.CurrentUICulture, UIStrings.ResolutionSummaryResolvedByAiFormat, aiResolved);
+        var autoResolvedText = autoResolved > 0
+            ? string.Format(CultureInfo.CurrentUICulture, UIStrings.ResolutionSummaryAutoResolvedFormat, autoResolved)
+            : string.Empty;
 
         if (AllConflictsResolved)
         {
-            ResolutionSummaryHeadline = $"✅ All conflicts resolved ({resolvedByAiText}{autoResolvedText})";
-            ResolutionSummaryDetail = "Review the result below carefully and click Accept when you're satisfied.";
+            ResolutionSummaryHeadline = string.Format(CultureInfo.CurrentUICulture, UIStrings.ResolutionSummaryHeadlineAllResolvedFormat, resolvedByAiText, autoResolvedText);
+            ResolutionSummaryDetail = UIStrings.ResolutionSummaryDetailAllResolved;
         }
         else
         {
-            ResolutionSummaryHeadline = $"⚠ {resolvedByAiText}{autoResolvedText} · {remaining} remaining";
-            ResolutionSummaryDetail = $"{remaining} conflict{(remaining == 1 ? " requires" : "s require")} manual resolution. Navigate conflicts with the ◀ ▶ buttons. Edit the merged result directly, or click \"Resolve With AI\" for an AI-suggested resolution.";
+            ResolutionSummaryHeadline = string.Format(CultureInfo.CurrentUICulture, UIStrings.ResolutionSummaryHeadlineRemainingFormat, resolvedByAiText, autoResolvedText, remaining);
+            var detailFormat = remaining == 1
+                ? UIStrings.ResolutionSummaryDetailRemainingSingularFormat
+                : UIStrings.ResolutionSummaryDetailRemainingPluralFormat;
+            ResolutionSummaryDetail = string.Format(CultureInfo.CurrentUICulture, detailFormat, remaining);
         }
 
         ShowResolutionSummary = true;
@@ -551,11 +558,11 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
         if (IsLoading)
         {
-            BusyMessage = "Loading merge files and resolving conflicts...";
+            BusyMessage = UIStrings.BusyMessageLoadingMergeFiles;
         }
         else if (IsAiBusy)
         {
-            BusyMessage = "AI is processing the conflicts...";
+            BusyMessage = UIStrings.BusyMessageAiProcessing;
         }
         else
         {

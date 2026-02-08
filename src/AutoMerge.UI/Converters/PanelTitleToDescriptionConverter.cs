@@ -1,4 +1,5 @@
 using Avalonia.Data.Converters;
+using AutoMerge.UI.Localization;
 using System;
 using System.Globalization;
 
@@ -13,14 +14,23 @@ public sealed class PanelTitleToDescriptionConverter : IValueConverter
     {
         if (value is string title)
         {
-            return title.ToLowerInvariant() switch
+            if (string.Equals(title, UIStrings.PanelTitleBase, StringComparison.CurrentCultureIgnoreCase))
             {
-                "base" => "Common ancestor",
-                "local" => "Your changes (ours)",
-                "remote" => "Incoming changes (theirs)",
-                "merged" or "merged result" => "Final resolved output",
-                _ => string.Empty
-            };
+                return UIStrings.PanelDescriptionBase;
+            }
+            if (string.Equals(title, UIStrings.PanelTitleLocal, StringComparison.CurrentCultureIgnoreCase))
+            {
+                return UIStrings.PanelDescriptionLocal;
+            }
+            if (string.Equals(title, UIStrings.PanelTitleRemote, StringComparison.CurrentCultureIgnoreCase))
+            {
+                return UIStrings.PanelDescriptionRemote;
+            }
+            if (string.Equals(title, UIStrings.PanelTitleMerged, StringComparison.CurrentCultureIgnoreCase) ||
+                string.Equals(title, UIStrings.PanelTitleMergedResult, StringComparison.CurrentCultureIgnoreCase))
+            {
+                return UIStrings.PanelDescriptionMerged;
+            }
         }
         return string.Empty;
     }

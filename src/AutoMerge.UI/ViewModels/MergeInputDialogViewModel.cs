@@ -1,4 +1,5 @@
 using AutoMerge.Core.Models;
+using AutoMerge.UI.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace AutoMerge.UI.ViewModels;
@@ -29,7 +30,7 @@ public sealed partial class MergeInputDialogViewModel : ViewModelBase
         if (!CanConfirm)
         {
             mergeInput = null;
-            errorMessage = "Select Local, Remote, and Merged paths.";
+            errorMessage = UIStrings.MergeInputSelectPathsError;
             return false;
         }
 

@@ -1,4 +1,5 @@
 using System;
+using AutoMerge.Core.Localization;
 
 namespace AutoMerge.Core.Models;
 
@@ -21,7 +22,7 @@ public sealed record MergeInput
     {
         if (string.IsNullOrWhiteSpace(path))
         {
-            throw new ArgumentException("Path must not be null or empty.", paramName);
+            throw new ArgumentException(CoreStrings.PathMustNotBeNullOrEmpty, paramName);
         }
 
         return path;

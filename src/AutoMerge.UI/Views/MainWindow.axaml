@@ -2,10 +2,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:views="clr-namespace:AutoMerge.UI.Views.Panels"
         xmlns:converters="clr-namespace:AutoMerge.UI.Converters"
+  xmlns:localization="clr-namespace:AutoMerge.UI.Localization"
         x:Class="AutoMerge.UI.Views.MainWindow"
         Width="1600" Height="1000" 
         MinWidth="1200" MinHeight="700"
-        Title="AutoMerge — AI-Powered Merge Conflict Resolution"
+  Title="{x:Static localization:UIStrings.MainWindowTitle}"
         Background="{StaticResource AppBackgroundBrush}">
   
   <Window.Resources>
@@ -27,15 +28,15 @@
         <!-- Left: File Actions -->
         <StackPanel Orientation="Horizontal" Spacing="8" Grid.Column="0">
           <Button Theme="{StaticResource SecondaryButton}" 
-                  Content="📁 Open Merge..." 
+              Content="{x:Static localization:UIStrings.MainWindowOpenMergeButton}"
                   Click="OnOpenMergeClicked"
-                  ToolTip.Tip="Open merge files (Ctrl+O)"
+              ToolTip.Tip="{x:Static localization:UIStrings.MainWindowOpenMergeTooltip}"
                   IsVisible="False" />
           
           <Button Theme="{StaticResource SubtleButton}"
-                  Content="⚙️ Preferences" 
+              Content="{x:Static localization:UIStrings.MainWindowPreferencesButton}"
                   Click="OnOpenPreferencesClicked"
-                  ToolTip.Tip="Open preferences (Ctrl+,)" />
+              ToolTip.Tip="{x:Static localization:UIStrings.MainWindowPreferencesTooltip}" />
         </StackPanel>
         
         <!-- Center: Conflict Navigation + AI Actions -->
@@ -45,9 +46,9 @@
                     HorizontalAlignment="Center">
           
           <Button Theme="{StaticResource SecondaryButton}"
-                  Content="◀ Prev Conflict"
+              Content="{x:Static localization:UIStrings.MainWindowPrevConflictButton}"
                   Command="{Binding MergedResultViewModel.PreviousConflictCommand}"
-                  ToolTip.Tip="Navigate to previous conflict"
+              ToolTip.Tip="{x:Static localization:UIStrings.MainWindowPrevConflictTooltip}"
                   IsVisible="{Binding IsSessionLoaded}"
                   Padding="12,8" />
           
@@ -58,10 +59,8 @@
                   IsVisible="{Binding IsSessionLoaded}">
             <TextBlock Foreground="{StaticResource TextSecondaryBrush}"
                        FontSize="12"
-                       FontWeight="Medium">
-              <Run Text="Conflict "/>
-              <Run Text="{Binding MergedResultViewModel.CurrentConflictDisplay}"/>
-            </TextBlock>
+                       FontWeight="Medium"
+                       Text="{Binding MergedResultViewModel.CurrentConflictDisplay, StringFormat={x:Static localization:UIStrings.MainWindowConflictFormat}}" />
           </Border>
           
           <!-- Auto-Resolved Badge -->
@@ -72,35 +71,32 @@
                   IsVisible="{Binding MergedResultViewModel.HasAutoResolved}">
             <TextBlock Foreground="#4CAF50"
                        FontSize="12"
-                       FontWeight="Medium">
-              <Run Text="✓ "/>
-              <Run Text="{Binding MergedResultViewModel.AutoResolvedCount}"/>
-              <Run Text=" auto-resolved"/>
-            </TextBlock>
+                       FontWeight="Medium"
+                       Text="{Binding MergedResultViewModel.AutoResolvedCount, StringFormat={x:Static localization:UIStrings.MainWindowAutoResolvedFormat}}" />
           </Border>
           
           <Button Theme="{StaticResource SecondaryButton}"
-                  Content="Next Conflict ▶"
+              Content="{x:Static localization:UIStrings.MainWindowNextConflictButton}"
                   Command="{Binding MergedResultViewModel.NextConflictCommand}"
-                  ToolTip.Tip="Navigate to next conflict"
+              ToolTip.Tip="{x:Static localization:UIStrings.MainWindowNextConflictTooltip}"
                   IsVisible="{Binding IsSessionLoaded}"
                   Padding="12,8" />
           
           <Border Width="1" Background="{StaticResource BorderBrush}" Margin="8,4" />
           
           <Button Theme="{StaticResource PrimaryButton}"
-                  Content="✨ Resolve With AI"
+              Content="{x:Static localization:UIStrings.MainWindowResolveWithAiButton}"
                   Command="{Binding GetAiHelpCommand}"
                   ToolTip.Tip="{Binding AiStatusMessage}"
                   IsVisible="{Binding IsSessionLoaded}" />
           
           <Button Theme="{StaticResource SecondaryButton}"
-                  Content="🔄 Reconnect AI"
+              Content="{x:Static localization:UIStrings.MainWindowReconnectAiButton}"
                   Command="{Binding ReconnectAiCommand}"
                   IsVisible="{Binding IsAiAvailable, Converter={StaticResource InverseBoolConverter}}" />
           
           <Button Theme="{StaticResource SecondaryButton}"
-                  Content="🔄 Retry Load"
+              Content="{x:Static localization:UIStrings.MainWindowRetryLoadButton}"
                   Command="{Binding RetryLoadCommand}"
                   IsVisible="{Binding HasError}" />
         </StackPanel>
@@ -108,15 +104,15 @@
         <!-- Right: Resolution Actions -->
         <StackPanel Orientation="Horizontal" Spacing="8" Grid.Column="2">
           <Button Theme="{StaticResource DangerButton}"
-                  Content="✕ Cancel"
+              Content="{x:Static localization:UIStrings.MainWindowCancelButton}"
                   Command="{Binding CancelCommand}"
-                  ToolTip.Tip="Cancel and exit (Escape)"
+              ToolTip.Tip="{x:Static localization:UIStrings.MainWindowCancelTooltip}"
                   IsVisible="{Binding IsSessionLoaded}" />
           
           <Button Theme="{StaticResource SuccessButton}"
-                  Content="✓ Accept"
+              Content="{x:Static localization:UIStrings.MainWindowAcceptButton}"
                   Command="{Binding AcceptCommand}"
-                  ToolTip.Tip="Accept resolution and save (Ctrl+Enter)"
+              ToolTip.Tip="{x:Static localization:UIStrings.MainWindowAcceptTooltip}"
                   IsVisible="{Binding IsSessionLoaded}" />
         </StackPanel>
       </Grid>
@@ -158,7 +154,7 @@
                       Padding="12,8"
                       Margin="0,4,0,0">
                 <StackPanel Spacing="6">
-                  <TextBlock Text="Color Guide"
+                  <TextBlock Text="{x:Static localization:UIStrings.MainWindowColorGuideTitle}"
                              FontSize="11" FontWeight="SemiBold"
                              Foreground="{StaticResource TextSecondaryBrush}"
                              Margin="0,0,0,2" />
@@ -168,7 +164,7 @@
                       <Border Width="14" Height="14" CornerRadius="3" Background="#304CAF50">
                         <Border Width="3" Height="14" Background="#4CAF50" CornerRadius="3,0,0,3" HorizontalAlignment="Left" />
                       </Border>
-                      <TextBlock Text="Added / Auto-resolved" FontSize="11" 
+                      <TextBlock Text="{x:Static localization:UIStrings.MainWindowLegendAdded}" FontSize="11" 
                                  Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
                     </StackPanel>
                     <!-- Red = removed / unresolved conflict -->
@@ -176,7 +172,7 @@
                       <Border Width="14" Height="14" CornerRadius="3" Background="#30F44336">
                         <Border Width="3" Height="14" Background="#F44336" CornerRadius="3,0,0,3" HorizontalAlignment="Left" />
                       </Border>
-                      <TextBlock Text="Removed / Unresolved conflict" FontSize="11" 
+                      <TextBlock Text="{x:Static localization:UIStrings.MainWindowLegendRemoved}" FontSize="11" 
                                  Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
                     </StackPanel>
                     <!-- Amber = modified -->
@@ -184,7 +180,7 @@
                       <Border Width="14" Height="14" CornerRadius="3" Background="#30FFC107">
                         <Border Width="3" Height="14" Background="#FFC107" CornerRadius="3,0,0,3" HorizontalAlignment="Left" />
                       </Border>
-                      <TextBlock Text="Modified" FontSize="11" 
+                      <TextBlock Text="{x:Static localization:UIStrings.MainWindowLegendModified}" FontSize="11" 
                                  Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
                     </StackPanel>
                     <!-- Blue = base section -->
@@ -192,7 +188,7 @@
                       <Border Width="14" Height="14" CornerRadius="3" Background="#306A9FD6">
                         <Border Width="3" Height="14" Background="#6A9FD6" CornerRadius="3,0,0,3" HorizontalAlignment="Left" />
                       </Border>
-                      <TextBlock Text="Base (common ancestor)" FontSize="11" 
+                      <TextBlock Text="{x:Static localization:UIStrings.MainWindowLegendBase}" FontSize="11" 
                                  Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
                     </StackPanel>
                     <!-- Purple = merged result -->
@@ -200,7 +196,7 @@
                       <Border Width="14" Height="14" CornerRadius="3" Background="#30BB86FC">
                         <Border Width="3" Height="14" Background="#BB86FC" CornerRadius="3,0,0,3" HorizontalAlignment="Left" />
                       </Border>
-                      <TextBlock Text="Merged result panel" FontSize="11" 
+                      <TextBlock Text="{x:Static localization:UIStrings.MainWindowLegendMerged}" FontSize="11" 
                                  Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
                     </StackPanel>
                   </WrapPanel>
@@ -213,7 +209,7 @@
                     Theme="{StaticResource SubtleButton}"
                     Content="✕"
                     Command="{Binding DismissSummaryCommand}"
-                    ToolTip.Tip="Dismiss"
+                  ToolTip.Tip="{x:Static localization:UIStrings.MainWindowDismissTooltip}"
                     VerticalAlignment="Top"
                     Padding="8,4"
                     FontSize="14" />
@@ -261,37 +257,38 @@
           <!-- Logo/Brand Area -->
           <StackPanel Spacing="8" HorizontalAlignment="Center">
             <TextBlock Text="🔀" FontSize="48" HorizontalAlignment="Center" />
-            <TextBlock Text="AutoMerge" 
+            <TextBlock Text="{x:Static localization:UIStrings.MainWindowProductName}" 
                        FontSize="32" 
                        FontWeight="Bold" 
                        Foreground="{StaticResource TextPrimaryBrush}"
                        HorizontalAlignment="Center" />
-            <TextBlock Text="AI-Powered Merge Conflict Resolution" 
+            <TextBlock Text="{x:Static localization:UIStrings.MainWindowWelcomeTagline}" 
                        FontSize="14"
                        Foreground="{StaticResource TextSecondaryBrush}"
                        HorizontalAlignment="Center" />
           </StackPanel>
           
-          <!-- Instructions -->
+          <!-- Instructions (hidden) -->
           <Border Background="{StaticResource SurfaceElevatedBrush}" 
                   CornerRadius="8" 
-                  Padding="20">
+                  Padding="20"
+                  IsVisible="False">
             <StackPanel Spacing="12">
-              <TextBlock Text="Get Started" 
+              <TextBlock Text="{x:Static localization:UIStrings.MainWindowGetStartedTitle}" 
                          FontSize="16" 
                          FontWeight="SemiBold"
                          Foreground="{StaticResource TextPrimaryBrush}" />
-              <TextBlock Text="Select your merge files to begin resolving conflicts with AI assistance:"
+              <TextBlock Text="{x:Static localization:UIStrings.MainWindowGetStartedDescription}"
                          Foreground="{StaticResource TextSecondaryBrush}"
                          TextWrapping="Wrap" />
               <StackPanel Spacing="6" Margin="0,8,0,0">
-                <TextBlock Text="• Local (ours) — Your branch's version" 
+                <TextBlock Text="{x:Static localization:UIStrings.MainWindowGetStartedBulletLocal}" 
                            Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" />
-                <TextBlock Text="• Remote (theirs) — The incoming branch's version" 
+                <TextBlock Text="{x:Static localization:UIStrings.MainWindowGetStartedBulletRemote}" 
                            Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" />
-                <TextBlock Text="• Merged — Where the resolved output will be saved" 
+                <TextBlock Text="{x:Static localization:UIStrings.MainWindowGetStartedBulletMerged}" 
                            Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" />
-                <TextBlock Text="• Base (optional) — The common ancestor version" 
+                <TextBlock Text="{x:Static localization:UIStrings.MainWindowGetStartedBulletBase}" 
                            Foreground="{StaticResource TextTertiaryBrush}" FontSize="12" FontStyle="Italic" />
               </StackPanel>
             </StackPanel>
@@ -299,7 +296,7 @@
           
           <!-- CTA Button (hidden — AutoMerge is launched from Git clients) -->
           <Button Theme="{StaticResource PrimaryButton}"
-                  Content="📁 Open Merge Files..."
+              Content="{x:Static localization:UIStrings.MainWindowOpenMergeFilesButton}"
                   HorizontalAlignment="Center"
                   Padding="24,12"
                   FontSize="15"
@@ -326,7 +323,7 @@
                          Foreground="{StaticResource TextPrimaryBrush}"
                          VerticalAlignment="Center">
                 <TextBlock.Text>
-                  <MultiBinding StringFormat="GitHub Copilot · {0}">
+                  <MultiBinding StringFormat="{x:Static localization:UIStrings.MainWindowCopilotStatusFormat}">
                     <Binding Path="AiDetailedStatus" />
                   </MultiBinding>
                 </TextBlock.Text>
@@ -335,7 +332,7 @@
               <!-- Retry button -->
               <Button Grid.Row="0" Grid.Column="2"
                       Theme="{StaticResource SubtleButton}"
-                      Content="🔄 Retry Connection"
+                      Content="{x:Static localization:UIStrings.MainWindowRetryConnectionButton}"
                       Command="{Binding ReconnectAiCommand}"
                       IsVisible="{Binding IsAiAvailable, Converter={StaticResource InverseBoolConverter}}"
                       Padding="8,4"
@@ -347,10 +344,10 @@
                           Margin="0,6,0,0"
                           IsVisible="{Binding IsAiAvailable}">
                 <Border Background="#304CAF50" CornerRadius="4" Padding="8,3">
-                  <TextBlock Text="{Binding AiModelName, StringFormat='Model: {0}'}"
+                  <TextBlock Text="{Binding AiModelName, StringFormat={x:Static localization:UIStrings.MainWindowModelBadgeFormat}}"
                              FontSize="11" Foreground="#4CAF50" FontWeight="Medium" />
                 </Border>
-                <TextBlock Text="Ready for AI-assisted conflict resolution"
+                <TextBlock Text="{x:Static localization:UIStrings.MainWindowAiReadyMessage}"
                            FontSize="11" Foreground="{StaticResource TextTertiaryBrush}"
                            VerticalAlignment="Center" />
               </StackPanel>
@@ -362,12 +359,12 @@
                       CornerRadius="6" Padding="12"
                       IsVisible="{Binding IsAiSetupNeeded}">
                 <StackPanel Spacing="6">
-                  <TextBlock Text="Quick Setup" FontSize="12" FontWeight="SemiBold"
+                  <TextBlock Text="{x:Static localization:UIStrings.MainWindowQuickSetupTitle}" FontSize="12" FontWeight="SemiBold"
                              Foreground="{StaticResource TextPrimaryBrush}" />
                   <TextBlock Text="{Binding AiSetupInstructions}"
                              FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"
                              TextWrapping="Wrap" LineHeight="18" />
-                  <TextBlock Text="AutoMerge works without AI too — you can always resolve conflicts manually."
+                  <TextBlock Text="{x:Static localization:UIStrings.MainWindowAiSetupFooterNote}"
                              FontSize="10" Foreground="{StaticResource TextTertiaryBrush}"
                              FontStyle="Italic" Margin="0,4,0,0" />
                 </StackPanel>
@@ -376,7 +373,7 @@
           </Border>
           
           <!-- Keyboard Hint -->
-          <TextBlock Text="Tip: Configure AutoMerge as your Git merge tool for automatic launch"
+          <TextBlock Text="{x:Static localization:UIStrings.MainWindowTipText}"
                      FontSize="11"
                      Foreground="{StaticResource TextTertiaryBrush}"
                      HorizontalAlignment="Center"
@@ -429,7 +426,7 @@
           <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
             <Ellipse Width="8" Height="8" 
                      Fill="{Binding IsAiAvailable, Converter={x:Static converters:BoolToColorConverter.Instance}}" />
-            <TextBlock Text="{Binding AiDetailedStatus, StringFormat='Copilot · {0}'}"
+            <TextBlock Text="{Binding AiDetailedStatus, StringFormat={x:Static localization:UIStrings.MainWindowStatusCopilotFormat}}"
                        Foreground="{StaticResource TextTertiaryBrush}"
                        FontSize="12" />
           </StackPanel>
@@ -447,7 +444,7 @@
         
         <!-- Right: Version/Branding -->
         <TextBlock Grid.Column="2"
-                   Text="Powered by GitHub Copilot"
+                   Text="{x:Static localization:UIStrings.MainWindowPoweredByCopilot}"
                    Foreground="{StaticResource TextTertiaryBrush}"
                    FontSize="11"
                    VerticalAlignment="Center" />

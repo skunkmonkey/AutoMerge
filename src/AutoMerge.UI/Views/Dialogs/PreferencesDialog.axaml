@@ -1,12 +1,13 @@
 <Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:models="clr-namespace:AutoMerge.Core.Models;assembly=AutoMerge.Core"
-        x:Class="AutoMerge.UI.Views.Dialogs.PreferencesDialog"
-        Width="520" Height="520"
-        Title="Preferences"
-        Background="{StaticResource AppBackgroundBrush}"
-        WindowStartupLocation="CenterOwner"
-        CanResize="False">
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:models="clr-namespace:AutoMerge.Core.Models;assembly=AutoMerge.Core"
+  xmlns:localization="clr-namespace:AutoMerge.UI.Localization"
+  x:Class="AutoMerge.UI.Views.Dialogs.PreferencesDialog"
+  Width="520" Height="520"
+  Title="{x:Static localization:UIStrings.PreferencesDialogTitle}"
+  Background="{StaticResource AppBackgroundBrush}"
+  WindowStartupLocation="CenterOwner"
+  CanResize="False">
   
   <Border Background="{StaticResource SurfaceBrush}"
           CornerRadius="0"
@@ -18,11 +19,11 @@
               Background="{StaticResource SurfaceElevatedBrush}"
               Padding="24,20">
         <StackPanel Spacing="4">
-          <TextBlock Text="⚙️ Preferences" 
+          <TextBlock Text="{x:Static localization:UIStrings.PreferencesDialogHeaderTitle}" 
                      FontSize="20" 
                      FontWeight="Bold"
                      Foreground="{StaticResource TextPrimaryBrush}" />
-          <TextBlock Text="Configure AutoMerge behavior and appearance"
+          <TextBlock Text="{x:Static localization:UIStrings.PreferencesDialogHeaderSubtitle}"
                      FontSize="12"
                      Foreground="{StaticResource TextSecondaryBrush}" />
         </StackPanel>
@@ -34,7 +35,7 @@
           
           <!-- AI Settings Section -->
           <StackPanel Spacing="12">
-            <TextBlock Text="AI BEHAVIOR"
+            <TextBlock Text="{x:Static localization:UIStrings.PreferencesDialogAiSectionTitle}"
                        FontSize="11"
                        FontWeight="Bold"
                        Foreground="{StaticResource TextTertiaryBrush}"
@@ -48,10 +49,10 @@
                 <!-- AI Model Selection -->
                 <Grid ColumnDefinitions="*,Auto">
                   <StackPanel Grid.Column="0" Spacing="2">
-                    <TextBlock Text="AI model"
+                        <TextBlock Text="{x:Static localization:UIStrings.PreferencesDialogAiModelTitle}"
                                FontSize="13"
                                Foreground="{StaticResource TextPrimaryBrush}" />
-                    <TextBlock Text="Select the Copilot model used for conflict resolution"
+                        <TextBlock Text="{x:Static localization:UIStrings.PreferencesDialogAiModelDescription}"
                                FontSize="11"
                                Foreground="{StaticResource TextTertiaryBrush}" />
                   </StackPanel>
@@ -61,7 +62,7 @@
                             FilterMode="Contains"
                             ItemsSource="{Binding AiModelOptions}"
                             Text="{Binding AiModel}"
-                            Watermark="e.g. GPT-5 mini" />
+                          Watermark="{x:Static localization:UIStrings.PreferencesDialogAiModelWatermark}" />
                 </Grid>
                 
                 <Border Height="1" Background="{StaticResource BorderSubtleBrush}" />
@@ -69,10 +70,10 @@
                 <!-- Default Bias -->
                 <Grid ColumnDefinitions="*,Auto">
                   <StackPanel Grid.Column="0" Spacing="2">
-                    <TextBlock Text="Default resolution bias"
+                    <TextBlock Text="{x:Static localization:UIStrings.PreferencesDialogDefaultBiasTitle}"
                                FontSize="13"
                                Foreground="{StaticResource TextPrimaryBrush}" />
-                    <TextBlock Text="Which version the AI should favor when resolving conflicts"
+                    <TextBlock Text="{x:Static localization:UIStrings.PreferencesDialogDefaultBiasDescription}"
                                FontSize="11"
                                Foreground="{StaticResource TextTertiaryBrush}" />
                   </StackPanel>
@@ -87,10 +88,10 @@
                 <!-- Auto-resolve -->
                 <Grid ColumnDefinitions="*,Auto">
                   <StackPanel Grid.Column="0" Spacing="2">
-                    <TextBlock Text="Auto-resolve on load"
+                    <TextBlock Text="{x:Static localization:UIStrings.PreferencesDialogAutoResolveTitle}"
                                FontSize="13"
                                Foreground="{StaticResource TextPrimaryBrush}" />
-                    <TextBlock Text="Automatically run AI resolution when files are loaded"
+                    <TextBlock Text="{x:Static localization:UIStrings.PreferencesDialogAutoResolveDescription}"
                                FontSize="11"
                                Foreground="{StaticResource TextTertiaryBrush}" />
                   </StackPanel>
@@ -105,7 +106,7 @@
           
           <!-- Appearance Section -->
           <StackPanel Spacing="12">
-            <TextBlock Text="APPEARANCE"
+            <TextBlock Text="{x:Static localization:UIStrings.PreferencesDialogAppearanceSectionTitle}"
                        FontSize="11"
                        FontWeight="Bold"
                        Foreground="{StaticResource TextTertiaryBrush}"
@@ -116,10 +117,10 @@
                     Padding="16">
               <Grid ColumnDefinitions="*,Auto">
                 <StackPanel Grid.Column="0" Spacing="2">
-                  <TextBlock Text="Theme"
+                  <TextBlock Text="{x:Static localization:UIStrings.PreferencesDialogThemeTitle}"
                              FontSize="13"
                              Foreground="{StaticResource TextPrimaryBrush}" />
-                  <TextBlock Text="Choose your preferred color scheme"
+                  <TextBlock Text="{x:Static localization:UIStrings.PreferencesDialogThemeDescription}"
                              FontSize="11"
                              Foreground="{StaticResource TextTertiaryBrush}" />
                 </StackPanel>
@@ -143,17 +144,17 @@
         <Grid ColumnDefinitions="Auto,*,Auto">
           <Button Grid.Column="0"
                   Theme="{StaticResource SubtleButton}"
-                  Content="Reset to Defaults"
+                  Content="{x:Static localization:UIStrings.PreferencesDialogResetDefaultsButton}"
                   Command="{Binding ResetToDefaultsCommand}" />
           
           <StackPanel Grid.Column="2" 
                       Orientation="Horizontal" 
                       Spacing="8">
             <Button Theme="{StaticResource SecondaryButton}"
-                    Content="Cancel"
+                        Content="{x:Static localization:UIStrings.PreferencesDialogCancelButton}"
                     Click="OnCancelClicked" />
             <Button Theme="{StaticResource PrimaryButton}"
-                    Content="Save Changes"
+                        Content="{x:Static localization:UIStrings.PreferencesDialogSaveChangesButton}"
                     Click="OnSaveClicked" />
           </StackPanel>
         </Grid>

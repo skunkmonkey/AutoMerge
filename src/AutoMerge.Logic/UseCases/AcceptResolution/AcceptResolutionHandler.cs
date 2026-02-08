@@ -1,4 +1,5 @@
 using AutoMerge.Logic.Events;
+using AutoMerge.Logic.Localization;
 using AutoMerge.Logic.Services;
 using AutoMerge.Core.Abstractions;
 using AutoMerge.Core.Models;
@@ -39,18 +40,18 @@ public sealed class AcceptResolutionHandler
         var session = _sessionManager.CurrentSession;
         if (session is null)
         {
-            return new AcceptResolutionResult(false, "No active session.");
+            return new AcceptResolutionResult(false, LogicStrings.NoActiveSession);
         }
 
         if (_conflictParser.HasConflictMarkers(command.FinalContent))
         {
-            return new AcceptResolutionResult(false, "Resolved content still contains conflict markers.");
+            return new AcceptResolutionResult(false, LogicStrings.ResolvedContentHasConflictMarkers);
         }
 
         var conflictFile = session.ConflictFile;
         if (conflictFile is null)
         {
-            return new AcceptResolutionResult(false, "Conflict file not loaded.");
+            return new AcceptResolutionResult(false, LogicStrings.ConflictFileNotLoaded);
         }
 
         try

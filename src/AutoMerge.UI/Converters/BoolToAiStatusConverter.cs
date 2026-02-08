@@ -1,6 +1,7 @@
 using Avalonia.Data.Converters;
 using System;
 using System.Globalization;
+using AutoMerge.UI.Localization;
 
 namespace AutoMerge.UI.Converters;
 
@@ -15,9 +16,9 @@ public sealed class BoolToAiStatusConverter : IValueConverter
     {
         if (value is bool isAvailable)
         {
-            return isAvailable ? "AI Connected" : "AI Disconnected";
+            return isAvailable ? UIStrings.AiConnected : UIStrings.AiDisconnected;
         }
-        return "AI Status Unknown";
+        return UIStrings.AiStatusUnknown;
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

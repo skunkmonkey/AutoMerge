@@ -1,4 +1,5 @@
 using AutoMerge.Logic.Events;
+using AutoMerge.Logic.Localization;
 using AutoMerge.Logic.Services;
 using AutoMerge.Core.Abstractions;
 using AutoMerge.Core.Models;
@@ -33,7 +34,7 @@ public sealed class RefineResolutionHandler
         var session = _sessionManager.CurrentSession;
         if (session is null)
         {
-            return new RefineResolutionResult(false, null, "No active session.");
+            return new RefineResolutionResult(false, null, LogicStrings.NoActiveSession);
         }
 
         session.AddChatMessage(new ChatMessage(ChatRole.User, command.UserMessage, DateTimeOffset.UtcNow));

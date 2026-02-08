@@ -1,4 +1,5 @@
 using AutoMerge.Logic.Events;
+using AutoMerge.Logic.Localization;
 using AutoMerge.Logic.Services;
 using AutoMerge.Core.Abstractions;
 using AutoMerge.Core.Models;
@@ -31,7 +32,7 @@ public sealed class ProposeResolutionHandler
         var session = _sessionManager.CurrentSession;
         if (session is null)
         {
-            return new ProposeResolutionResult(false, null, "No active session.");
+            return new ProposeResolutionResult(false, null, LogicStrings.NoActiveSession);
         }
 
         var preferences = command.Preferences ?? await _configurationService.LoadPreferencesAsync(cancellationToken).ConfigureAwait(false);
@@ -40,7 +41,7 @@ public sealed class ProposeResolutionHandler
         try
         {
             // ── Step 1: Research Local intent (new context window) ──
-            command.OnBusyMessageChanged?.Invoke("Researching Local intent", "🔍 Analyzing local changes...");
+            command.OnBusyMessageChanged?.Invoke(LogicStrings.BusyResearchLocalTitle, LogicStrings.BusyResearchLocalMessage);
 
             var localIntent = await _aiService.ResearchIntentAsync(
                 session,
@@ -49,7 +50,7 @@ public sealed class ProposeResolutionHandler
                 cancellationToken).ConfigureAwait(false);
 
             // ── Step 2: Research Remote intent (new context window) ──
-            command.OnBusyMessageChanged?.Invoke("Researching Remote intent", "🔍 Analyzing remote changes...");
+            command.OnBusyMessageChanged?.Invoke(LogicStrings.BusyResearchRemoteTitle, LogicStrings.BusyResearchRemoteMessage);
 
             var remoteIntent = await _aiService.ResearchIntentAsync(
                 session,
@@ -58,7 +59,7 @@ public sealed class ProposeResolutionHandler
                 cancellationToken).ConfigureAwait(false);
 
             // ── Step 3: Propose resolution with both intents as context (new context window) ──
-            command.OnBusyMessageChanged?.Invoke("Resolving merge conflicts", "✨ Merging with intent context...");
+            command.OnBusyMessageChanged?.Invoke(LogicStrings.BusyResolvingTitle, LogicStrings.BusyResolvingMessage);
 
             void OnChunk(string chunk) => _eventAggregator.Publish(new AiStreamingChunkEvent(chunk));
 

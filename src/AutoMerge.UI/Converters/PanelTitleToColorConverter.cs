@@ -1,5 +1,6 @@
 using Avalonia.Data.Converters;
 using Avalonia.Media;
+using AutoMerge.UI.Localization;
 using System;
 using System.Globalization;
 
@@ -21,14 +22,23 @@ public sealed class PanelTitleToColorConverter : IValueConverter
     {
         if (value is string title)
         {
-            return title.ToLowerInvariant() switch
+            if (string.Equals(title, UIStrings.PanelTitleBase, StringComparison.CurrentCultureIgnoreCase))
             {
-                "base" => BaseBrush,
-                "local" => LocalBrush,
-                "remote" => RemoteBrush,
-                "merged" or "merged result" => MergedBrush,
-                _ => DefaultBrush
-            };
+                return BaseBrush;
+            }
+            if (string.Equals(title, UIStrings.PanelTitleLocal, StringComparison.CurrentCultureIgnoreCase))
+            {
+                return LocalBrush;
+            }
+            if (string.Equals(title, UIStrings.PanelTitleRemote, StringComparison.CurrentCultureIgnoreCase))
+            {
+                return RemoteBrush;
+            }
+            if (string.Equals(title, UIStrings.PanelTitleMerged, StringComparison.CurrentCultureIgnoreCase) ||
+                string.Equals(title, UIStrings.PanelTitleMergedResult, StringComparison.CurrentCultureIgnoreCase))
+            {
+                return MergedBrush;
+            }
         }
         return DefaultBrush;
     }

@@ -1,4 +1,5 @@
 using AutoMerge.Logic.Events;
+using AutoMerge.Logic.Localization;
 using AutoMerge.Logic.Services;
 using AutoMerge.Core.Abstractions;
 using AutoMerge.Core.Models;
@@ -28,7 +29,7 @@ public sealed class AnalyzeConflictHandler
         var session = _sessionManager.CurrentSession;
         if (session is null)
         {
-            return new AnalyzeConflictResult(false, null, "No active session.");
+            return new AnalyzeConflictResult(false, null, LogicStrings.NoActiveSession);
         }
 
         session.SetState(SessionState.Analyzing);

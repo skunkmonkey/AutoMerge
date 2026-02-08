@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:AutoMerge.UI.Controls"
              xmlns:converters="clr-namespace:AutoMerge.UI.Converters"
+             xmlns:localization="clr-namespace:AutoMerge.UI.Localization"
              x:Class="AutoMerge.UI.Views.Panels.DiffPaneView">
   
   <UserControl.Resources>
@@ -48,7 +49,7 @@
                   Padding="6,2"
                   VerticalAlignment="Center"
                   IsVisible="{Binding Content, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-            <TextBlock Text="Read-only"
+            <TextBlock Text="{x:Static localization:UIStrings.DiffPaneReadOnlyBadge}"
                        Foreground="{StaticResource TextSecondaryBrush}"
                        FontSize="10"
                        Opacity="0.9" />

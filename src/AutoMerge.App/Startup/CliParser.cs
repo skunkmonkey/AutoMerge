@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Globalization;
 using System.Reflection;
 using AutoMerge.Core.Models;
+using AutoMerge.App.Localization;
 
 namespace AutoMerge.App.Startup;
 
@@ -11,53 +13,17 @@ public sealed record CliParseResult(MergeInput? MergeInput, bool ShouldExit, int
 
 public static class CliParser
 {
-	private const string HelpText = @"USAGE:
-    automerge [OPTIONS] [BASE LOCAL REMOTE MERGED]
-
-ARGUMENTS:
-    BASE      Path to the base (common ancestor) file
-    LOCAL     Path to the local (ours) file  
-    REMOTE    Path to the remote (theirs) file
-    MERGED    Path to write the merged output
-
-OPTIONS:
-    --base <PATH>       Path to base file (alternative to positional)
-    --local <PATH>      Path to local file (alternative to positional)
-    --remote <PATH>     Path to remote file (alternative to positional)
-    --merged <PATH>     Path to merged output file (alternative to positional)
-    --wait              Wait for GUI to close before returning (default: true)
-    --no-gui            Run in headless mode (future feature)
-    --help, -h          Show this help message
-    --version, -v       Show version information
-
-EXIT CODES:
-    0    Resolution accepted and saved
-    1    Resolution cancelled or error occurred
-
-EXAMPLES:
-    # GUI mode with file picker
-    automerge
-
-    # Standard 4-file merge (for git mergetool)
-    automerge BASE LOCAL REMOTE MERGED
-    
-    # Named arguments
-    automerge --base=file.base --local=file.ours --remote=file.theirs --merged=file.out
-    
-    # SourceTree integration
-    automerge ""$BASE"" ""$LOCAL"" ""$REMOTE"" ""$MERGED""";
-
 	public static CliParseResult Parse(string[] args)
 	{
 		if (HasFlag(args, "--help", "-h"))
 		{
-			Console.WriteLine(HelpText);
+			Console.WriteLine(AppStrings.CliHelpText);
 			return new CliParseResult(null, true, 0, true, false);
 		}
 
 		if (HasFlag(args, "--version", "-v"))
 		{
-			Console.WriteLine($"AutoMerge {GetVersionString()}");
+			Console.WriteLine(string.Format(CultureInfo.CurrentCulture, AppStrings.CliVersionFormat, GetVersionString()));
 			return new CliParseResult(null, true, 0, true, false);
 		}
 
@@ -87,7 +53,7 @@ EXAMPLES:
 			{
 				if (i + 1 >= args.Length)
 				{
-					Console.WriteLine(HelpText);
+					Console.WriteLine(AppStrings.CliHelpText);
 					return new CliParseResult(null, true, 1, waitForGui, noGui);
 				}
 
@@ -105,7 +71,7 @@ EXAMPLES:
 			{
 				if (i + 1 >= args.Length)
 				{
-					Console.WriteLine(HelpText);
+					Console.WriteLine(AppStrings.CliHelpText);
 					return new CliParseResult(null, true, 1, waitForGui, noGui);
 				}
 
@@ -123,7 +89,7 @@ EXAMPLES:
 			{
 				if (i + 1 >= args.Length)
 				{
-					Console.WriteLine(HelpText);
+					Console.WriteLine(AppStrings.CliHelpText);
 					return new CliParseResult(null, true, 1, waitForGui, noGui);
 				}
 
@@ -141,7 +107,7 @@ EXAMPLES:
 			{
 				if (i + 1 >= args.Length)
 				{
-					Console.WriteLine(HelpText);
+					Console.WriteLine(AppStrings.CliHelpText);
 					return new CliParseResult(null, true, 1, waitForGui, noGui);
 				}
 
@@ -160,7 +126,7 @@ EXAMPLES:
 				var value = arg["--wait=".Length..];
 				if (!bool.TryParse(value, out waitForGui))
 				{
-					Console.WriteLine(HelpText);
+					Console.WriteLine(AppStrings.CliHelpText);
 					return new CliParseResult(null, true, 1, waitForGui, noGui);
 				}
 
@@ -175,7 +141,7 @@ EXAMPLES:
 
 			if (arg.StartsWith("-", StringComparison.Ordinal))
 			{
-				Console.WriteLine(HelpText);
+				Console.WriteLine(AppStrings.CliHelpText);
 				return new CliParseResult(null, true, 1, waitForGui, noGui);
 			}
 
@@ -207,7 +173,7 @@ EXAMPLES:
 
 		if (string.IsNullOrWhiteSpace(localPath) || string.IsNullOrWhiteSpace(remotePath) || string.IsNullOrWhiteSpace(mergedPath))
 		{
-			Console.WriteLine(HelpText);
+			Console.WriteLine(AppStrings.CliHelpText);
 			return new CliParseResult(null, true, 1, waitForGui, noGui);
 		}
 
@@ -228,7 +194,7 @@ EXAMPLES:
 		}
 		catch (ArgumentException)
 		{
-			Console.WriteLine(HelpText);
+			Console.WriteLine(AppStrings.CliHelpText);
 			return new CliParseResult(null, true, 1, waitForGui, noGui);
 		}
 	}

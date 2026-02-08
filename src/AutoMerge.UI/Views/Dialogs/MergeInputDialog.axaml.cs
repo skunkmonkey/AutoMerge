@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMerge.UI.Localization;
 using AutoMerge.UI.ViewModels;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -22,7 +23,7 @@ public sealed partial class MergeInputDialog : Window
 
     private async void OnBrowseBaseClicked(object? sender, RoutedEventArgs e)
     {
-        var path = await ShowOpenFileAsync("Select base file").ConfigureAwait(true);
+        var path = await ShowOpenFileAsync(UIStrings.MergeInputDialogSelectBaseFileTitle).ConfigureAwait(true);
         if (path is not null && DataContext is MergeInputDialogViewModel viewModel)
         {
             viewModel.BasePath = path;
@@ -31,7 +32,7 @@ public sealed partial class MergeInputDialog : Window
 
     private async void OnBrowseLocalClicked(object? sender, RoutedEventArgs e)
     {
-        var path = await ShowOpenFileAsync("Select local (ours) file").ConfigureAwait(true);
+        var path = await ShowOpenFileAsync(UIStrings.MergeInputDialogSelectLocalFileTitle).ConfigureAwait(true);
         if (path is not null && DataContext is MergeInputDialogViewModel viewModel)
         {
             viewModel.LocalPath = path;
@@ -40,7 +41,7 @@ public sealed partial class MergeInputDialog : Window
 
     private async void OnBrowseRemoteClicked(object? sender, RoutedEventArgs e)
     {
-        var path = await ShowOpenFileAsync("Select remote (theirs) file").ConfigureAwait(true);
+        var path = await ShowOpenFileAsync(UIStrings.MergeInputDialogSelectRemoteFileTitle).ConfigureAwait(true);
         if (path is not null && DataContext is MergeInputDialogViewModel viewModel)
         {
             viewModel.RemotePath = path;
@@ -49,7 +50,7 @@ public sealed partial class MergeInputDialog : Window
 
     private async void OnBrowseMergedClicked(object? sender, RoutedEventArgs e)
     {
-        var path = await ShowSaveFileAsync("Select merged output file").ConfigureAwait(true);
+        var path = await ShowSaveFileAsync(UIStrings.MergeInputDialogSelectMergedFileTitle).ConfigureAwait(true);
         if (path is not null && DataContext is MergeInputDialogViewModel viewModel)
         {
             viewModel.MergedPath = path;

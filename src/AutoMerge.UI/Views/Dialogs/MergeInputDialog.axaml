@@ -1,8 +1,9 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:localization="clr-namespace:AutoMerge.UI.Localization"
         x:Class="AutoMerge.UI.Views.Dialogs.MergeInputDialog"
         Width="680" Height="480"
-        Title="Open Merge Files"
+  Title="{x:Static localization:UIStrings.MergeInputDialogTitle}"
         Background="{StaticResource AppBackgroundBrush}"
         WindowStartupLocation="CenterOwner"
         CanResize="False">
@@ -17,11 +18,11 @@
               Background="{StaticResource SurfaceElevatedBrush}"
               Padding="24,20">
         <StackPanel Spacing="4">
-          <TextBlock Text="📁 Open Merge Files" 
+          <TextBlock Text="{x:Static localization:UIStrings.MergeInputDialogHeaderTitle}"
                      FontSize="20" 
                      FontWeight="Bold"
                      Foreground="{StaticResource TextPrimaryBrush}" />
-          <TextBlock Text="Select the files for your merge conflict resolution"
+          <TextBlock Text="{x:Static localization:UIStrings.MergeInputDialogHeaderSubtitle}"
                      FontSize="12"
                      Foreground="{StaticResource TextSecondaryBrush}" />
         </StackPanel>
@@ -33,7 +34,7 @@
           
           <!-- Required Files Section -->
           <StackPanel Spacing="12">
-            <TextBlock Text="REQUIRED FILES"
+            <TextBlock Text="{x:Static localization:UIStrings.MergeInputDialogRequiredSectionTitle}"
                        FontSize="11"
                        FontWeight="Bold"
                        Foreground="{StaticResource TextTertiaryBrush}"
@@ -48,11 +49,11 @@
                 <StackPanel Spacing="6">
                   <StackPanel Orientation="Horizontal" Spacing="8">
                     <TextBlock Text="📝" FontSize="14" />
-                    <TextBlock Text="Local (ours)"
+                    <TextBlock Text="{x:Static localization:UIStrings.MergeInputDialogLocalTitle}"
                                FontSize="13"
                                FontWeight="Medium"
                                Foreground="{StaticResource TextPrimaryBrush}" />
-                    <TextBlock Text="— Your branch's version"
+                    <TextBlock Text="{x:Static localization:UIStrings.MergeInputDialogLocalDescription}"
                                FontSize="12"
                                Foreground="{StaticResource TextTertiaryBrush}" />
                   </StackPanel>
@@ -60,10 +61,10 @@
                     <TextBox Grid.Column="0" 
                              Text="{Binding LocalPath}"
                              Theme="{StaticResource ModernTextBox}"
-                             Watermark="Select local file..." />
+                             Watermark="{x:Static localization:UIStrings.MergeInputDialogLocalWatermark}" />
                     <Button Grid.Column="1"
                             Theme="{StaticResource SecondaryButton}"
-                            Content="Browse..."
+                            Content="{x:Static localization:UIStrings.MergeInputDialogBrowseButton}"
                             Click="OnBrowseLocalClicked"
                             Margin="8,0,0,0"
                             Padding="16,8" />
@@ -76,11 +77,11 @@
                 <StackPanel Spacing="6">
                   <StackPanel Orientation="Horizontal" Spacing="8">
                     <TextBlock Text="📥" FontSize="14" />
-                    <TextBlock Text="Remote (theirs)"
+                    <TextBlock Text="{x:Static localization:UIStrings.MergeInputDialogRemoteTitle}"
                                FontSize="13"
                                FontWeight="Medium"
                                Foreground="{StaticResource TextPrimaryBrush}" />
-                    <TextBlock Text="— The incoming branch's version"
+                    <TextBlock Text="{x:Static localization:UIStrings.MergeInputDialogRemoteDescription}"
                                FontSize="12"
                                Foreground="{StaticResource TextTertiaryBrush}" />
                   </StackPanel>
@@ -88,10 +89,10 @@
                     <TextBox Grid.Column="0" 
                              Text="{Binding RemotePath}"
                              Theme="{StaticResource ModernTextBox}"
-                             Watermark="Select remote file..." />
+                             Watermark="{x:Static localization:UIStrings.MergeInputDialogRemoteWatermark}" />
                     <Button Grid.Column="1"
                             Theme="{StaticResource SecondaryButton}"
-                            Content="Browse..."
+                            Content="{x:Static localization:UIStrings.MergeInputDialogBrowseButton}"
                             Click="OnBrowseRemoteClicked"
                             Margin="8,0,0,0"
                             Padding="16,8" />
@@ -104,11 +105,11 @@
                 <StackPanel Spacing="6">
                   <StackPanel Orientation="Horizontal" Spacing="8">
                     <TextBlock Text="✨" FontSize="14" />
-                    <TextBlock Text="Merged (output)"
+                    <TextBlock Text="{x:Static localization:UIStrings.MergeInputDialogMergedTitle}"
                                FontSize="13"
                                FontWeight="Medium"
                                Foreground="{StaticResource TextPrimaryBrush}" />
-                    <TextBlock Text="— Where resolved output will be saved"
+                    <TextBlock Text="{x:Static localization:UIStrings.MergeInputDialogMergedDescription}"
                                FontSize="12"
                                Foreground="{StaticResource TextTertiaryBrush}" />
                   </StackPanel>
@@ -116,10 +117,10 @@
                     <TextBox Grid.Column="0" 
                              Text="{Binding MergedPath}"
                              Theme="{StaticResource ModernTextBox}"
-                             Watermark="Select output file..." />
+                             Watermark="{x:Static localization:UIStrings.MergeInputDialogMergedWatermark}" />
                     <Button Grid.Column="1"
                             Theme="{StaticResource SecondaryButton}"
-                            Content="Browse..."
+                            Content="{x:Static localization:UIStrings.MergeInputDialogBrowseButton}"
                             Click="OnBrowseMergedClicked"
                             Margin="8,0,0,0"
                             Padding="16,8" />
@@ -131,7 +132,7 @@
           
           <!-- Optional Files Section -->
           <StackPanel Spacing="12">
-            <TextBlock Text="OPTIONAL"
+            <TextBlock Text="{x:Static localization:UIStrings.MergeInputDialogOptionalSectionTitle}"
                        FontSize="11"
                        FontWeight="Bold"
                        Foreground="{StaticResource TextTertiaryBrush}"
@@ -144,11 +145,11 @@
               <StackPanel Spacing="6">
                 <StackPanel Orientation="Horizontal" Spacing="8">
                   <TextBlock Text="📋" FontSize="14" />
-                  <TextBlock Text="Base (common ancestor)"
+                  <TextBlock Text="{x:Static localization:UIStrings.MergeInputDialogBaseTitle}"
                              FontSize="13"
                              FontWeight="Medium"
                              Foreground="{StaticResource TextPrimaryBrush}" />
-                  <TextBlock Text="— For 3-way diff (optional)"
+                  <TextBlock Text="{x:Static localization:UIStrings.MergeInputDialogBaseDescription}"
                              FontSize="12"
                              Foreground="{StaticResource TextTertiaryBrush}"
                              FontStyle="Italic" />
@@ -157,10 +158,10 @@
                   <TextBox Grid.Column="0" 
                            Text="{Binding BasePath}"
                            Theme="{StaticResource ModernTextBox}"
-                           Watermark="Select base file (optional)..." />
+                           Watermark="{x:Static localization:UIStrings.MergeInputDialogBaseWatermark}" />
                   <Button Grid.Column="1"
                           Theme="{StaticResource SubtleButton}"
-                          Content="Browse..."
+                          Content="{x:Static localization:UIStrings.MergeInputDialogBrowseButton}"
                           Click="OnBrowseBaseClicked"
                           Margin="8,0,0,0"
                           Padding="16,8" />
@@ -195,10 +196,10 @@
                       Orientation="Horizontal" 
                       Spacing="8">
             <Button Theme="{StaticResource SecondaryButton}"
-                    Content="Cancel"
+                  Content="{x:Static localization:UIStrings.MergeInputDialogCancelButton}"
                     Click="OnCancelClicked" />
             <Button Theme="{StaticResource PrimaryButton}"
-                    Content="Open Files"
+                  Content="{x:Static localization:UIStrings.MergeInputDialogOpenFilesButton}"
                     Click="OnOpenClicked"
                     IsEnabled="{Binding CanConfirm}" />
           </StackPanel>

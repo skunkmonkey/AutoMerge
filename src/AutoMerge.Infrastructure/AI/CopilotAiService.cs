@@ -1,6 +1,8 @@
+using System.Globalization;
 using AutoMerge.Core.Abstractions;
 using AutoMerge.Core.Models;
 using AutoMerge.Infrastructure.AI.Prompts;
+using AutoMerge.Infrastructure.Localization;
 using GitHub.Copilot.SDK;
 
 namespace AutoMerge.Infrastructure.AI;
@@ -45,7 +47,7 @@ public sealed class CopilotAiService : IAiService, IAsyncDisposable
 
             if (_client is null)
             {
-                return new AiServiceStatus(false, false, "Failed to start Copilot client.");
+                return new AiServiceStatus(false, false, InfrastructureStrings.CopilotClientStartFailed);
             }
 
             var pingResult = await _client.PingAsync().ConfigureAwait(false);
@@ -53,7 +55,7 @@ public sealed class CopilotAiService : IAiService, IAsyncDisposable
         }
         catch (FileNotFoundException)
         {
-            return new AiServiceStatus(false, false, "GitHub Copilot CLI not found. Please install it from https://github.com/github/copilot-cli");
+            return new AiServiceStatus(false, false, InfrastructureStrings.CopilotCliNotFound);
         }
         catch (Exception ex)
         {
@@ -62,10 +64,11 @@ public sealed class CopilotAiService : IAiService, IAsyncDisposable
                 ex.Message.Contains("login", StringComparison.OrdinalIgnoreCase) ||
                 ex.Message.Contains("token", StringComparison.OrdinalIgnoreCase))
             {
-                return new AiServiceStatus(true, false, "Please authenticate with GitHub Copilot CLI: run 'copilot auth login'");
+                return new AiServiceStatus(true, false, InfrastructureStrings.CopilotCliAuthRequired);
             }
 
-            return new AiServiceStatus(false, false, $"Copilot connection failed: {ex.Message}");
+            return new AiServiceStatus(false, false,
+                string.Format(CultureInfo.CurrentCulture, InfrastructureStrings.CopilotConnectionFailedFormat, ex.Message));
         }
     }
 
@@ -94,7 +97,7 @@ public sealed class CopilotAiService : IAiService, IAsyncDisposable
         }
         catch (Exception ex)
         {
-            throw new AiServiceException("Copilot analysis failed.", ex);
+            throw new AiServiceException(InfrastructureStrings.CopilotAnalysisFailed, ex);
         }
     }
 
@@ -121,13 +124,13 @@ public sealed class CopilotAiService : IAiService, IAsyncDisposable
 
             // Extract the resolution content using the required output format
             var resolvedContent = ExtractResolvedContent(response) ?? response;
-            var explanation = ExtractSection(response, "Explanation:", null) ?? "AI-proposed resolution";
+            var explanation = ExtractSection(response, "Explanation:", null) ?? InfrastructureStrings.AiProposedResolution;
 
             return new MergeResolution(resolvedContent, explanation, 0.75);
         }
         catch (Exception ex)
         {
-            throw new AiServiceException("Copilot resolution proposal failed.", ex);
+            throw new AiServiceException(InfrastructureStrings.CopilotResolutionProposalFailed, ex);
         }
     }
 
@@ -153,11 +156,13 @@ public sealed class CopilotAiService : IAiService, IAsyncDisposable
                 cancellationToken).ConfigureAwait(false);
 
             var resolvedContent = ExtractResolvedContent(response) ?? response;
-            return new MergeResolution(resolvedContent, $"Refined: {userMessage}", 0.7);
+            return new MergeResolution(resolvedContent,
+                string.Format(CultureInfo.CurrentCulture, InfrastructureStrings.RefinedMessageFormat, userMessage),
+                0.7);
         }
         catch (Exception ex)
         {
-            throw new AiServiceException("Copilot refinement failed.", ex);
+            throw new AiServiceException(InfrastructureStrings.CopilotRefinementFailed, ex);
         }
     }
 
@@ -180,7 +185,7 @@ public sealed class CopilotAiService : IAiService, IAsyncDisposable
         }
         catch (Exception ex)
         {
-            throw new AiServiceException("Copilot explanation failed.", ex);
+            throw new AiServiceException(InfrastructureStrings.CopilotExplanationFailed, ex);
         }
     }
 
@@ -213,7 +218,9 @@ public sealed class CopilotAiService : IAiService, IAsyncDisposable
         }
         catch (Exception ex)
         {
-            throw new AiServiceException($"Copilot intent research failed for {version}.", ex);
+            throw new AiServiceException(
+                string.Format(CultureInfo.CurrentCulture, InfrastructureStrings.CopilotIntentResearchFailedFormat, version),
+                ex);
         }
     }
 
@@ -241,7 +248,7 @@ public sealed class CopilotAiService : IAiService, IAsyncDisposable
     {
         if (_client is null)
         {
-            throw new InvalidOperationException("Client not started.");
+            throw new InvalidOperationException(InfrastructureStrings.ClientNotStarted);
         }
 
         var session = await _client.CreateSessionAsync(new SessionConfig
@@ -299,7 +306,7 @@ public sealed class CopilotAiService : IAiService, IAsyncDisposable
                         done.TrySetResult();
                         break;
                     case SessionErrorEvent err:
-                        done.TrySetException(new AiServiceException(err.Data?.Message ?? "Session error"));
+                        done.TrySetException(new AiServiceException(err.Data?.Message ?? InfrastructureStrings.SessionError));
                         break;
                 }
             });
@@ -321,7 +328,8 @@ public sealed class CopilotAiService : IAiService, IAsyncDisposable
             catch (OperationCanceledException)
             {
                 await session.AbortAsync().ConfigureAwait(false);
-                throw new TimeoutException($"AI request timed out after {DefaultTimeout.TotalSeconds} seconds.");
+                throw new TimeoutException(
+                    string.Format(CultureInfo.CurrentCulture, InfrastructureStrings.AiRequestTimeoutFormat, DefaultTimeout.TotalSeconds));
             }
 
             return responseText.ToString();
@@ -340,7 +348,7 @@ public sealed class CopilotAiService : IAiService, IAsyncDisposable
     {
         if (_client is null)
         {
-            throw new InvalidOperationException("Client not started.");
+            throw new InvalidOperationException(InfrastructureStrings.ClientNotStarted);
         }
 
         // Create or reuse session
@@ -403,7 +411,7 @@ public sealed class CopilotAiService : IAiService, IAsyncDisposable
                     done.TrySetResult();
                     break;
                 case SessionErrorEvent err:
-                    done.TrySetException(new AiServiceException(err.Data?.Message ?? "Session error"));
+                    done.TrySetException(new AiServiceException(err.Data?.Message ?? InfrastructureStrings.SessionError));
                     break;
             }
         });
@@ -425,7 +433,8 @@ public sealed class CopilotAiService : IAiService, IAsyncDisposable
         catch (OperationCanceledException)
         {
             await _currentSession.AbortAsync().ConfigureAwait(false);
-            throw new TimeoutException($"AI request timed out after {DefaultTimeout.TotalSeconds} seconds.");
+            throw new TimeoutException(
+                string.Format(CultureInfo.CurrentCulture, InfrastructureStrings.AiRequestTimeoutFormat, DefaultTimeout.TotalSeconds));
         }
 
         return responseText.ToString();

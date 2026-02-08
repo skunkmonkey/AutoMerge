@@ -1,4 +1,5 @@
 using Avalonia.Data.Converters;
+using AutoMerge.UI.Localization;
 using System;
 using System.Globalization;
 
@@ -13,16 +14,25 @@ public sealed class PanelTitleToIconConverter : IValueConverter
     {
         if (value is string title)
         {
-            return title.ToLowerInvariant() switch
+            if (string.Equals(title, UIStrings.PanelTitleBase, StringComparison.CurrentCultureIgnoreCase))
             {
-                "base" => "📋",      // Clipboard - common ancestor
-                "local" => "📝",     // Memo - your local changes
-                "remote" => "📥",    // Inbox - incoming changes
-                "merged" or "merged result" => "✨",  // Sparkles - the result
-                _ => "📄"            // Generic document
-            };
+                return "📋"; // Clipboard - common ancestor
+            }
+            if (string.Equals(title, UIStrings.PanelTitleLocal, StringComparison.CurrentCultureIgnoreCase))
+            {
+                return "📝"; // Memo - your local changes
+            }
+            if (string.Equals(title, UIStrings.PanelTitleRemote, StringComparison.CurrentCultureIgnoreCase))
+            {
+                return "📥"; // Inbox - incoming changes
+            }
+            if (string.Equals(title, UIStrings.PanelTitleMerged, StringComparison.CurrentCultureIgnoreCase) ||
+                string.Equals(title, UIStrings.PanelTitleMergedResult, StringComparison.CurrentCultureIgnoreCase))
+            {
+                return "✨"; // Sparkles - the result
+            }
         }
-        return "📄";
+        return "📄"; // Generic document
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

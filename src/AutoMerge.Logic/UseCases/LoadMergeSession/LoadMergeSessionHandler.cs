@@ -1,4 +1,6 @@
+using System.Globalization;
 using AutoMerge.Logic.Events;
+using AutoMerge.Logic.Localization;
 using AutoMerge.Logic.Services;
 using AutoMerge.Core.Abstractions;
 using AutoMerge.Core.Models;
@@ -33,26 +35,26 @@ public sealed class LoadMergeSessionHandler
             throw new ArgumentNullException(nameof(command));
         }
 
-        var input = command.MergeInput ?? throw new ArgumentException("MergeInput is required.", nameof(command));
+        var input = command.MergeInput ?? throw new ArgumentException(LogicStrings.MergeInputRequired, nameof(command));
 
         var requiredPaths = new[] { input.BasePath, input.LocalPath, input.RemotePath };
         foreach (var path in requiredPaths)
         {
             if (!await _fileService.ExistsAsync(path, cancellationToken).ConfigureAwait(false))
             {
-                return new LoadMergeSessionResult(false, $"Missing required file: {path}", null);
+                return new LoadMergeSessionResult(false, string.Format(CultureInfo.CurrentCulture, LogicStrings.MissingRequiredFileFormat, path), null);
             }
 
             if (await _fileService.IsBinaryAsync(path, cancellationToken).ConfigureAwait(false))
             {
-                return new LoadMergeSessionResult(false, $"Binary file not supported: {path}", null);
+                return new LoadMergeSessionResult(false, string.Format(CultureInfo.CurrentCulture, LogicStrings.BinaryFileNotSupportedFormat, path), null);
             }
         }
 
         var mergedExists = await _fileService.ExistsAsync(input.OutputPath, cancellationToken).ConfigureAwait(false);
         if (mergedExists && await _fileService.IsBinaryAsync(input.OutputPath, cancellationToken).ConfigureAwait(false))
         {
-            return new LoadMergeSessionResult(false, $"Binary file not supported: {input.OutputPath}", null);
+            return new LoadMergeSessionResult(false, string.Format(CultureInfo.CurrentCulture, LogicStrings.BinaryFileNotSupportedFormat, input.OutputPath), null);
         }
 
         try

@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:models="clr-namespace:AutoMerge.Core.Models;assembly=AutoMerge.Core"
              xmlns:converters="clr-namespace:AutoMerge.UI.Converters"
+             xmlns:localization="clr-namespace:AutoMerge.UI.Localization"
              x:Class="AutoMerge.UI.Views.Panels.AiChatPanelView">
   
   <UserControl.Resources>
@@ -27,11 +28,11 @@
           <StackPanel Orientation="Horizontal" Spacing="10" Grid.Column="0">
             <TextBlock Text="🤖" FontSize="14" VerticalAlignment="Center" />
             <StackPanel Spacing="2">
-              <TextBlock Text="AI Assistant" 
+              <TextBlock Text="{x:Static localization:UIStrings.AiChatPanelTitle}"
                          Foreground="{StaticResource TextPrimaryBrush}"
                          FontWeight="SemiBold"
                          FontSize="14" />
-              <TextBlock Text="Powered by GitHub Copilot"
+              <TextBlock Text="{x:Static localization:UIStrings.AiChatPanelSubtitle}"
                          Foreground="{StaticResource TextSecondaryBrush}"
                          FontSize="11"
                          Opacity="0.8" />
@@ -41,9 +42,9 @@
           <!-- Clear History Button -->
           <Button Grid.Column="2"
                   Theme="{StaticResource SubtleButton}"
-                  Content="🗑️ Clear"
+              Content="{x:Static localization:UIStrings.AiChatPanelClearButton}"
                   Command="{Binding ClearHistoryCommand}"
-                  ToolTip.Tip="Clear conversation history"
+              ToolTip.Tip="{x:Static localization:UIStrings.AiChatPanelClearHistoryTooltip}"
                   Padding="10,6"
                   FontSize="12" />
         </Grid>
@@ -104,11 +105,11 @@
               <StackPanel Spacing="6">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                   <TextBlock Text="🤖" FontSize="11" />
-                  <TextBlock Text="Assistant"
+                  <TextBlock Text="{x:Static localization:UIStrings.AiChatPanelAssistantLabel}"
                              Foreground="{StaticResource TextTertiaryBrush}"
                              FontSize="11"
                              FontWeight="Medium" />
-                  <TextBlock Text="typing..."
+                  <TextBlock Text="{x:Static localization:UIStrings.AiChatPanelTypingLabel}"
                              Foreground="{StaticResource AccentBrush}"
                              FontSize="11"
                              FontStyle="Italic" />
@@ -131,13 +132,13 @@
         <Grid ColumnDefinitions="*,Auto">
           <TextBox Grid.Column="0"
                    Text="{Binding CurrentInput, Mode=TwoWay}"
-                   Watermark="Ask a question or request a refinement..."
+                   Watermark="{x:Static localization:UIStrings.AiChatPanelInputWatermark}"
                    Theme="{StaticResource ModernTextBox}"
                    AcceptsReturn="False" />
           
           <Button Grid.Column="1"
                   Theme="{StaticResource PrimaryButton}"
-                  Content="Send"
+              Content="{x:Static localization:UIStrings.AiChatPanelSendButton}"
                   Command="{Binding SendMessageCommand}"
                   Margin="8,0,0,0"
                   Padding="20,10"

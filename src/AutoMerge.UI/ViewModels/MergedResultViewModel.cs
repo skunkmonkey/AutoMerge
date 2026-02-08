@@ -1,5 +1,7 @@
+using System.Globalization;
 using AutoMerge.Core.Abstractions;
 using AutoMerge.Core.Models;
+using AutoMerge.UI.Localization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -190,16 +192,32 @@ public sealed partial class MergedResultViewModel : ViewModelBase
         if (TotalConflictCount > 0)
         {
             CurrentConflictDisplay = AutoResolvedCount > 0
-                ? $"{CurrentConflictIndex} / {TotalConflictCount}  ({AutoResolvedCount} auto-resolved)"
-                : $"{CurrentConflictIndex} / {TotalConflictCount}";
+                ? string.Format(
+                    CultureInfo.CurrentUICulture,
+                    UIStrings.MergedResultConflictDisplayWithAutoResolvedFormat,
+                    CurrentConflictIndex,
+                    TotalConflictCount,
+                    AutoResolvedCount)
+                : string.Format(
+                    CultureInfo.CurrentUICulture,
+                    UIStrings.MergedResultConflictDisplayFormat,
+                    CurrentConflictIndex,
+                    TotalConflictCount);
         }
         else if (AutoResolvedCount > 0)
         {
-            CurrentConflictDisplay = $"All resolved ({AutoResolvedCount} auto-resolved)";
+            CurrentConflictDisplay = string.Format(
+                CultureInfo.CurrentUICulture,
+                UIStrings.MergedResultAllResolvedWithAutoResolvedFormat,
+                AutoResolvedCount);
         }
         else
         {
-            CurrentConflictDisplay = "0 / 0";
+            CurrentConflictDisplay = string.Format(
+                CultureInfo.CurrentUICulture,
+                UIStrings.MergedResultConflictDisplayFormat,
+                0,
+                0);
         }
     }
 

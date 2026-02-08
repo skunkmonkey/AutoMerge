@@ -7,6 +7,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AutoMerge.Core\AutoMerge.Core.csproj" />
+    <ProjectReference Include="..\AutoMerge.Resources\AutoMerge.Resources.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="Resources\Strings.resx" />
   </ItemGroup>
 
   <ItemGroup>

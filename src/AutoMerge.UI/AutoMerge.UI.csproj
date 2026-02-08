@@ -12,6 +12,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <AvaloniaResource Include="Assets\AppIcon_16.ico" />
+    <AvaloniaResource Include="Assets\AppIcon_32.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.2.3" />
     <PackageReference Include="Avalonia.Desktop" Version="11.2.3" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.3" />
@@ -22,4 +27,5 @@
   <ItemGroup>
     <EmbeddedResource Remove="Resources\Strings.resx" />
   </ItemGroup>
+
 </Project>

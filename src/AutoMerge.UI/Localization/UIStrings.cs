@@ -157,6 +157,11 @@ internal static class UIStrings
     public static string MainWindowQuickSetupTitle => GetString(nameof(MainWindowQuickSetupTitle));
     public static string MainWindowAiSetupFooterNote => GetString(nameof(MainWindowAiSetupFooterNote));
     public static string MainWindowTipText => GetString(nameof(MainWindowTipText));
+    public static string MainWindowDiffToolParametersLabel => GetString(nameof(MainWindowDiffToolParametersLabel));
+    public static string MainWindowDiffToolParametersValue => GetString(nameof(MainWindowDiffToolParametersValue));
+    public static string MainWindowMergeToolParametersLabel => GetString(nameof(MainWindowMergeToolParametersLabel));
+    public static string MainWindowMergeToolParametersValue => GetString(nameof(MainWindowMergeToolParametersValue));
+    public static string MainWindowCopyToClipboardTooltip => GetString(nameof(MainWindowCopyToClipboardTooltip));
     public static string MainWindowStatusCopilotFormat => GetString(nameof(MainWindowStatusCopilotFormat));
     public static string MainWindowPoweredByCopilot => GetString(nameof(MainWindowPoweredByCopilot));
     public static string AiChatPanelTitle => GetString(nameof(AiChatPanelTitle));

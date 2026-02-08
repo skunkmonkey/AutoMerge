@@ -1,9 +1,9 @@
 <Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:views="clr-namespace:AutoMerge.UI.Views.Panels"
-        xmlns:converters="clr-namespace:AutoMerge.UI.Converters"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:views="clr-namespace:AutoMerge.UI.Views.Panels"
+  xmlns:converters="clr-namespace:AutoMerge.UI.Converters"
   xmlns:localization="clr-namespace:AutoMerge.UI.Localization"
-        x:Class="AutoMerge.UI.Views.MainWindow"
+  x:Class="AutoMerge.UI.Views.MainWindow"
         Width="1600" Height="1000" 
         MinWidth="1200" MinHeight="700"
   Title="{x:Static localization:UIStrings.MainWindowTitle}"
@@ -256,7 +256,11 @@
           
           <!-- Logo/Brand Area -->
           <StackPanel Spacing="8" HorizontalAlignment="Center">
-            <TextBlock Text="🔀" FontSize="48" HorizontalAlignment="Center" />
+                 <Image Width="56"
+                   Height="56"
+                   Source="avares://AutoMerge.UI/Assets/AppIcon_32.ico"
+                   Stretch="Uniform"
+                   HorizontalAlignment="Center" />
             <TextBlock Text="{x:Static localization:UIStrings.MainWindowProductName}" 
                        FontSize="32" 
                        FontWeight="Bold" 
@@ -373,11 +377,57 @@
           </Border>
           
           <!-- Keyboard Hint -->
-          <TextBlock Text="{x:Static localization:UIStrings.MainWindowTipText}"
-                     FontSize="11"
-                     Foreground="{StaticResource TextTertiaryBrush}"
-                     HorizontalAlignment="Center"
-                     TextAlignment="Center" />
+          <Border Background="{StaticResource SurfaceElevatedBrush}"
+                  BorderBrush="{StaticResource BorderSubtleBrush}"
+                  BorderThickness="1"
+                  CornerRadius="6"
+                  Padding="10,8"
+                  HorizontalAlignment="Center"
+                  Opacity="0.85">
+            <StackPanel Spacing="4" HorizontalAlignment="Left">
+              <TextBlock Text="{x:Static localization:UIStrings.MainWindowTipText}"
+                         FontSize="11"
+                         Foreground="{StaticResource TextTertiaryBrush}"
+                         HorizontalAlignment="Left"
+                         TextAlignment="Left" />
+              <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Left">
+                <Button Theme="{StaticResource IconButton}"
+                        Width="24" Height="24" Padding="4"
+                        ToolTip.Tip="{x:Static localization:UIStrings.MainWindowCopyToClipboardTooltip}"
+                        Command="{Binding CopyDiffToolParamsCommand}">
+                  <Viewbox Width="14" Height="14">
+                    <Path Data="M16 1H5a2 2 0 0 0-2 2v11h2V3h11V1zm3 4H9a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H9V7h10v14z"
+                          Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+                  </Viewbox>
+                </Button>
+                <TextBlock Text="{x:Static localization:UIStrings.MainWindowDiffToolParametersLabel}"
+                           FontSize="11"
+                           Foreground="{StaticResource TextTertiaryBrush}" />
+                <TextBlock Text="{x:Static localization:UIStrings.MainWindowDiffToolParametersValue}"
+                           FontSize="11"
+                           Foreground="{StaticResource TextTertiaryBrush}"
+                           FontFamily="Cascadia Mono, JetBrains Mono, Consolas" />
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Left">
+                <Button Theme="{StaticResource IconButton}"
+                        Width="24" Height="24" Padding="4"
+                        ToolTip.Tip="{x:Static localization:UIStrings.MainWindowCopyToClipboardTooltip}"
+                        Command="{Binding CopyMergeToolParamsCommand}">
+                  <Viewbox Width="14" Height="14">
+                    <Path Data="M16 1H5a2 2 0 0 0-2 2v11h2V3h11V1zm3 4H9a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H9V7h10v14z"
+                          Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+                  </Viewbox>
+                </Button>
+                <TextBlock Text="{x:Static localization:UIStrings.MainWindowMergeToolParametersLabel}"
+                           FontSize="11"
+                           Foreground="{StaticResource TextTertiaryBrush}" />
+                <TextBlock Text="{x:Static localization:UIStrings.MainWindowMergeToolParametersValue}"
+                           FontSize="11"
+                           Foreground="{StaticResource TextTertiaryBrush}"
+                           FontFamily="Cascadia Mono, JetBrains Mono, Consolas" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
         </StackPanel>
       </Border>
 

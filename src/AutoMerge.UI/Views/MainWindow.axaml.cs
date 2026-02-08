@@ -6,6 +6,7 @@ using AutoMerge.UI.Views.Dialogs;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Avalonia.Platform;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AutoMerge.UI.Views;
@@ -19,6 +20,7 @@ public sealed partial class MainWindow : Window
     {
         _services = services ?? throw new ArgumentNullException(nameof(services));
         InitializeComponent();
+        Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://AutoMerge.UI/Assets/AppIcon_32.ico")));
         RegisterShortcuts();
     }
 

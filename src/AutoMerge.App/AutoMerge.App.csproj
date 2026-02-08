@@ -5,6 +5,7 @@
     <AssemblyName>AutoMerge</AssemblyName>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <ApplicationIcon>..\AutoMerge.UI\Assets\AppIcon_32.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,6 +15,7 @@
     <ProjectReference Include="..\AutoMerge.UI\AutoMerge.UI.csproj" />
     <ProjectReference Include="..\AutoMerge.Resources\AutoMerge.Resources.csproj" />
   </ItemGroup>
+
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.2.3" />

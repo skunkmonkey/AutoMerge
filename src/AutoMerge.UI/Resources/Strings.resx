@@ -516,7 +516,22 @@ Check that the Copilot CLI is installed and try again.</value>
     <value>AutoMerge works without AI too — you can always resolve conflicts manually.</value>
   </data>
   <data name="MainWindowTipText" xml:space="preserve">
-    <value>Tip: Configure AutoMerge as your Git merge tool for automatic launch</value>
+    <value>Git diff/merge tool configuration</value>
+  </data>
+  <data name="MainWindowDiffToolParametersLabel" xml:space="preserve">
+    <value>Diff tool arguments:</value>
+  </data>
+  <data name="MainWindowDiffToolParametersValue" xml:space="preserve">
+    <value>"$LOCAL" "$REMOTE"</value>
+  </data>
+  <data name="MainWindowMergeToolParametersLabel" xml:space="preserve">
+    <value>Merge tool arguments:</value>
+  </data>
+  <data name="MainWindowMergeToolParametersValue" xml:space="preserve">
+    <value>"$BASE" "$LOCAL" "$REMOTE" "$MERGED"</value>
+  </data>
+  <data name="MainWindowCopyToClipboardTooltip" xml:space="preserve">
+    <value>Copy parameters</value>
   </data>
   <data name="MainWindowStatusCopilotFormat" xml:space="preserve">
     <value>Copilot · {0}</value>

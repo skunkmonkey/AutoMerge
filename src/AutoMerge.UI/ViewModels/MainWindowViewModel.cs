@@ -1,5 +1,9 @@
 using System.ComponentModel;
 using System.Globalization;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Input.Platform;
 using AutoMerge.Logic.UseCases.AcceptResolution;
 using AutoMerge.Logic.UseCases.CancelMerge;
 using AutoMerge.Logic.UseCases.LoadMergeSession;
@@ -56,6 +60,8 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         ReconnectAiCommand = new AsyncRelayCommand(CheckAiStatusAsync, () => !IsAiBusy);
         RetryLoadCommand = new AsyncRelayCommand(RetryLoadAsync, () => !IsLoading && _lastInput is not null);
         DismissSummaryCommand = new RelayCommand(() => ShowResolutionSummary = false);
+        CopyDiffToolParamsCommand = new AsyncRelayCommand(() => CopyToClipboardAsync(UIStrings.MainWindowDiffToolParametersValue));
+        CopyMergeToolParamsCommand = new AsyncRelayCommand(() => CopyToClipboardAsync(UIStrings.MainWindowMergeToolParametersValue));
 
         MergedResultViewModel.PropertyChanged += OnMergedResultChanged;
 
@@ -173,6 +179,8 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     public IRelayCommand OpenPreferencesCommand { get; }
     public IAsyncRelayCommand ReconnectAiCommand { get; }
     public IAsyncRelayCommand RetryLoadCommand { get; }
+    public IAsyncRelayCommand CopyDiffToolParamsCommand { get; }
+    public IAsyncRelayCommand CopyMergeToolParamsCommand { get; }
 
     public async Task InitializeAsync(MergeInput input)
     {
@@ -474,6 +482,19 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         LocalPaneViewModel.SetContent(string.Empty, Array.Empty<LineChange>());
         RemotePaneViewModel.SetContent(string.Empty, Array.Empty<LineChange>());
         MergedResultViewModel.SetSourceContents(string.Empty, string.Empty, string.Empty, string.Empty);
+    }
+
+    private static async Task CopyToClipboardAsync(string text)
+    {
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
+            desktop.MainWindow is not null)
+        {
+            var clipboard = TopLevel.GetTopLevel(desktop.MainWindow)?.Clipboard;
+            if (clipboard is not null)
+            {
+                await clipboard.SetTextAsync(text);
+            }
+        }
     }
 
     partial void OnErrorMessageChanged(string? value)

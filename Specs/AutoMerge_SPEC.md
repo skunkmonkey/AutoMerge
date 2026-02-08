@@ -54,7 +54,7 @@ The solution is organized into five source projects and five test projects:
 | Project | Purpose |
 |---------|--------|
 | AutoMerge.Core | Domain layer with zero external dependencies. Contains domain models, interfaces, and pure business logic. |
-| AutoMerge.Application | Application services and use case handlers. Orchestrates domain objects and infrastructure. |
+| AutoMerge.Logic | Application services and use case handlers. Orchestrates domain objects and infrastructure. |
 | AutoMerge.Infrastructure | External integrations including Copilot SDK, file I/O, and configuration persistence. |
 | AutoMerge.UI | Avalonia views (XAML) and ViewModels. All presentation logic. |
 | AutoMerge.App | Composition root and entry point. CLI parsing, DI configuration, application bootstrap. |
@@ -64,7 +64,7 @@ The solution is organized into five source projects and five test projects:
 | Project | Purpose |
 |---------|--------|
 | AutoMerge.Core.Tests | Domain unit tests |
-| AutoMerge.Application.Tests | Application service and use case handler tests |
+| AutoMerge.Logic.Tests | Application service and use case handler tests |
 | AutoMerge.Infrastructure.Tests | Integration tests for external services |
 | AutoMerge.UI.Tests | ViewModel logic tests |
 | AutoMerge.Integration.Tests | End-to-end tests with real file I/O and mocked AI |
@@ -75,7 +75,7 @@ The solution is organized into five source projects and five test projects:
 
 1. **AutoMerge.App** (top) — References all projects. Configures DI container.
 2. **AutoMerge.UI** — References Application and Core.
-3. **AutoMerge.Application** — References Core only.
+3. **AutoMerge.Logic** — References Core only.
 4. **AutoMerge.Infrastructure** — References Core and Application.
 5. **AutoMerge.Core** (bottom) — References nothing. Zero external dependencies.
 
@@ -136,7 +136,7 @@ Pure domain logic that doesn't fit in entities. These are stateless services wit
 
 ---
 
-### 4.2 AutoMerge.Application (Application Layer)
+### 4.2 AutoMerge.Logic (Application Layer)
 
 **Purpose:** Orchestrates use cases by coordinating domain objects and infrastructure services. Contains application-specific business rules and workflows.
 

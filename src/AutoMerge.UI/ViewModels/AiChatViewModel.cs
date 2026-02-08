@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
-using AutoMerge.Application.Events;
-using AutoMerge.Application.UseCases.RefineResolution;
+using AutoMerge.Logic.Events;
+using AutoMerge.Logic.UseCases.RefineResolution;
 using AutoMerge.Core.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;

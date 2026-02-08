@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AutoMerge.Core\AutoMerge.Core.csproj" />
-    <ProjectReference Include="..\AutoMerge.Application\AutoMerge.Application.csproj" />
+    <ProjectReference Include="..\AutoMerge.Logic\AutoMerge.Logic.csproj" />
   </ItemGroup>
 
   <ItemGroup>

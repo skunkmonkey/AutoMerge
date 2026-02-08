@@ -1,6 +1,6 @@
-using AutoMerge.Application.UseCases.LoadAiModelOptions;
-using AutoMerge.Application.UseCases.LoadPreferences;
-using AutoMerge.Application.UseCases.SavePreferences;
+using AutoMerge.Logic.UseCases.LoadAiModelOptions;
+using AutoMerge.Logic.UseCases.LoadPreferences;
+using AutoMerge.Logic.UseCases.SavePreferences;
 using AutoMerge.Core.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;

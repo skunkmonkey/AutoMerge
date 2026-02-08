@@ -1,8 +1,8 @@
-using AutoMerge.Application.Services;
-using AutoMerge.Application.UseCases.AcceptResolution;
-using AutoMerge.Application.UseCases.CancelMerge;
-using AutoMerge.Application.UseCases.LoadMergeSession;
-using AutoMerge.Application.UseCases.ProposeResolution;
+using AutoMerge.Logic.Services;
+using AutoMerge.Logic.UseCases.AcceptResolution;
+using AutoMerge.Logic.UseCases.CancelMerge;
+using AutoMerge.Logic.UseCases.LoadMergeSession;
+using AutoMerge.Logic.UseCases.ProposeResolution;
 using AutoMerge.Core.Abstractions;
 using AutoMerge.Core.Models;
 using AutoMerge.Core.Services;

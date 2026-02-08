@@ -81,7 +81,7 @@ Run tests only (dedicated test solution):
 
 Run a single test project:
     dotnet test tests/AutoMerge.Core.Tests/AutoMerge.Core.Tests.csproj
-    dotnet test tests/AutoMerge.Application.Tests/AutoMerge.Application.Tests.csproj
+    dotnet test tests/AutoMerge.Logic.Tests/AutoMerge.Logic.Tests.csproj
     dotnet test tests/AutoMerge.Infrastructure.Tests/AutoMerge.Infrastructure.Tests.csproj
     dotnet test tests/AutoMerge.UI.Tests/AutoMerge.UI.Tests.csproj
     dotnet test tests/AutoMerge.Integration.Tests/AutoMerge.Integration.Tests.csproj
@@ -98,7 +98,7 @@ SDK package not found:
 Project Structure
 -----------------
   src/AutoMerge.Core            Domain models, interfaces, pure logic (zero deps)
-  src/AutoMerge.Application     Use-case handlers, session management, events
+  src/AutoMerge.Logic     Use-case handlers, session management, events
   src/AutoMerge.Infrastructure  Copilot SDK, file I/O, diff, configuration
   src/AutoMerge.UI              Avalonia views, ViewModels, controls, converters
   src/AutoMerge.App             Entry point, CLI parser, DI composition root

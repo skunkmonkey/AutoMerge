@@ -1,4 +1,4 @@
-using AutoMerge.Application.Services;
+using AutoMerge.Logic.Services;
 using AutoMerge.Core.Models;
 using AutoMerge.UI.Services;
 using AutoMerge.UI.ViewModels;

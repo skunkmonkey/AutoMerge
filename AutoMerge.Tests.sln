@@ -4,7 +4,7 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoMerge.Core", "src/AutoMerge.Core/AutoMerge.Core.csproj", "{21D7CA99-A03C-4347-90FE-920251051410}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoMerge.Application", "src/AutoMerge.Application/AutoMerge.Application.csproj", "{B4B23F33-C911-4245-BCF7-2B4B46C86D0B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoMerge.Logic", "src/AutoMerge.Logic/AutoMerge.Logic.csproj", "{B4B23F33-C911-4245-BCF7-2B4B46C86D0B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoMerge.Infrastructure", "src/AutoMerge.Infrastructure/AutoMerge.Infrastructure.csproj", "{6BBDD2B9-1EE8-4AA0-B78A-1C69DE3866DB}"
 EndProject
@@ -14,7 +14,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoMerge.App", "src/AutoMe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoMerge.Core.Tests", "tests/AutoMerge.Core.Tests/AutoMerge.Core.Tests.csproj", "{DFA4D994-BD23-452A-AEC0-62AC872FCCCD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoMerge.Application.Tests", "tests/AutoMerge.Application.Tests/AutoMerge.Application.Tests.csproj", "{D05CF045-4CF3-41AA-BD8A-932B55603500}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoMerge.Logic.Tests", "tests/AutoMerge.Logic.Tests/AutoMerge.Logic.Tests.csproj", "{D05CF045-4CF3-41AA-BD8A-932B55603500}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoMerge.Infrastructure.Tests", "tests/AutoMerge.Infrastructure.Tests/AutoMerge.Infrastructure.Tests.csproj", "{0FBDB9F8-1BD0-4D83-83D1-F97094424931}"
 EndProject

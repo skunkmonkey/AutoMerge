@@ -2,13 +2,14 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>AutoMerge</AssemblyName>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\AutoMerge.Core\AutoMerge.Core.csproj" />
-    <ProjectReference Include="..\AutoMerge.Application\AutoMerge.Application.csproj" />
+    <ProjectReference Include="..\AutoMerge.Logic\AutoMerge.Logic.csproj" />
     <ProjectReference Include="..\AutoMerge.Infrastructure\AutoMerge.Infrastructure.csproj" />
     <ProjectReference Include="..\AutoMerge.UI\AutoMerge.UI.csproj" />
   </ItemGroup>

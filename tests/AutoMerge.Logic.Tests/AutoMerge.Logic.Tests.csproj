@@ -15,12 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\AutoMerge.Core\AutoMerge.Core.csproj" />
     <ProjectReference Include="..\..\src\AutoMerge.Logic\AutoMerge.Logic.csproj" />
-    <ProjectReference Include="..\..\src\AutoMerge.Infrastructure\AutoMerge.Infrastructure.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="Fixtures\**" CopyToOutputDirectory="Always" />
   </ItemGroup>
 </Project>

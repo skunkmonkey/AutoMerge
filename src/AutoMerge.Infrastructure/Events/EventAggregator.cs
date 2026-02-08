@@ -1,5 +1,5 @@
 using System.Collections.Concurrent;
-using AutoMerge.Application.Events;
+using AutoMerge.Logic.Events;
 
 namespace AutoMerge.Infrastructure.Events;
 

@@ -146,8 +146,8 @@ public sealed partial class MergedResultViewModel : ViewModelBase
 
     private int NavigableConflictCount => ApprovalItems.Count;
 
-    public bool CanGoNextConflict => NavigableConflictCount > 0 && CurrentConflictIndex < NavigableConflictCount;
-    public bool CanGoPreviousConflict => NavigableConflictCount > 0 && CurrentConflictIndex > 1;
+    public bool CanGoNextConflict => NavigableConflictCount == 1 || (NavigableConflictCount > 1 && CurrentConflictIndex < NavigableConflictCount);
+    public bool CanGoPreviousConflict => NavigableConflictCount == 1 || (NavigableConflictCount > 1 && CurrentConflictIndex > 1);
 
     public IRelayCommand UndoCommand { get; }
     public IRelayCommand RedoCommand { get; }
@@ -185,6 +185,13 @@ public sealed partial class MergedResultViewModel : ViewModelBase
 
         Content = resolvedContent;
         UpdateValidationState();
+
+        // Auto-jump to the first conflict so the user immediately sees it
+        if (NavigableConflictCount > 0)
+        {
+            CurrentConflictIndex = 1;
+            ScrollToCurrentConflict();
+        }
     }
 
     partial void OnContentChanged(string value)
@@ -247,7 +254,14 @@ public sealed partial class MergedResultViewModel : ViewModelBase
 
     private void GoToNextConflict()
     {
-        if (CurrentConflictIndex < NavigableConflictCount)
+        if (NavigableConflictCount == 1)
+        {
+            // Single conflict: just jump to it regardless of current index
+            CurrentConflictIndex = 1;
+            UpdateConflictDisplay();
+            ScrollToCurrentConflict();
+        }
+        else if (CurrentConflictIndex < NavigableConflictCount)
         {
             CurrentConflictIndex++;
             UpdateConflictDisplay();
@@ -257,7 +271,14 @@ public sealed partial class MergedResultViewModel : ViewModelBase
 
     private void GoToPreviousConflict()
     {
-        if (CurrentConflictIndex > 1)
+        if (NavigableConflictCount == 1)
+        {
+            // Single conflict: just jump to it regardless of current index
+            CurrentConflictIndex = 1;
+            UpdateConflictDisplay();
+            ScrollToCurrentConflict();
+        }
+        else if (CurrentConflictIndex > 1)
         {
             CurrentConflictIndex--;
             UpdateConflictDisplay();

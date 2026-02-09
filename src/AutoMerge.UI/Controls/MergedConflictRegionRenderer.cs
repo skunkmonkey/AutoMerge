@@ -20,13 +20,13 @@ public sealed class MergedConflictRegionRenderer : IBackgroundRenderer
 {
     // ── Resolved (needs review) ──────────────────────────────────────
     private static readonly Pen ResolvedTopPen =
-        new(new SolidColorBrush(Color.Parse("#42A5F5")), 2);
+        new(new SolidColorBrush(Colors.Transparent), 0);
 
     private static readonly Pen ResolvedBottomPen =
-        new(new SolidColorBrush(Color.Parse("#6042A5F5")), 1);
+        new(new SolidColorBrush(Colors.Transparent), 0);
 
     private static readonly IBrush ResolvedTint =
-        new SolidColorBrush(Color.Parse("#0842A5F5"));
+        new SolidColorBrush(Colors.Transparent);
 
     // ── Unresolved (conflict markers still present) ──────────────────
     private static readonly Pen UnresolvedTopPen =

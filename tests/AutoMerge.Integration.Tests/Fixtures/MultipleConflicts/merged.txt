@@ -1,0 +1,12 @@
+alpha
+<<<<<<< LOCAL
+beta-local
+=======
+beta-remote
+>>>>>>> REMOTE
+gamma
+<<<<<<< LOCAL
+delta-local
+=======
+delta-remote
+>>>>>>> REMOTE

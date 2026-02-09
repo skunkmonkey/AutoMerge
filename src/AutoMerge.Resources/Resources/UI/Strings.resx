@@ -1,0 +1,654 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AiConnected" xml:space="preserve">
+    <value>AI Connected</value>
+  </data>
+  <data name="AiDisconnected" xml:space="preserve">
+    <value>AI Disconnected</value>
+  </data>
+  <data name="AiStatusUnknown" xml:space="preserve">
+    <value>AI Status Unknown</value>
+  </data>
+  <data name="PanelTitleBase" xml:space="preserve">
+    <value>Base</value>
+  </data>
+  <data name="PanelTitleLocal" xml:space="preserve">
+    <value>Local</value>
+  </data>
+  <data name="PanelTitleRemote" xml:space="preserve">
+    <value>Remote</value>
+  </data>
+  <data name="PanelTitleMerged" xml:space="preserve">
+    <value>Merged</value>
+  </data>
+  <data name="PanelTitleMergedResult" xml:space="preserve">
+    <value>Merged Result</value>
+  </data>
+  <data name="PanelDescriptionBase" xml:space="preserve">
+    <value>Common ancestor</value>
+  </data>
+  <data name="PanelDescriptionLocal" xml:space="preserve">
+    <value>Your changes (ours)</value>
+  </data>
+  <data name="PanelDescriptionRemote" xml:space="preserve">
+    <value>Incoming changes (theirs)</value>
+  </data>
+  <data name="PanelDescriptionMerged" xml:space="preserve">
+    <value>Final resolved output</value>
+  </data>
+  <data name="SessionStateCreated" xml:space="preserve">
+    <value>Created</value>
+  </data>
+  <data name="SessionStateLoading" xml:space="preserve">
+    <value>Loading</value>
+  </data>
+  <data name="SessionStateReady" xml:space="preserve">
+    <value>Ready</value>
+  </data>
+  <data name="SessionStateAnalyzing" xml:space="preserve">
+    <value>Analyzing</value>
+  </data>
+  <data name="SessionStateResolutionProposed" xml:space="preserve">
+    <value>Resolution proposed</value>
+  </data>
+  <data name="SessionStateRefining" xml:space="preserve">
+    <value>Refining</value>
+  </data>
+  <data name="SessionStateUserEditing" xml:space="preserve">
+    <value>User editing</value>
+  </data>
+  <data name="SessionStateValidated" xml:space="preserve">
+    <value>Validated</value>
+  </data>
+  <data name="SessionStateSaved" xml:space="preserve">
+    <value>Saved</value>
+  </data>
+  <data name="SessionStateCancelled" xml:space="preserve">
+    <value>Cancelled</value>
+  </data>
+  <data name="DesignTimeSessionLoaded" xml:space="preserve">
+    <value>Design-time session loaded.</value>
+  </data>
+  <data name="DesignTimeExplainConflict" xml:space="preserve">
+    <value>Explain this conflict.</value>
+  </data>
+  <data name="DesignTimeConflictExplanation" xml:space="preserve">
+    <value>The conflict is due to divergent edits in the same method.</value>
+  </data>
+  <data name="AiDetailedStatusChecking" xml:space="preserve">
+    <value>Checking AI connection...</value>
+  </data>
+  <data name="LoadMergeFailed" xml:space="preserve">
+    <value>Failed to load merge session.</value>
+  </data>
+  <data name="ErrorLoadingFilesFormat" xml:space="preserve">
+    <value>Error loading files: {0}</value>
+  </data>
+  <data name="BusyMessageResearchingIntents" xml:space="preserve">
+    <value>Researching intents in parallel</value>
+  </data>
+  <data name="AiChatLocalIntentFormat" xml:space="preserve">
+    <value>📝 **Local Intent**
+
+{0}</value>
+  </data>
+  <data name="AiChatRemoteIntentFormat" xml:space="preserve">
+    <value>📥 **Remote Intent**
+
+{0}</value>
+  </data>
+  <data name="AiChatResolutionFormat" xml:space="preserve">
+    <value>✨ **Merge Resolution**
+
+{0}</value>
+  </data>
+  <data name="AiResolutionFailedFormat" xml:space="preserve">
+    <value>AI resolution failed: {0}</value>
+  </data>
+  <data name="AcceptFailedFormat" xml:space="preserve">
+    <value>Accept failed: {0}</value>
+  </data>
+  <data name="AiConnectedWithModelFormat" xml:space="preserve">
+    <value>Connected · {0}</value>
+  </data>
+  <data name="AiServiceUnavailable" xml:space="preserve">
+    <value>AI service unavailable.</value>
+  </data>
+  <data name="AiNotConnected" xml:space="preserve">
+    <value>Not connected</value>
+  </data>
+  <data name="AiSetupInstructionsCliMissing" xml:space="preserve">
+    <value>GitHub Copilot CLI is not installed. Follow these steps to set it up:
+
+Step 1  Install Node.js from https://nodejs.org (LTS recommended)
+Step 2  Open a terminal and run:  npm install -g @github/copilot
+Step 3  Start the CLI by running:  copilot
+Step 4  At the Copilot prompt type:  /login
+Step 5  Complete the GitHub authentication in your browser
+Step 6  Return here and click Retry Connection</value>
+  </data>
+  <data name="AiSetupInstructionsCliNotFound" xml:space="preserve">
+    <value>GitHub Copilot CLI was not found on your system PATH.
+
+Step 1  Verify Node.js is installed:  node --version
+Step 2  Install the CLI globally:  npm install -g @github/copilot
+Step 3  Start the CLI by running:  copilot
+Step 4  At the Copilot prompt type:  /login
+Step 5  Complete the GitHub authentication in your browser
+Step 6  Return here and click Retry Connection</value>
+  </data>
+  <data name="AiAuthenticationRequired" xml:space="preserve">
+    <value>AI authentication required.</value>
+  </data>
+  <data name="AiAuthenticationRequiredShort" xml:space="preserve">
+    <value>Authentication required</value>
+  </data>
+  <data name="AiSetupInstructionsAuth" xml:space="preserve">
+    <value>Copilot CLI is installed but you are not signed in.
+
+Step 1  Open a terminal and run:  copilot
+Step 2  At the Copilot prompt type:  /login
+Step 3  Complete the GitHub authentication in your browser
+Step 4  Return here and click Retry Connection</value>
+  </data>
+  <data name="AiConnectionError" xml:space="preserve">
+    <value>Connection error</value>
+  </data>
+  <data name="AiUnexpectedError" xml:space="preserve">
+    <value>An unexpected error occurred while connecting to GitHub Copilot.
+Ensure the Copilot CLI is installed (npm install -g @github/copilot) and that you are signed in.</value>
+  </data>
+  <data name="ResolutionSummaryResolvedByAiFormat" xml:space="preserve">
+    <value>{0} resolved by AI</value>
+  </data>
+  <data name="ResolutionSummaryAutoResolvedFormat" xml:space="preserve">
+    <value> · {0} auto-resolved</value>
+  </data>
+  <data name="ResolutionSummaryHeadlineAllResolvedFormat" xml:space="preserve">
+    <value>✅ All conflicts resolved ({0}{1})</value>
+  </data>
+  <data name="ResolutionSummaryDetailAllResolved" xml:space="preserve">
+    <value>Review the result below carefully and click Accept when you're satisfied.</value>
+  </data>
+  <data name="ResolutionSummaryHeadlineRemainingFormat" xml:space="preserve">
+    <value>⚠ {0}{1} · {2} remaining</value>
+  </data>
+  <data name="ResolutionSummaryDetailRemainingSingularFormat" xml:space="preserve">
+    <value>{0} conflict requires manual resolution. Navigate conflicts with the ◀ ▶ buttons. Edit the merged result directly, or click "Resolve With AI" for an AI-suggested resolution.</value>
+  </data>
+  <data name="ResolutionSummaryDetailRemainingPluralFormat" xml:space="preserve">
+    <value>{0} conflicts require manual resolution. Navigate conflicts with the ◀ ▶ buttons. Edit the merged result directly, or click "Resolve With AI" for an AI-suggested resolution.</value>
+  </data>
+  <data name="BusyMessageLoadingMergeFiles" xml:space="preserve">
+    <value>Loading merge files and resolving conflicts...</value>
+  </data>
+  <data name="BusyMessageAiProcessing" xml:space="preserve">
+    <value>AI is processing the conflicts...</value>
+  </data>
+  <data name="MergeInputSelectPathsError" xml:space="preserve">
+    <value>Select Local, Remote, and Merged paths.</value>
+  </data>
+  <data name="MergedResultConflictDisplayFormat" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
+  <data name="MergedResultConflictDisplayWithAutoResolvedFormat" xml:space="preserve">
+    <value>{0} / {1}  ({2} auto-resolved)</value>
+  </data>
+  <data name="MergedResultAllResolvedWithAutoResolvedFormat" xml:space="preserve">
+    <value>All resolved ({0} auto-resolved)</value>
+  </data>
+  <data name="MergedResultPrevConflictTooltip" xml:space="preserve">
+    <value>Previous conflict</value>
+  </data>
+  <data name="MergedResultNextConflictTooltip" xml:space="preserve">
+    <value>Next conflict</value>
+  </data>
+  <data name="MergedResultConflictBadgePrefix" xml:space="preserve">
+    <value>Conflict</value>
+  </data>
+  <data name="MergedResultAutoResolvedBadgeLabel" xml:space="preserve">
+    <value>auto-resolved</value>
+  </data>
+  <data name="MergedResultRevertToBaseButton" xml:space="preserve">
+    <value>↩ Base</value>
+  </data>
+  <data name="MergedResultRevertToLocalButton" xml:space="preserve">
+    <value>↩ Local</value>
+  </data>
+  <data name="MergedResultRevertToRemoteButton" xml:space="preserve">
+    <value>↩ Remote</value>
+  </data>
+  <data name="MergedResultRevertToBaseTooltip" xml:space="preserve">
+    <value>Revert to base version</value>
+  </data>
+  <data name="MergedResultRevertToLocalTooltip" xml:space="preserve">
+    <value>Revert to local (ours) version</value>
+  </data>
+  <data name="MergedResultRevertToRemoteTooltip" xml:space="preserve">
+    <value>Revert to remote (theirs) version</value>
+  </data>
+  <data name="MergeInputDialogTitle" xml:space="preserve">
+    <value>Open Merge Files</value>
+  </data>
+  <data name="MergeInputDialogHeaderTitle" xml:space="preserve">
+    <value>📁 Open Merge Files</value>
+  </data>
+  <data name="MergeInputDialogHeaderSubtitle" xml:space="preserve">
+    <value>Select the files for your merge conflict resolution</value>
+  </data>
+  <data name="MergeInputDialogRequiredSectionTitle" xml:space="preserve">
+    <value>REQUIRED FILES</value>
+  </data>
+  <data name="MergeInputDialogOptionalSectionTitle" xml:space="preserve">
+    <value>OPTIONAL</value>
+  </data>
+  <data name="MergeInputDialogLocalTitle" xml:space="preserve">
+    <value>Local (ours)</value>
+  </data>
+  <data name="MergeInputDialogLocalDescription" xml:space="preserve">
+    <value>— Your branch's version</value>
+  </data>
+  <data name="MergeInputDialogLocalWatermark" xml:space="preserve">
+    <value>Select local file...</value>
+  </data>
+  <data name="MergeInputDialogRemoteTitle" xml:space="preserve">
+    <value>Remote (theirs)</value>
+  </data>
+  <data name="MergeInputDialogRemoteDescription" xml:space="preserve">
+    <value>— The incoming branch's version</value>
+  </data>
+  <data name="MergeInputDialogRemoteWatermark" xml:space="preserve">
+    <value>Select remote file...</value>
+  </data>
+  <data name="MergeInputDialogMergedTitle" xml:space="preserve">
+    <value>Merged (output)</value>
+  </data>
+  <data name="MergeInputDialogMergedDescription" xml:space="preserve">
+    <value>— Where resolved output will be saved</value>
+  </data>
+  <data name="MergeInputDialogMergedWatermark" xml:space="preserve">
+    <value>Select output file...</value>
+  </data>
+  <data name="MergeInputDialogBaseTitle" xml:space="preserve">
+    <value>Base (common ancestor)</value>
+  </data>
+  <data name="MergeInputDialogBaseDescription" xml:space="preserve">
+    <value>— For 3-way diff (optional)</value>
+  </data>
+  <data name="MergeInputDialogBaseWatermark" xml:space="preserve">
+    <value>Select base file (optional)...</value>
+  </data>
+  <data name="MergeInputDialogBrowseButton" xml:space="preserve">
+    <value>Browse...</value>
+  </data>
+  <data name="MergeInputDialogCancelButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="MergeInputDialogOpenFilesButton" xml:space="preserve">
+    <value>Open Files</value>
+  </data>
+  <data name="MergeInputDialogSelectBaseFileTitle" xml:space="preserve">
+    <value>Select base file</value>
+  </data>
+  <data name="MergeInputDialogSelectLocalFileTitle" xml:space="preserve">
+    <value>Select local (ours) file</value>
+  </data>
+  <data name="MergeInputDialogSelectRemoteFileTitle" xml:space="preserve">
+    <value>Select remote (theirs) file</value>
+  </data>
+  <data name="MergeInputDialogSelectMergedFileTitle" xml:space="preserve">
+    <value>Select merged output file</value>
+  </data>
+  <data name="PreferencesDialogTitle" xml:space="preserve">
+    <value>Preferences</value>
+  </data>
+  <data name="PreferencesDialogHeaderTitle" xml:space="preserve">
+    <value>⚙️ Preferences</value>
+  </data>
+  <data name="PreferencesDialogHeaderSubtitle" xml:space="preserve">
+    <value>Configure AutoMerge behavior and appearance</value>
+  </data>
+  <data name="PreferencesDialogAiSectionTitle" xml:space="preserve">
+    <value>AI BEHAVIOR</value>
+  </data>
+  <data name="PreferencesDialogAiModelTitle" xml:space="preserve">
+    <value>AI model</value>
+  </data>
+  <data name="PreferencesDialogAiModelDescription" xml:space="preserve">
+    <value>Select the Copilot model used for conflict resolution</value>
+  </data>
+  <data name="PreferencesDialogAiModelWatermark" xml:space="preserve">
+    <value>e.g. GPT-5 mini</value>
+  </data>
+  <data name="PreferencesDialogDefaultBiasTitle" xml:space="preserve">
+    <value>Default resolution bias</value>
+  </data>
+  <data name="PreferencesDialogDefaultBiasDescription" xml:space="preserve">
+    <value>Which version the AI should favor when resolving conflicts</value>
+  </data>
+  <data name="PreferencesDialogAutoResolveTitle" xml:space="preserve">
+    <value>Auto-resolve on load</value>
+  </data>
+  <data name="PreferencesDialogAutoResolveDescription" xml:space="preserve">
+    <value>Automatically run AI resolution when files are loaded</value>
+  </data>
+  <data name="PreferencesDialogAppearanceSectionTitle" xml:space="preserve">
+    <value>APPEARANCE</value>
+  </data>
+  <data name="PreferencesDialogThemeTitle" xml:space="preserve">
+    <value>Theme</value>
+  </data>
+  <data name="PreferencesDialogThemeDescription" xml:space="preserve">
+    <value>Choose your preferred color scheme</value>
+  </data>
+  <data name="PreferencesDialogResetDefaultsButton" xml:space="preserve">
+    <value>Reset to Defaults</value>
+  </data>
+  <data name="PreferencesDialogCancelButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="PreferencesDialogSaveChangesButton" xml:space="preserve">
+    <value>Save Changes</value>
+  </data>
+  <data name="MainWindowTitle" xml:space="preserve">
+    <value>AutoMerge — AI-Powered Merge Conflict Resolution</value>
+  </data>
+  <data name="MainWindowOpenMergeButton" xml:space="preserve">
+    <value>📁 Open Merge...</value>
+  </data>
+  <data name="MainWindowOpenMergeTooltip" xml:space="preserve">
+    <value>Open merge files (Ctrl+O)</value>
+  </data>
+  <data name="MainWindowPreferencesButton" xml:space="preserve">
+    <value>⚙️ Preferences</value>
+  </data>
+  <data name="MainWindowPreferencesTooltip" xml:space="preserve">
+    <value>Open preferences (Ctrl+,)</value>
+  </data>
+  <data name="MainWindowPrevConflictButton" xml:space="preserve">
+    <value>◀ Prev Conflict</value>
+  </data>
+  <data name="MainWindowPrevConflictTooltip" xml:space="preserve">
+    <value>Navigate to previous conflict</value>
+  </data>
+  <data name="MainWindowConflictFormat" xml:space="preserve">
+    <value>Conflict {0}</value>
+  </data>
+  <data name="MainWindowAutoResolvedFormat" xml:space="preserve">
+    <value>✓ {0} auto-resolved</value>
+  </data>
+  <data name="MainWindowNextConflictButton" xml:space="preserve">
+    <value>Next Conflict ▶</value>
+  </data>
+  <data name="MainWindowNextConflictTooltip" xml:space="preserve">
+    <value>Navigate to next conflict</value>
+  </data>
+  <data name="MainWindowResolveWithAiButton" xml:space="preserve">
+    <value>✨ Resolve With AI</value>
+  </data>
+  <data name="MainWindowReconnectAiButton" xml:space="preserve">
+    <value>🔄 Reconnect AI</value>
+  </data>
+  <data name="MainWindowRetryLoadButton" xml:space="preserve">
+    <value>🔄 Retry Load</value>
+  </data>
+  <data name="MainWindowCancelButton" xml:space="preserve">
+    <value>✕ Cancel</value>
+  </data>
+  <data name="MainWindowCancelTooltip" xml:space="preserve">
+    <value>Cancel and exit (Escape)</value>
+  </data>
+  <data name="MainWindowAcceptButton" xml:space="preserve">
+    <value>✓ Accept</value>
+  </data>
+  <data name="MainWindowAcceptTooltip" xml:space="preserve">
+    <value>Accept resolution and save (Ctrl+Enter)</value>
+  </data>
+  <data name="MainWindowColorGuideTitle" xml:space="preserve">
+    <value>Color Guide</value>
+  </data>
+  <data name="MainWindowLegendAdded" xml:space="preserve">
+    <value>Added / Auto-resolved</value>
+  </data>
+  <data name="MainWindowLegendRemoved" xml:space="preserve">
+    <value>Removed / Unresolved conflict</value>
+  </data>
+  <data name="MainWindowLegendModified" xml:space="preserve">
+    <value>Modified</value>
+  </data>
+  <data name="MainWindowLegendBase" xml:space="preserve">
+    <value>Base (common ancestor)</value>
+  </data>
+  <data name="MainWindowLegendMerged" xml:space="preserve">
+    <value>Merged result panel</value>
+  </data>
+  <data name="MainWindowDismissTooltip" xml:space="preserve">
+    <value>Dismiss</value>
+  </data>
+  <data name="MainWindowProductName" xml:space="preserve">
+    <value>AutoMerge</value>
+  </data>
+  <data name="MainWindowWelcomeTagline" xml:space="preserve">
+    <value>AI-Powered Merge Conflict Resolution</value>
+  </data>
+  <data name="MainWindowGetStartedTitle" xml:space="preserve">
+    <value>Get Started</value>
+  </data>
+  <data name="MainWindowGetStartedDescription" xml:space="preserve">
+    <value>Select your merge files to begin resolving conflicts with AI assistance:</value>
+  </data>
+  <data name="MainWindowGetStartedBulletLocal" xml:space="preserve">
+    <value>• Local (ours) — Your branch's version</value>
+  </data>
+  <data name="MainWindowGetStartedBulletRemote" xml:space="preserve">
+    <value>• Remote (theirs) — The incoming branch's version</value>
+  </data>
+  <data name="MainWindowGetStartedBulletMerged" xml:space="preserve">
+    <value>• Merged — Where the resolved output will be saved</value>
+  </data>
+  <data name="MainWindowGetStartedBulletBase" xml:space="preserve">
+    <value>• Base (optional) — The common ancestor version</value>
+  </data>
+  <data name="MainWindowOpenMergeFilesButton" xml:space="preserve">
+    <value>📁 Open Merge Files...</value>
+  </data>
+  <data name="MainWindowCopilotStatusFormat" xml:space="preserve">
+    <value>GitHub Copilot · {0}</value>
+  </data>
+  <data name="MainWindowRetryConnectionButton" xml:space="preserve">
+    <value>🔄 Retry Connection</value>
+  </data>
+  <data name="MainWindowModelBadgeFormat" xml:space="preserve">
+    <value>Model: {0}</value>
+  </data>
+  <data name="MainWindowAiReadyMessage" xml:space="preserve">
+    <value>Ready for AI-assisted conflict resolution</value>
+  </data>
+  <data name="MainWindowQuickSetupTitle" xml:space="preserve">
+    <value>Quick Setup</value>
+  </data>
+  <data name="MainWindowAiSetupFooterNote" xml:space="preserve">
+    <value>AutoMerge works without AI too — you can always resolve conflicts manually.</value>
+  </data>
+  <data name="MainWindowTipText" xml:space="preserve">
+    <value>Git diff/merge tool configuration</value>
+  </data>
+  <data name="MainWindowDiffToolParametersLabel" xml:space="preserve">
+    <value>Diff tool arguments:</value>
+  </data>
+  <data name="MainWindowDiffToolParametersValue" xml:space="preserve">
+    <value>--local "$LOCAL" --remote "$REMOTE"</value>
+  </data>
+  <data name="MainWindowMergeToolParametersLabel" xml:space="preserve">
+    <value>Merge tool arguments:</value>
+  </data>
+  <data name="MainWindowMergeToolParametersValue" xml:space="preserve">
+    <value>--base "$BASE" --local "$LOCAL" --remote "$REMOTE" --merged "$MERGED"</value>
+  </data>
+  <data name="MainWindowCopyToClipboardTooltip" xml:space="preserve">
+    <value>Copy parameters</value>
+  </data>
+  <data name="MainWindowStatusCopilotFormat" xml:space="preserve">
+    <value>Copilot · {0}</value>
+  </data>
+  <data name="MainWindowPoweredByCopilot" xml:space="preserve">
+    <value>Powered by GitHub Copilot</value>
+  </data>
+  <data name="MainWindowCloseButton" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="MainWindowCloseTooltip" xml:space="preserve">
+    <value>Close diff view (Escape)</value>
+  </data>
+  <data name="AiChatPanelTitle" xml:space="preserve">
+    <value>AI Assistant</value>
+  </data>
+  <data name="AiChatPanelSubtitle" xml:space="preserve">
+    <value>Powered by GitHub Copilot</value>
+  </data>
+  <data name="AiChatPanelClearButton" xml:space="preserve">
+    <value>🗑️ Clear</value>
+  </data>
+  <data name="AiChatPanelClearHistoryTooltip" xml:space="preserve">
+    <value>Clear conversation history</value>
+  </data>
+  <data name="AiChatPanelAssistantLabel" xml:space="preserve">
+    <value>Assistant</value>
+  </data>
+  <data name="AiChatPanelTypingLabel" xml:space="preserve">
+    <value>typing...</value>
+  </data>
+  <data name="AiChatPanelInputWatermark" xml:space="preserve">
+    <value>Ask a question or request a refinement...</value>
+  </data>
+  <data name="AiChatPanelSendButton" xml:space="preserve">
+    <value>Send</value>
+  </data>
+  <data name="DiffPaneReadOnlyBadge" xml:space="preserve">
+    <value>Read-only</value>
+  </data>
+  <data name="CopilotSetupDialogTitle" xml:space="preserve">
+    <value>GitHub Copilot Setup Required</value>
+  </data>
+  <data name="CopilotSetupDialogHeadline" xml:space="preserve">
+    <value>GitHub Copilot is not connected</value>
+  </data>
+  <data name="CopilotSetupDialogSubtitle" xml:space="preserve">
+    <value>AutoMerge uses GitHub Copilot for AI-powered conflict resolution. Complete the steps below to enable AI features.</value>
+  </data>
+  <data name="CopilotSetupDialogPrereqTitle" xml:space="preserve">
+    <value>PREREQUISITES</value>
+  </data>
+  <data name="CopilotSetupDialogPrereqNodeJs" xml:space="preserve">
+    <value>Node.js (LTS) — download from https://nodejs.org</value>
+  </data>
+  <data name="CopilotSetupDialogPrereqSubscription" xml:space="preserve">
+    <value>An active GitHub Copilot subscription (Individual or Enterprise)</value>
+  </data>
+  <data name="CopilotSetupDialogStepsTitle" xml:space="preserve">
+    <value>INSTALLATION &amp; SIGN-IN</value>
+  </data>
+  <data name="CopilotSetupDialogStep1Label" xml:space="preserve">
+    <value>Step 1</value>
+  </data>
+  <data name="CopilotSetupDialogStep1Title" xml:space="preserve">
+    <value>Install the GitHub Copilot CLI</value>
+  </data>
+  <data name="CopilotSetupDialogStep1Command" xml:space="preserve">
+    <value>npm install -g @github/copilot</value>
+  </data>
+  <data name="CopilotSetupDialogStep2Label" xml:space="preserve">
+    <value>Step 2</value>
+  </data>
+  <data name="CopilotSetupDialogStep2Title" xml:space="preserve">
+    <value>Launch the Copilot CLI</value>
+  </data>
+  <data name="CopilotSetupDialogStep2Command" xml:space="preserve">
+    <value>copilot</value>
+  </data>
+  <data name="CopilotSetupDialogStep3Label" xml:space="preserve">
+    <value>Step 3</value>
+  </data>
+  <data name="CopilotSetupDialogStep3Title" xml:space="preserve">
+    <value>Sign in to your GitHub account</value>
+  </data>
+  <data name="CopilotSetupDialogStep3Command" xml:space="preserve">
+    <value>/login</value>
+  </data>
+  <data name="CopilotSetupDialogStep3Description" xml:space="preserve">
+    <value>Type this command at the Copilot prompt, then complete authentication in your browser.</value>
+  </data>
+  <data name="CopilotSetupDialogFooterNote" xml:space="preserve">
+    <value>After completing these steps, click Retry Connection to verify. AutoMerge also works without AI — you can resolve conflicts manually at any time.</value>
+  </data>
+  <data name="CopilotSetupDialogRetryButton" xml:space="preserve">
+    <value>Retry Connection</value>
+  </data>
+  <data name="CopilotSetupDialogCloseButton" xml:space="preserve">
+    <value>Continue Without AI</value>
+  </data>
+  <data name="CopilotSetupDialogCopyTooltip" xml:space="preserve">
+    <value>Copy to clipboard</value>
+  </data>
+  <data name="CopilotSetupDialogErrorLabel" xml:space="preserve">
+    <value>Error Details</value>
+  </data>
+</root>

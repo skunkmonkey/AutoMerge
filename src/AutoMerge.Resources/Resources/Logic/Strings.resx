@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="NoActiveSession" xml:space="preserve">
+    <value>No active session.</value>
+  </data>
+  <data name="ResolvedContentHasConflictMarkers" xml:space="preserve">
+    <value>Resolved content still contains conflict markers.</value>
+  </data>
+  <data name="ConflictFileNotLoaded" xml:space="preserve">
+    <value>Conflict file not loaded.</value>
+  </data>
+  <data name="MergeInputRequired" xml:space="preserve">
+    <value>Merge input is required.</value>
+  </data>
+  <data name="MissingRequiredFileFormat" xml:space="preserve">
+    <value>Missing required file: {0}</value>
+  </data>
+  <data name="BinaryFileNotSupportedFormat" xml:space="preserve">
+    <value>Binary file not supported: {0}</value>
+  </data>
+  <data name="BusyResearchLocalTitle" xml:space="preserve">
+    <value>Researching local intent</value>
+  </data>
+  <data name="BusyResearchLocalMessage" xml:space="preserve">
+    <value>🔍 Analyzing local changes...</value>
+  </data>
+  <data name="BusyResearchRemoteTitle" xml:space="preserve">
+    <value>Researching remote intent</value>
+  </data>
+  <data name="BusyResearchRemoteMessage" xml:space="preserve">
+    <value>🔍 Analyzing remote changes...</value>
+  </data>
+  <data name="BusyResearchBothTitle" xml:space="preserve">
+    <value>Researching intents</value>
+  </data>
+  <data name="BusyResearchBothMessage" xml:space="preserve">
+    <value>🔍 Analyzing local &amp; remote changes in parallel...</value>
+  </data>
+  <data name="BusyResolvingTitle" xml:space="preserve">
+    <value>Resolving merge conflicts</value>
+  </data>
+  <data name="BusyResolvingMessage" xml:space="preserve">
+    <value>✨ Merging with intent context...</value>
+  </data>
+</root>

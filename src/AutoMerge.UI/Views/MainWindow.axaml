@@ -1,0 +1,548 @@
+<Window xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:views="clr-namespace:AutoMerge.UI.Views.Panels"
+  xmlns:converters="clr-namespace:AutoMerge.UI.Converters"
+  xmlns:localization="clr-namespace:AutoMerge.UI.Localization"
+  x:Class="AutoMerge.UI.Views.MainWindow"
+        Width="1280" Height="800" 
+        MinWidth="1024" MinHeight="600"
+        WindowStartupLocation="CenterScreen"
+  Title="{x:Static localization:UIStrings.MainWindowTitle}"
+        Background="{StaticResource AppBackgroundBrush}">
+  
+  <Window.Resources>
+    <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+    <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+  </Window.Resources>
+  
+  <Grid RowDefinitions="Auto,*,Auto">
+    
+    <!-- ============================================== -->
+    <!-- Top Toolbar                                    -->
+    <!-- ============================================== -->
+    <Border Grid.Row="0" 
+            Background="{StaticResource SurfaceBrush}" 
+            BorderBrush="{StaticResource BorderSubtleBrush}"
+            BorderThickness="0,0,0,1"
+            Padding="16,12">
+      <Grid ColumnDefinitions="Auto,*,Auto">
+        
+        <!-- Left: File Actions -->
+        <StackPanel Orientation="Horizontal" Spacing="8" Grid.Column="0">
+          <Button Theme="{StaticResource SecondaryButton}" 
+              Content="{x:Static localization:UIStrings.MainWindowOpenMergeButton}"
+                  Click="OnOpenMergeClicked"
+              ToolTip.Tip="{x:Static localization:UIStrings.MainWindowOpenMergeTooltip}"
+                  IsVisible="False" />
+          
+          <Button Theme="{StaticResource SubtleButton}"
+              Content="{x:Static localization:UIStrings.MainWindowPreferencesButton}"
+                  Click="OnOpenPreferencesClicked"
+              ToolTip.Tip="{x:Static localization:UIStrings.MainWindowPreferencesTooltip}" />
+        </StackPanel>
+        
+        <!-- Center: Conflict Navigation + AI Actions (merge mode only) -->
+        <StackPanel Orientation="Horizontal" 
+                    Spacing="8" 
+                    Grid.Column="1" 
+                    HorizontalAlignment="Center"
+                    IsVisible="{Binding IsDiffMode, Converter={StaticResource InverseBoolConverter}}">
+          
+          <Button Theme="{StaticResource SecondaryButton}"
+              Content="{x:Static localization:UIStrings.MainWindowPrevConflictButton}"
+                  Command="{Binding MergedResultViewModel.PreviousConflictCommand}"
+              ToolTip.Tip="{x:Static localization:UIStrings.MainWindowPrevConflictTooltip}"
+                  IsVisible="{Binding IsSessionLoaded}"
+                  Padding="12,8" />
+          
+          <Border Background="{StaticResource SurfaceElevatedBrush}"
+                  CornerRadius="4"
+                  Padding="10,6"
+                  VerticalAlignment="Center"
+                  IsVisible="{Binding IsSessionLoaded}">
+            <TextBlock Foreground="{StaticResource TextSecondaryBrush}"
+                       FontSize="12"
+                       FontWeight="Medium"
+                       Text="{Binding MergedResultViewModel.CurrentConflictDisplay, StringFormat={x:Static localization:UIStrings.MainWindowConflictFormat}}" />
+          </Border>
+          
+          <!-- Auto-Resolved Badge -->
+          <Border Background="#404CAF50"
+                  CornerRadius="4"
+                  Padding="10,6"
+                  VerticalAlignment="Center"
+                  IsVisible="{Binding MergedResultViewModel.HasAutoResolved}">
+            <TextBlock Foreground="#4CAF50"
+                       FontSize="12"
+                       FontWeight="Medium"
+                       Text="{Binding MergedResultViewModel.AutoResolvedCount, StringFormat={x:Static localization:UIStrings.MainWindowAutoResolvedFormat}}" />
+          </Border>
+          
+          <Button Theme="{StaticResource SecondaryButton}"
+              Content="{x:Static localization:UIStrings.MainWindowNextConflictButton}"
+                  Command="{Binding MergedResultViewModel.NextConflictCommand}"
+              ToolTip.Tip="{x:Static localization:UIStrings.MainWindowNextConflictTooltip}"
+                  IsVisible="{Binding IsSessionLoaded}"
+                  Padding="12,8" />
+          
+          <Border Width="1" Background="{StaticResource BorderBrush}" Margin="8,4" />
+          
+          <Button Theme="{StaticResource PrimaryButton}"
+              Content="{x:Static localization:UIStrings.MainWindowResolveWithAiButton}"
+                  Command="{Binding GetAiHelpCommand}"
+                  ToolTip.Tip="{Binding AiStatusMessage}"
+                  IsVisible="{Binding IsSessionLoaded}" />
+          
+          <Button Theme="{StaticResource SecondaryButton}"
+              Content="{x:Static localization:UIStrings.MainWindowReconnectAiButton}"
+                  Command="{Binding ReconnectAiCommand}"
+                  IsVisible="{Binding IsAiAvailable, Converter={StaticResource InverseBoolConverter}}" />
+          
+          <Button Theme="{StaticResource SecondaryButton}"
+              Content="{x:Static localization:UIStrings.MainWindowRetryLoadButton}"
+                  Command="{Binding RetryLoadCommand}"
+                  IsVisible="{Binding HasError}" />
+        </StackPanel>
+        
+        <!-- Right: Resolution Actions (merge mode) / Close (diff mode) -->
+        <StackPanel Orientation="Horizontal" Spacing="8" Grid.Column="2">
+          <!-- Diff mode: single Close button -->
+          <Button Theme="{StaticResource SecondaryButton}"
+              Content="{x:Static localization:UIStrings.MainWindowCloseButton}"
+                  Command="{Binding CloseDiffCommand}"
+              ToolTip.Tip="{x:Static localization:UIStrings.MainWindowCloseTooltip}"
+                  IsVisible="{Binding IsDiffMode}" />
+          
+          <!-- Merge mode: Cancel + Accept -->
+          <Button Theme="{StaticResource DangerButton}"
+              Content="{x:Static localization:UIStrings.MainWindowCancelButton}"
+                  Command="{Binding CancelCommand}"
+              ToolTip.Tip="{x:Static localization:UIStrings.MainWindowCancelTooltip}">
+            <Button.IsVisible>
+              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <Binding Path="IsSessionLoaded" />
+                <Binding Path="IsDiffMode" Converter="{StaticResource InverseBoolConverter}" />
+              </MultiBinding>
+            </Button.IsVisible>
+          </Button>
+          
+          <Button Theme="{StaticResource SuccessButton}"
+              Content="{x:Static localization:UIStrings.MainWindowAcceptButton}"
+                  Command="{Binding AcceptCommand}"
+              ToolTip.Tip="{x:Static localization:UIStrings.MainWindowAcceptTooltip}">
+            <Button.IsVisible>
+              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <Binding Path="IsSessionLoaded" />
+                <Binding Path="IsDiffMode" Converter="{StaticResource InverseBoolConverter}" />
+              </MultiBinding>
+            </Button.IsVisible>
+          </Button>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- ============================================== -->
+    <!-- Main Content Area                              -->
+    <!-- ============================================== -->
+    <Grid Grid.Row="1" Margin="4">
+      
+      <!-- Diff Mode: Two Panels Side by Side (Local | Remote) -->
+      <Grid ColumnDefinitions="*,Auto,*">
+        <Grid.IsVisible>
+          <MultiBinding Converter="{x:Static BoolConverters.And}">
+            <Binding Path="IsSessionLoaded" />
+            <Binding Path="IsDiffMode" />
+          </MultiBinding>
+        </Grid.IsVisible>
+        <views:DiffPaneView Grid.Column="0" DataContext="{Binding LocalPaneViewModel}" />
+        <GridSplitter Grid.Column="1" Width="5" 
+                      Background="{StaticResource SurfaceElevatedBrush}"
+                      ResizeDirection="Columns" />
+        <views:DiffPaneView Grid.Column="2" DataContext="{Binding RemotePaneViewModel}" />
+      </Grid>
+      
+      <!-- Merge Mode: Full 4-Pane Layout -->
+      <Grid RowDefinitions="Auto,55*,Auto,45*">
+        <Grid.IsVisible>
+          <MultiBinding Converter="{x:Static BoolConverters.And}">
+            <Binding Path="IsSessionLoaded" />
+            <Binding Path="IsDiffMode" Converter="{StaticResource InverseBoolConverter}" />
+          </MultiBinding>
+        </Grid.IsVisible>
+        
+        <!-- Row 0: Resolution Summary Banner -->
+        <Border Grid.Row="0"
+                Background="{StaticResource SurfaceElevatedBrush}"
+                CornerRadius="6"
+                Padding="16,12"
+                Margin="4,4,4,6"
+                IsVisible="{Binding ShowResolutionSummary}">
+          <Grid ColumnDefinitions="*,Auto">
+            
+            <StackPanel Grid.Column="0" Spacing="8">
+              
+              <!-- Headline -->
+              <TextBlock Text="{Binding ResolutionSummaryHeadline}"
+                         FontSize="14" FontWeight="SemiBold"
+                         Foreground="{StaticResource TextPrimaryBrush}" />
+              
+              <!-- Detail / guidance -->
+              <TextBlock Text="{Binding ResolutionSummaryDetail}"
+                         FontSize="12"
+                         Foreground="{StaticResource TextSecondaryBrush}"
+                         TextWrapping="Wrap" />
+              
+              <!-- Color Legend -->
+              <Border Background="{StaticResource SurfaceBrush}"
+                      CornerRadius="4"
+                      Padding="12,8"
+                      Margin="0,4,0,0">
+                <StackPanel Spacing="6">
+                  <TextBlock Text="{x:Static localization:UIStrings.MainWindowColorGuideTitle}"
+                             FontSize="11" FontWeight="SemiBold"
+                             Foreground="{StaticResource TextSecondaryBrush}"
+                             Margin="0,0,0,2" />
+                  <WrapPanel Orientation="Horizontal">
+                    <!-- Green = added / auto-resolved -->
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,20,4">
+                      <Border Width="14" Height="14" CornerRadius="3" Background="#304CAF50">
+                        <Border Width="3" Height="14" Background="#4CAF50" CornerRadius="3,0,0,3" HorizontalAlignment="Left" />
+                      </Border>
+                      <TextBlock Text="{x:Static localization:UIStrings.MainWindowLegendAdded}" FontSize="11" 
+                                 Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <!-- Red = removed / unresolved conflict -->
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,20,4">
+                      <Border Width="14" Height="14" CornerRadius="3" Background="#30F44336">
+                        <Border Width="3" Height="14" Background="#F44336" CornerRadius="3,0,0,3" HorizontalAlignment="Left" />
+                      </Border>
+                      <TextBlock Text="{x:Static localization:UIStrings.MainWindowLegendRemoved}" FontSize="11" 
+                                 Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <!-- Amber = modified -->
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,20,4">
+                      <Border Width="14" Height="14" CornerRadius="3" Background="#30FFC107">
+                        <Border Width="3" Height="14" Background="#FFC107" CornerRadius="3,0,0,3" HorizontalAlignment="Left" />
+                      </Border>
+                      <TextBlock Text="{x:Static localization:UIStrings.MainWindowLegendModified}" FontSize="11" 
+                                 Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <!-- Blue = base section -->
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,20,4">
+                      <Border Width="14" Height="14" CornerRadius="3" Background="#306A9FD6">
+                        <Border Width="3" Height="14" Background="#6A9FD6" CornerRadius="3,0,0,3" HorizontalAlignment="Left" />
+                      </Border>
+                      <TextBlock Text="{x:Static localization:UIStrings.MainWindowLegendBase}" FontSize="11" 
+                                 Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <!-- Purple = merged result -->
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,0,4">
+                      <Border Width="14" Height="14" CornerRadius="3" Background="#30BB86FC">
+                        <Border Width="3" Height="14" Background="#BB86FC" CornerRadius="3,0,0,3" HorizontalAlignment="Left" />
+                      </Border>
+                      <TextBlock Text="{x:Static localization:UIStrings.MainWindowLegendMerged}" FontSize="11" 
+                                 Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </WrapPanel>
+                </StackPanel>
+              </Border>
+            </StackPanel>
+            
+            <!-- Dismiss button -->
+            <Button Grid.Column="1"
+                    Theme="{StaticResource SubtleButton}"
+                    Content="✕"
+                    Command="{Binding DismissSummaryCommand}"
+                  ToolTip.Tip="{x:Static localization:UIStrings.MainWindowDismissTooltip}"
+                    VerticalAlignment="Top"
+                    Padding="8,4"
+                    FontSize="14" />
+          </Grid>
+        </Border>
+        
+        <!-- Top Row: Three Source Panels Side by Side (Local | Base | Remote) -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,Auto,*,Auto,*">
+          <views:DiffPaneView Grid.Column="0" DataContext="{Binding LocalPaneViewModel}" />
+          <GridSplitter Grid.Column="1" Width="5" 
+                        Background="{StaticResource SurfaceElevatedBrush}"
+                        ResizeDirection="Columns" />
+          <views:DiffPaneView Grid.Column="2" DataContext="{Binding BasePaneViewModel}" />
+          <GridSplitter Grid.Column="3" Width="5" 
+                        Background="{StaticResource SurfaceElevatedBrush}"
+                        ResizeDirection="Columns" />
+          <views:DiffPaneView Grid.Column="4" DataContext="{Binding RemotePaneViewModel}" />
+        </Grid>
+
+        <!-- Horizontal Splitter between top and bottom -->
+        <GridSplitter Grid.Row="2" Height="5" 
+                      HorizontalAlignment="Stretch"
+                      Background="{StaticResource SurfaceElevatedBrush}"
+                      ResizeDirection="Rows" />
+
+        <!-- Bottom Row: Merged Result + AI Chat Side by Side -->
+        <Grid Grid.Row="3" ColumnDefinitions="3*,Auto,2*">
+          <views:MergedResultView Grid.Column="0" DataContext="{Binding MergedResultViewModel}" />
+          <GridSplitter Grid.Column="1" Width="5" 
+                        Background="{StaticResource SurfaceElevatedBrush}"
+                        ResizeDirection="Columns" />
+          <views:AiChatPanelView Grid.Column="2" DataContext="{Binding AiChatViewModel}" />
+        </Grid>
+      </Grid>
+      
+      <!-- No Session: Welcome Screen -->
+      <Border IsVisible="{Binding IsSessionLoaded, Converter={StaticResource InverseBoolConverter}}"
+              Background="{StaticResource SurfaceBrush}"
+              CornerRadius="12"
+              Padding="48"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Center">
+        <StackPanel Spacing="24" MaxWidth="480">
+          
+          <!-- Logo/Brand Area -->
+          <StackPanel Spacing="8" HorizontalAlignment="Center">
+                 <Image Width="56"
+                   Height="56"
+                   Source="avares://AutoMerge.UI/Assets/AppIcon_32.ico"
+                   Stretch="Uniform"
+                   HorizontalAlignment="Center" />
+            <TextBlock Text="{x:Static localization:UIStrings.MainWindowProductName}" 
+                       FontSize="32" 
+                       FontWeight="Bold" 
+                       Foreground="{StaticResource TextPrimaryBrush}"
+                       HorizontalAlignment="Center" />
+            <TextBlock Text="{x:Static localization:UIStrings.MainWindowWelcomeTagline}" 
+                       FontSize="14"
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       HorizontalAlignment="Center" />
+          </StackPanel>
+          
+          <!-- Instructions (hidden) -->
+          <Border Background="{StaticResource SurfaceElevatedBrush}" 
+                  CornerRadius="8" 
+                  Padding="20"
+                  IsVisible="False">
+            <StackPanel Spacing="12">
+              <TextBlock Text="{x:Static localization:UIStrings.MainWindowGetStartedTitle}" 
+                         FontSize="16" 
+                         FontWeight="SemiBold"
+                         Foreground="{StaticResource TextPrimaryBrush}" />
+              <TextBlock Text="{x:Static localization:UIStrings.MainWindowGetStartedDescription}"
+                         Foreground="{StaticResource TextSecondaryBrush}"
+                         TextWrapping="Wrap" />
+              <StackPanel Spacing="6" Margin="0,8,0,0">
+                <TextBlock Text="{x:Static localization:UIStrings.MainWindowGetStartedBulletLocal}" 
+                           Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" />
+                <TextBlock Text="{x:Static localization:UIStrings.MainWindowGetStartedBulletRemote}" 
+                           Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" />
+                <TextBlock Text="{x:Static localization:UIStrings.MainWindowGetStartedBulletMerged}" 
+                           Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" />
+                <TextBlock Text="{x:Static localization:UIStrings.MainWindowGetStartedBulletBase}" 
+                           Foreground="{StaticResource TextTertiaryBrush}" FontSize="12" FontStyle="Italic" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+          
+          <!-- CTA Button (hidden — AutoMerge is launched from Git clients) -->
+          <Button Theme="{StaticResource PrimaryButton}"
+              Content="{x:Static localization:UIStrings.MainWindowOpenMergeFilesButton}"
+                  HorizontalAlignment="Center"
+                  Padding="24,12"
+                  FontSize="15"
+                  Click="OnOpenMergeClicked"
+                  IsVisible="False" />
+          
+          <!-- AI Connection Status Card -->
+          <Border CornerRadius="8" Padding="16" Margin="0,8,0,0">
+            <Border.Background>
+              <SolidColorBrush Color="{Binding IsAiAvailable, Converter={x:Static converters:BoolToSetupCardColorConverter.Instance}}" />
+            </Border.Background>
+            <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto">
+
+              <!-- Status icon -->
+              <Ellipse Grid.Row="0" Grid.Column="0"
+                       Width="12" Height="12"
+                       VerticalAlignment="Center"
+                       Margin="0,0,10,0"
+                       Fill="{Binding IsAiAvailable, Converter={x:Static converters:BoolToColorConverter.Instance}}" />
+
+              <!-- Title -->
+              <TextBlock Grid.Row="0" Grid.Column="1"
+                         FontSize="14" FontWeight="SemiBold"
+                         Foreground="{StaticResource TextPrimaryBrush}"
+                         VerticalAlignment="Center">
+                <TextBlock.Text>
+                  <MultiBinding StringFormat="{x:Static localization:UIStrings.MainWindowCopilotStatusFormat}">
+                    <Binding Path="AiDetailedStatus" />
+                  </MultiBinding>
+                </TextBlock.Text>
+              </TextBlock>
+
+              <!-- Retry button -->
+              <Button Grid.Row="0" Grid.Column="2"
+                      Theme="{StaticResource SubtleButton}"
+                      Content="{x:Static localization:UIStrings.MainWindowRetryConnectionButton}"
+                      Command="{Binding ReconnectAiCommand}"
+                      IsVisible="{Binding IsAiAvailable, Converter={StaticResource InverseBoolConverter}}"
+                      Padding="8,4"
+                      FontSize="12" />
+
+              <!-- Model badge when connected -->
+              <StackPanel Grid.Row="1" Grid.Column="1"
+                          Orientation="Horizontal" Spacing="8"
+                          Margin="0,6,0,0"
+                          IsVisible="{Binding IsAiAvailable}">
+                <Border Background="#304CAF50" CornerRadius="4" Padding="8,3">
+                  <TextBlock Text="{Binding AiModelName, StringFormat={x:Static localization:UIStrings.MainWindowModelBadgeFormat}}"
+                             FontSize="11" Foreground="#4CAF50" FontWeight="Medium" />
+                </Border>
+                <TextBlock Text="{x:Static localization:UIStrings.MainWindowAiReadyMessage}"
+                           FontSize="11" Foreground="{StaticResource TextTertiaryBrush}"
+                           VerticalAlignment="Center" />
+              </StackPanel>
+
+              <!-- Setup instructions when disconnected -->
+              <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
+                      Margin="0,10,0,0"
+                      Background="{StaticResource SurfaceBrush}"
+                      CornerRadius="6" Padding="12"
+                      IsVisible="{Binding IsAiSetupNeeded}">
+                <StackPanel Spacing="6">
+                  <TextBlock Text="{x:Static localization:UIStrings.MainWindowQuickSetupTitle}" FontSize="12" FontWeight="SemiBold"
+                             Foreground="{StaticResource TextPrimaryBrush}" />
+                  <TextBlock Text="{Binding AiSetupInstructions}"
+                             FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"
+                             TextWrapping="Wrap" LineHeight="18" />
+                  <TextBlock Text="{x:Static localization:UIStrings.MainWindowAiSetupFooterNote}"
+                             FontSize="10" Foreground="{StaticResource TextTertiaryBrush}"
+                             FontStyle="Italic" Margin="0,4,0,0" />
+                </StackPanel>
+              </Border>
+            </Grid>
+          </Border>
+          
+          <!-- Keyboard Hint -->
+          <Border Background="{StaticResource SurfaceElevatedBrush}"
+                  BorderBrush="{StaticResource BorderSubtleBrush}"
+                  BorderThickness="1"
+                  CornerRadius="6"
+                  Padding="10,8"
+                  HorizontalAlignment="Center"
+                  Opacity="0.85">
+            <StackPanel Spacing="4" HorizontalAlignment="Left">
+              <TextBlock Text="{x:Static localization:UIStrings.MainWindowTipText}"
+                         FontSize="11"
+                         Foreground="{StaticResource TextTertiaryBrush}"
+                         HorizontalAlignment="Left"
+                         TextAlignment="Left" />
+              <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Left">
+                <Button Theme="{StaticResource IconButton}"
+                        Width="24" Height="24" Padding="4"
+                        ToolTip.Tip="{x:Static localization:UIStrings.MainWindowCopyToClipboardTooltip}"
+                        Command="{Binding CopyDiffToolParamsCommand}">
+                  <Viewbox Width="14" Height="14">
+                    <Path Data="M16 1H5a2 2 0 0 0-2 2v11h2V3h11V1zm3 4H9a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H9V7h10v14z"
+                          Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+                  </Viewbox>
+                </Button>
+                <TextBlock Text="{x:Static localization:UIStrings.MainWindowDiffToolParametersLabel}"
+                           FontSize="11"
+                           Foreground="{StaticResource TextTertiaryBrush}" />
+                <TextBlock Text="{x:Static localization:UIStrings.MainWindowDiffToolParametersValue}"
+                           FontSize="11"
+                           Foreground="{StaticResource TextTertiaryBrush}"
+                           FontFamily="Cascadia Mono, JetBrains Mono, Consolas" />
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Left">
+                <Button Theme="{StaticResource IconButton}"
+                        Width="24" Height="24" Padding="4"
+                        ToolTip.Tip="{x:Static localization:UIStrings.MainWindowCopyToClipboardTooltip}"
+                        Command="{Binding CopyMergeToolParamsCommand}">
+                  <Viewbox Width="14" Height="14">
+                    <Path Data="M16 1H5a2 2 0 0 0-2 2v11h2V3h11V1zm3 4H9a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H9V7h10v14z"
+                          Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+                  </Viewbox>
+                </Button>
+                <TextBlock Text="{x:Static localization:UIStrings.MainWindowMergeToolParametersLabel}"
+                           FontSize="11"
+                           Foreground="{StaticResource TextTertiaryBrush}" />
+                <TextBlock Text="{x:Static localization:UIStrings.MainWindowMergeToolParametersValue}"
+                           FontSize="11"
+                           Foreground="{StaticResource TextTertiaryBrush}"
+                           FontFamily="Cascadia Mono, JetBrains Mono, Consolas" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </Border>
+
+      <!-- Busy Overlay -->
+      <Border Background="#80000000"
+              IsVisible="{Binding IsBusy}"
+              ZIndex="50">
+        <StackPanel HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Spacing="12">
+          <ProgressBar IsIndeterminate="True" Width="240" Height="6" />
+          <Border Background="#FF000000"
+                  Padding="12,6"
+                  CornerRadius="4">
+            <TextBlock Text="{Binding BusyMessage}"
+                       Foreground="#FFFFFF"
+                       FontSize="13"
+                       FontWeight="SemiBold"
+                       HorizontalAlignment="Center" />
+          </Border>
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <!-- ============================================== -->
+    <!-- Status Bar                                     -->
+    <!-- ============================================== -->
+    <Border Grid.Row="2" 
+            Background="{StaticResource SurfaceBrush}"
+            BorderBrush="{StaticResource BorderSubtleBrush}"
+            BorderThickness="0,1,0,0"
+            Padding="16,8">
+      <Grid ColumnDefinitions="Auto,*,Auto">
+        
+        <!-- Left: Session State -->
+        <StackPanel Orientation="Horizontal" Spacing="12" Grid.Column="0">
+          <Border Background="{StaticResource SurfaceElevatedBrush}" 
+                  CornerRadius="4" 
+                  Padding="8,4">
+            <TextBlock Text="{Binding State}" 
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       FontSize="12" />
+          </Border>
+          
+          <!-- AI Status Indicator (enhanced with model name) -->
+          <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+            <Ellipse Width="8" Height="8" 
+                     Fill="{Binding IsAiAvailable, Converter={x:Static converters:BoolToColorConverter.Instance}}" />
+            <TextBlock Text="{Binding AiDetailedStatus, StringFormat={x:Static localization:UIStrings.MainWindowStatusCopilotFormat}}"
+                       Foreground="{StaticResource TextTertiaryBrush}"
+                       FontSize="12" />
+          </StackPanel>
+        </StackPanel>
+        
+        <!-- Center: Error Message -->
+        <TextBlock Grid.Column="1"
+                   Text="{Binding ErrorMessage}" 
+                   Foreground="{StaticResource ErrorBrush}"
+                   FontSize="12"
+                   TextTrimming="CharacterEllipsis"
+                   VerticalAlignment="Center"
+                   Margin="16,0"
+                   IsVisible="{Binding HasError}" />
+        
+        <!-- Right: Version/Branding -->
+        <TextBlock Grid.Column="2"
+                   Text="{x:Static localization:UIStrings.MainWindowPoweredByCopilot}"
+                   Foreground="{StaticResource TextTertiaryBrush}"
+                   FontSize="11"
+                   VerticalAlignment="Center" />
+      </Grid>
+    </Border>
+  </Grid>
+</Window>

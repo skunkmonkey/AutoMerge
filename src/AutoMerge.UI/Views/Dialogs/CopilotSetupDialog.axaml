@@ -1,0 +1,267 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:localization="clr-namespace:AutoMerge.UI.Localization"
+        x:Class="AutoMerge.UI.Views.Dialogs.CopilotSetupDialog"
+        Width="560" Height="600"
+        Title="{x:Static localization:UIStrings.CopilotSetupDialogTitle}"
+        Background="{StaticResource AppBackgroundBrush}"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False">
+  
+  <Border Background="{StaticResource SurfaceBrush}"
+          CornerRadius="0"
+          Margin="0">
+    <Grid RowDefinitions="Auto,*,Auto">
+      
+      <!-- Header -->
+      <Border Grid.Row="0"
+              Background="#30F44336"
+              Padding="24,20">
+        <StackPanel Spacing="6">
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <Ellipse Width="14" Height="14"
+                     Fill="#F44336"
+                     VerticalAlignment="Center" />
+            <TextBlock Text="{x:Static localization:UIStrings.CopilotSetupDialogHeadline}"
+                       FontSize="20" 
+                       FontWeight="Bold"
+                       Foreground="{StaticResource TextPrimaryBrush}" />
+          </StackPanel>
+          <TextBlock Text="{x:Static localization:UIStrings.CopilotSetupDialogSubtitle}"
+                     FontSize="12"
+                     Foreground="{StaticResource TextSecondaryBrush}"
+                     TextWrapping="Wrap"
+                     Margin="24,0,0,0" />
+        </StackPanel>
+      </Border>
+      
+      <!-- Content -->
+      <ScrollViewer Grid.Row="1" Padding="24,16">
+        <StackPanel Spacing="20">
+          
+          <!-- Error Details (if available) -->
+          <Border Background="#20F44336"
+                  CornerRadius="6"
+                  Padding="12"
+                  IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <StackPanel Spacing="4">
+              <TextBlock Text="{x:Static localization:UIStrings.CopilotSetupDialogErrorLabel}"
+                         FontSize="11" FontWeight="SemiBold"
+                         Foreground="#F44336" />
+              <TextBlock Text="{Binding ErrorMessage}"
+                         FontSize="11"
+                         Foreground="{StaticResource TextSecondaryBrush}"
+                         TextWrapping="Wrap"
+                         FontFamily="Cascadia Mono, JetBrains Mono, Consolas" />
+            </StackPanel>
+          </Border>
+          
+          <!-- Prerequisites Section -->
+          <StackPanel Spacing="10">
+            <TextBlock Text="{x:Static localization:UIStrings.CopilotSetupDialogPrereqTitle}"
+                       FontSize="11"
+                       FontWeight="Bold"
+                       Foreground="{StaticResource TextTertiaryBrush}" />
+            
+            <Border Background="{StaticResource SurfaceElevatedBrush}"
+                    CornerRadius="8"
+                    Padding="16">
+              <StackPanel Spacing="10">
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <Border Width="24" Height="24" CornerRadius="12"
+                          Background="#2030D5C8" VerticalAlignment="Top">
+                    <TextBlock Text="✓" Foreground="#30D5C8" FontSize="12" FontWeight="Bold"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                  </Border>
+                  <TextBlock Text="{x:Static localization:UIStrings.CopilotSetupDialogPrereqNodeJs}"
+                             FontSize="13"
+                             Foreground="{StaticResource TextPrimaryBrush}"
+                             VerticalAlignment="Center"
+                             TextWrapping="Wrap" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <Border Width="24" Height="24" CornerRadius="12"
+                          Background="#2030D5C8" VerticalAlignment="Top">
+                    <TextBlock Text="✓" Foreground="#30D5C8" FontSize="12" FontWeight="Bold"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                  </Border>
+                  <TextBlock Text="{x:Static localization:UIStrings.CopilotSetupDialogPrereqSubscription}"
+                             FontSize="13"
+                             Foreground="{StaticResource TextPrimaryBrush}"
+                             VerticalAlignment="Center"
+                             TextWrapping="Wrap" />
+                </StackPanel>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+          
+          <!-- Installation Steps Section -->
+          <StackPanel Spacing="10">
+            <TextBlock Text="{x:Static localization:UIStrings.CopilotSetupDialogStepsTitle}"
+                       FontSize="11"
+                       FontWeight="Bold"
+                       Foreground="{StaticResource TextTertiaryBrush}" />
+            
+            <Border Background="{StaticResource SurfaceElevatedBrush}"
+                    CornerRadius="8"
+                    Padding="16">
+              <StackPanel Spacing="16">
+                
+                <!-- Step 1: npm install -->
+                <Grid ColumnDefinitions="Auto,*">
+                  <Border Grid.Column="0" Width="32" Height="32" CornerRadius="16"
+                          Background="#20BB86FC" Margin="0,0,12,0"
+                          VerticalAlignment="Top">
+                    <TextBlock Text="1" Foreground="#BB86FC" FontSize="14" FontWeight="Bold"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                  </Border>
+                  <StackPanel Grid.Column="1" Spacing="6">
+                    <TextBlock Text="{x:Static localization:UIStrings.CopilotSetupDialogStep1Title}"
+                               FontSize="13" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextPrimaryBrush}" />
+                    <Border Background="{StaticResource AppBackgroundBrush}"
+                            CornerRadius="4"
+                            Padding="10,7">
+                      <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0"
+                                   Text="{x:Static localization:UIStrings.CopilotSetupDialogStep1Command}"
+                                   FontSize="13"
+                                   Foreground="#30D5C8"
+                                   FontFamily="Cascadia Mono, JetBrains Mono, Consolas"
+                                   VerticalAlignment="Center" />
+                        <Button Grid.Column="1"
+                                Theme="{StaticResource IconButton}"
+                                Width="26" Height="26" Padding="4"
+                                ToolTip.Tip="{x:Static localization:UIStrings.CopilotSetupDialogCopyTooltip}"
+                                Tag="npm install -g @github/copilot"
+                                Click="OnCopyCommandClicked">
+                          <Viewbox Width="14" Height="14">
+                            <Path Data="M16 1H5a2 2 0 0 0-2 2v11h2V3h11V1zm3 4H9a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H9V7h10v14z"
+                                  Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+                          </Viewbox>
+                        </Button>
+                      </Grid>
+                    </Border>
+                  </StackPanel>
+                </Grid>
+                
+                <Border Height="1" Background="{StaticResource BorderSubtleBrush}" Margin="44,0,0,0" />
+                
+                <!-- Step 2: Launch copilot -->
+                <Grid ColumnDefinitions="Auto,*">
+                  <Border Grid.Column="0" Width="32" Height="32" CornerRadius="16"
+                          Background="#20BB86FC" Margin="0,0,12,0"
+                          VerticalAlignment="Top">
+                    <TextBlock Text="2" Foreground="#BB86FC" FontSize="14" FontWeight="Bold"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                  </Border>
+                  <StackPanel Grid.Column="1" Spacing="6">
+                    <TextBlock Text="{x:Static localization:UIStrings.CopilotSetupDialogStep2Title}"
+                               FontSize="13" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextPrimaryBrush}" />
+                    <Border Background="{StaticResource AppBackgroundBrush}"
+                            CornerRadius="4"
+                            Padding="10,7">
+                      <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0"
+                                   Text="{x:Static localization:UIStrings.CopilotSetupDialogStep2Command}"
+                                   FontSize="13"
+                                   Foreground="#30D5C8"
+                                   FontFamily="Cascadia Mono, JetBrains Mono, Consolas"
+                                   VerticalAlignment="Center" />
+                        <Button Grid.Column="1"
+                                Theme="{StaticResource IconButton}"
+                                Width="26" Height="26" Padding="4"
+                                ToolTip.Tip="{x:Static localization:UIStrings.CopilotSetupDialogCopyTooltip}"
+                                Tag="copilot"
+                                Click="OnCopyCommandClicked">
+                          <Viewbox Width="14" Height="14">
+                            <Path Data="M16 1H5a2 2 0 0 0-2 2v11h2V3h11V1zm3 4H9a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H9V7h10v14z"
+                                  Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+                          </Viewbox>
+                        </Button>
+                      </Grid>
+                    </Border>
+                  </StackPanel>
+                </Grid>
+                
+                <Border Height="1" Background="{StaticResource BorderSubtleBrush}" Margin="44,0,0,0" />
+                
+                <!-- Step 3: /login -->
+                <Grid ColumnDefinitions="Auto,*">
+                  <Border Grid.Column="0" Width="32" Height="32" CornerRadius="16"
+                          Background="#20BB86FC" Margin="0,0,12,0"
+                          VerticalAlignment="Top">
+                    <TextBlock Text="3" Foreground="#BB86FC" FontSize="14" FontWeight="Bold"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                  </Border>
+                  <StackPanel Grid.Column="1" Spacing="6">
+                    <TextBlock Text="{x:Static localization:UIStrings.CopilotSetupDialogStep3Title}"
+                               FontSize="13" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextPrimaryBrush}" />
+                    <Border Background="{StaticResource AppBackgroundBrush}"
+                            CornerRadius="4"
+                            Padding="10,7">
+                      <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0"
+                                   Text="{x:Static localization:UIStrings.CopilotSetupDialogStep3Command}"
+                                   FontSize="13"
+                                   Foreground="#30D5C8"
+                                   FontFamily="Cascadia Mono, JetBrains Mono, Consolas"
+                                   VerticalAlignment="Center" />
+                        <Button Grid.Column="1"
+                                Theme="{StaticResource IconButton}"
+                                Width="26" Height="26" Padding="4"
+                                ToolTip.Tip="{x:Static localization:UIStrings.CopilotSetupDialogCopyTooltip}"
+                                Tag="/login"
+                                Click="OnCopyCommandClicked">
+                          <Viewbox Width="14" Height="14">
+                            <Path Data="M16 1H5a2 2 0 0 0-2 2v11h2V3h11V1zm3 4H9a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H9V7h10v14z"
+                                  Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+                          </Viewbox>
+                        </Button>
+                      </Grid>
+                    </Border>
+                    <TextBlock Text="{x:Static localization:UIStrings.CopilotSetupDialogStep3Description}"
+                               FontSize="11"
+                               Foreground="{StaticResource TextTertiaryBrush}"
+                               TextWrapping="Wrap" />
+                  </StackPanel>
+                </Grid>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+          
+          <!-- Footer note -->
+          <TextBlock Text="{x:Static localization:UIStrings.CopilotSetupDialogFooterNote}"
+                     FontSize="11"
+                     Foreground="{StaticResource TextTertiaryBrush}"
+                     TextWrapping="Wrap"
+                     FontStyle="Italic"
+                     Margin="0,4,0,0" />
+          
+        </StackPanel>
+      </ScrollViewer>
+      
+      <!-- Footer Actions -->
+      <Border Grid.Row="2"
+              Background="{StaticResource SurfaceElevatedBrush}"
+              BorderBrush="{StaticResource BorderSubtleBrush}"
+              BorderThickness="0,1,0,0"
+              Padding="24,16">
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel Grid.Column="1" 
+                      Orientation="Horizontal" 
+                      Spacing="8">
+            <Button Theme="{StaticResource SecondaryButton}"
+                    Content="{x:Static localization:UIStrings.CopilotSetupDialogCloseButton}"
+                    Click="OnCloseClicked" />
+            <Button Theme="{StaticResource PrimaryButton}"
+                    Content="{x:Static localization:UIStrings.CopilotSetupDialogRetryButton}"
+                    Click="OnRetryClicked" />
+          </StackPanel>
+        </Grid>
+      </Border>
+    </Grid>
+  </Border>
+</Window>

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="CliHelpText" xml:space="preserve">
+    <value>USAGE:
+    automerge [OPTIONS] [BASE LOCAL REMOTE MERGED]
+    automerge [OPTIONS] LOCAL REMOTE
+
+ARGUMENTS:
+    BASE      Path to the base (common ancestor) file
+    LOCAL     Path to the local (ours) file  
+    REMOTE    Path to the remote (theirs) file
+    MERGED    Path to write the merged output
+
+MODES:
+    Merge mode (default): Provide local, remote, and merged paths (base optional).
+    Diff mode:            Provide only local and remote paths for side-by-side comparison.
+
+OPTIONS:
+    --base &lt;PATH&gt;       Path to base file (alternative to positional)
+    --local &lt;PATH&gt;      Path to local file (alternative to positional)
+    --remote &lt;PATH&gt;     Path to remote file (alternative to positional)
+    --merged &lt;PATH&gt;     Path to merged output file (alternative to positional)
+    --wait              Wait for GUI to close before returning (default: true)
+    --no-gui            Run in headless mode (future feature)
+    --help, -h          Show this help message
+    --version, -v       Show version information
+
+EXIT CODES:
+    0    Resolution accepted and saved (merge) / files compared (diff)
+    1    Resolution cancelled or error occurred
+
+EXAMPLES:
+    # GUI mode with file picker
+    automerge
+
+    # Diff mode (side-by-side comparison)
+    automerge --local file.ours --remote file.theirs
+    automerge LOCAL REMOTE
+
+    # Standard 4-file merge (for git mergetool)
+    automerge BASE LOCAL REMOTE MERGED
+    
+    # Named arguments
+    automerge --base=file.base --local=file.ours --remote=file.theirs --merged=file.out
+    
+    # Fork / SourceTree integration
+    automerge --base "$BASE" --local "$LOCAL" --remote "$REMOTE" --merged "$MERGED"</value>
+  </data>
+  <data name="CliVersionFormat" xml:space="preserve">
+    <value>AutoMerge {0}</value>
+  </data>
+</root>

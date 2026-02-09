@@ -1,0 +1,13 @@
+Header
+<<<<<<< ours
+local one
+=======
+remote one
+>>>>>>> theirs
+Middle
+<<<<<<< ours
+local two
+=======
+remote two
+>>>>>>> theirs
+Footer

@@ -1,0 +1,366 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- ============================================== -->
+  <!-- AutoMerge Professional Theme                   -->
+  <!-- A modern, dark theme for merge conflict tool   -->
+  <!-- ============================================== -->
+
+  <!-- Color Palette - Primary -->
+  <Color x:Key="PrimaryColor">#0078D4</Color>
+  <Color x:Key="PrimaryHoverColor">#1A86DB</Color>
+  <Color x:Key="PrimaryPressedColor">#006CC1</Color>
+  <Color x:Key="AccentColor">#00B7C3</Color>
+  
+  <!-- Color Palette - Backgrounds -->
+  <Color x:Key="AppBackgroundColor">#1B1B1F</Color>
+  <Color x:Key="SurfaceColor">#252529</Color>
+  <Color x:Key="SurfaceElevatedColor">#2D2D32</Color>
+  <Color x:Key="SurfaceHighlightColor">#363640</Color>
+  <Color x:Key="BorderColor">#3F3F46</Color>
+  <Color x:Key="BorderSubtleColor">#2D2D32</Color>
+  
+  <!-- Color Palette - Text -->
+  <Color x:Key="TextPrimaryColor">#FFFFFF</Color>
+  <Color x:Key="TextSecondaryColor">#B4B4B4</Color>
+  <Color x:Key="TextTertiaryColor">#808080</Color>
+  <Color x:Key="TextDisabledColor">#5C5C5C</Color>
+  
+  <!-- Color Palette - Semantic -->
+  <Color x:Key="SuccessColor">#4CAF50</Color>
+  <Color x:Key="WarningColor">#FF9800</Color>
+  <Color x:Key="ErrorColor">#F44336</Color>
+  <Color x:Key="InfoColor">#2196F3</Color>
+  
+  <!-- Color Palette - Diff Colors -->
+  <Color x:Key="DiffAddedColor">#2E7D32</Color>
+  <Color x:Key="DiffAddedBackgroundColor">#1B3D1F</Color>
+  <Color x:Key="DiffRemovedColor">#C62828</Color>
+  <Color x:Key="DiffRemovedBackgroundColor">#3D1B1B</Color>
+  <Color x:Key="DiffModifiedColor">#F9A825</Color>
+  <Color x:Key="DiffModifiedBackgroundColor">#3D351B</Color>
+  
+  <!-- Color Palette - Panel Colors -->
+  <Color x:Key="BasePanelColor">#1E3A5F</Color>
+  <Color x:Key="LocalPanelColor">#1E5631</Color>
+  <Color x:Key="RemotePanelColor">#5F1E3A</Color>
+  <Color x:Key="MergedPanelColor">#3A1E5F</Color>
+  
+  <!-- Brushes -->
+  <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}" />
+  <SolidColorBrush x:Key="PrimaryHoverBrush" Color="{StaticResource PrimaryHoverColor}" />
+  <SolidColorBrush x:Key="PrimaryPressedBrush" Color="{StaticResource PrimaryPressedColor}" />
+  <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
+  
+  <SolidColorBrush x:Key="AppBackgroundBrush" Color="{StaticResource AppBackgroundColor}" />
+  <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" />
+  <SolidColorBrush x:Key="SurfaceElevatedBrush" Color="{StaticResource SurfaceElevatedColor}" />
+  <SolidColorBrush x:Key="SurfaceHighlightBrush" Color="{StaticResource SurfaceHighlightColor}" />
+  <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
+  <SolidColorBrush x:Key="BorderSubtleBrush" Color="{StaticResource BorderSubtleColor}" />
+  
+  <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}" />
+  <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}" />
+  <SolidColorBrush x:Key="TextTertiaryBrush" Color="{StaticResource TextTertiaryColor}" />
+  <SolidColorBrush x:Key="TextDisabledBrush" Color="{StaticResource TextDisabledColor}" />
+  
+  <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}" />
+  <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}" />
+  <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource ErrorColor}" />
+  <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource InfoColor}" />
+  
+  <SolidColorBrush x:Key="BasePanelBrush" Color="{StaticResource BasePanelColor}" />
+  <SolidColorBrush x:Key="LocalPanelBrush" Color="{StaticResource LocalPanelColor}" />
+  <SolidColorBrush x:Key="RemotePanelBrush" Color="{StaticResource RemotePanelColor}" />
+  <SolidColorBrush x:Key="MergedPanelBrush" Color="{StaticResource MergedPanelColor}" />
+
+  <!-- Typography -->
+  <x:Double x:Key="FontSizeCaption">11</x:Double>
+  <x:Double x:Key="FontSizeBody">13</x:Double>
+  <x:Double x:Key="FontSizeSubtitle">15</x:Double>
+  <x:Double x:Key="FontSizeTitle">18</x:Double>
+  <x:Double x:Key="FontSizeHeader">24</x:Double>
+  
+  <!-- Spacing -->
+  <x:Double x:Key="SpacingXSmall">4</x:Double>
+  <x:Double x:Key="SpacingSmall">8</x:Double>
+  <x:Double x:Key="SpacingMedium">12</x:Double>
+  <x:Double x:Key="SpacingLarge">16</x:Double>
+  <x:Double x:Key="SpacingXLarge">24</x:Double>
+  
+  <!-- Corner Radius -->
+  <CornerRadius x:Key="CornerRadiusSmall">4</CornerRadius>
+  <CornerRadius x:Key="CornerRadiusMedium">6</CornerRadius>
+  <CornerRadius x:Key="CornerRadiusLarge">8</CornerRadius>
+  
+  <!-- ============================================== -->
+  <!-- Button Styles                                  -->
+  <!-- ============================================== -->
+  
+  <!-- Primary Action Button -->
+  <ControlTheme x:Key="PrimaryButton" TargetType="Button">
+    <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="16,8" />
+    <Setter Property="CornerRadius" Value="{StaticResource CornerRadiusMedium}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Name="PART_Border"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Padding="{TemplateBinding Padding}">
+          <ContentPresenter Name="PART_ContentPresenter"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            HorizontalContentAlignment="Center"
+                            VerticalContentAlignment="Center" />
+        </Border>
+      </ControlTemplate>
+    </Setter>
+    <Style Selector="^:pointerover /template/ Border#PART_Border">
+      <Setter Property="Background" Value="{StaticResource PrimaryHoverBrush}" />
+    </Style>
+    <Style Selector="^:pressed /template/ Border#PART_Border">
+      <Setter Property="Background" Value="{StaticResource PrimaryPressedBrush}" />
+    </Style>
+    <Style Selector="^:disabled">
+      <Setter Property="Opacity" Value="0.5" />
+    </Style>
+  </ControlTheme>
+  
+  <!-- Secondary/Outline Button -->
+  <ControlTheme x:Key="SecondaryButton" TargetType="Button">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Padding" Value="16,8" />
+    <Setter Property="CornerRadius" Value="{StaticResource CornerRadiusMedium}" />
+    <Setter Property="FontWeight" Value="Medium" />
+    <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Name="PART_Border"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Padding="{TemplateBinding Padding}">
+          <ContentPresenter Name="PART_ContentPresenter"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            HorizontalContentAlignment="Center"
+                            VerticalContentAlignment="Center" />
+        </Border>
+      </ControlTemplate>
+    </Setter>
+    <Style Selector="^:pointerover /template/ Border#PART_Border">
+      <Setter Property="Background" Value="{StaticResource SurfaceHighlightBrush}" />
+    </Style>
+    <Style Selector="^:pressed /template/ Border#PART_Border">
+      <Setter Property="Background" Value="{StaticResource SurfaceElevatedBrush}" />
+    </Style>
+    <Style Selector="^:disabled">
+      <Setter Property="Opacity" Value="0.5" />
+    </Style>
+  </ControlTheme>
+  
+  <!-- Subtle/Ghost Button -->
+  <ControlTheme x:Key="SubtleButton" TargetType="Button">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="12,6" />
+    <Setter Property="CornerRadius" Value="{StaticResource CornerRadiusSmall}" />
+    <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Name="PART_Border"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Padding="{TemplateBinding Padding}">
+          <ContentPresenter Name="PART_ContentPresenter"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            HorizontalContentAlignment="Center"
+                            VerticalContentAlignment="Center" />
+        </Border>
+      </ControlTemplate>
+    </Setter>
+    <Style Selector="^:pointerover /template/ Border#PART_Border">
+      <Setter Property="Background" Value="{StaticResource SurfaceHighlightBrush}" />
+    </Style>
+    <Style Selector="^:pointerover">
+      <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    </Style>
+    <Style Selector="^:pressed /template/ Border#PART_Border">
+      <Setter Property="Background" Value="{StaticResource SurfaceElevatedBrush}" />
+    </Style>
+    <Style Selector="^:disabled">
+      <Setter Property="Opacity" Value="0.5" />
+    </Style>
+  </ControlTheme>
+
+  <!-- Danger Button -->
+  <ControlTheme x:Key="DangerButton" TargetType="Button">
+    <Setter Property="Background" Value="{StaticResource ErrorBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="16,8" />
+    <Setter Property="CornerRadius" Value="{StaticResource CornerRadiusMedium}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Name="PART_Border"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Padding="{TemplateBinding Padding}">
+          <ContentPresenter Name="PART_ContentPresenter"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            HorizontalContentAlignment="Center"
+                            VerticalContentAlignment="Center" />
+        </Border>
+      </ControlTemplate>
+    </Setter>
+    <Style Selector="^:pointerover /template/ Border#PART_Border">
+      <Setter Property="Opacity" Value="0.9" />
+    </Style>
+    <Style Selector="^:pressed /template/ Border#PART_Border">
+      <Setter Property="Opacity" Value="0.8" />
+    </Style>
+    <Style Selector="^:disabled">
+      <Setter Property="Opacity" Value="0.5" />
+    </Style>
+  </ControlTheme>
+  
+  <!-- Success Button -->
+  <ControlTheme x:Key="SuccessButton" TargetType="Button">
+    <Setter Property="Background" Value="{StaticResource SuccessBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="16,8" />
+    <Setter Property="CornerRadius" Value="{StaticResource CornerRadiusMedium}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Name="PART_Border"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Padding="{TemplateBinding Padding}">
+          <ContentPresenter Name="PART_ContentPresenter"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            HorizontalContentAlignment="Center"
+                            VerticalContentAlignment="Center" />
+        </Border>
+      </ControlTemplate>
+    </Setter>
+    <Style Selector="^:pointerover /template/ Border#PART_Border">
+      <Setter Property="Opacity" Value="0.9" />
+    </Style>
+    <Style Selector="^:pressed /template/ Border#PART_Border">
+      <Setter Property="Opacity" Value="0.8" />
+    </Style>
+    <Style Selector="^:disabled">
+      <Setter Property="Opacity" Value="0.5" />
+    </Style>
+  </ControlTheme>
+  
+  <!-- Icon Button Style -->
+  <ControlTheme x:Key="IconButton" TargetType="Button">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="8" />
+    <Setter Property="CornerRadius" Value="{StaticResource CornerRadiusSmall}" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="Width" Value="32" />
+    <Setter Property="Height" Value="32" />
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Name="PART_Border"
+                Background="{TemplateBinding Background}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Padding="{TemplateBinding Padding}">
+          <ContentPresenter Name="PART_ContentPresenter"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            HorizontalContentAlignment="Center"
+                            VerticalContentAlignment="Center" />
+        </Border>
+      </ControlTemplate>
+    </Setter>
+    <Style Selector="^:pointerover /template/ Border#PART_Border">
+      <Setter Property="Background" Value="{StaticResource SurfaceHighlightBrush}" />
+    </Style>
+    <Style Selector="^:pointerover">
+      <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    </Style>
+    <Style Selector="^:pressed /template/ Border#PART_Border">
+      <Setter Property="Background" Value="{StaticResource SurfaceElevatedBrush}" />
+    </Style>
+    <Style Selector="^:disabled">
+      <Setter Property="Opacity" Value="0.5" />
+    </Style>
+  </ControlTheme>
+
+  <!-- ============================================== -->
+  <!-- TextBox Styles                                 -->
+  <!-- ============================================== -->
+  
+  <ControlTheme x:Key="ModernTextBox" TargetType="TextBox">
+    <Setter Property="Background" Value="{StaticResource SurfaceElevatedBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Padding" Value="12,10" />
+    <Setter Property="CornerRadius" Value="{StaticResource CornerRadiusMedium}" />
+    <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
+    <Setter Property="MinHeight" Value="40" />
+    <Setter Property="CaretBrush" Value="{StaticResource TextPrimaryBrush}" />
+    <Setter Property="SelectionBrush" Value="{StaticResource PrimaryBrush}" />
+    <Style Selector="^:focus">
+      <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+    <Style Selector="^:pointerover">
+      <Setter Property="BorderBrush" Value="{StaticResource TextTertiaryBrush}" />
+    </Style>
+  </ControlTheme>
+
+  <!-- ============================================== -->
+  <!-- Panel Styles                                   -->
+  <!-- ============================================== -->
+  
+  <!-- Card Panel -->
+  <ControlTheme x:Key="CardPanel" TargetType="Border">
+    <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource BorderSubtleBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{StaticResource CornerRadiusLarge}" />
+    <Setter Property="Padding" Value="0" />
+  </ControlTheme>
+
+</ResourceDictionary>

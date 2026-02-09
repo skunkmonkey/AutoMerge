@@ -1,0 +1,16 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:avaloniaEdit="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
+             x:Class="AutoMerge.UI.Controls.CodeEditorControl">
+  <avaloniaEdit:TextEditor
+      Name="Editor"
+      Background="#1A1A1E"
+      Foreground="#E0E0E0"
+      FontFamily="Cascadia Code, JetBrains Mono, Consolas, Menlo, Monaco, monospace"
+      FontSize="13"
+      ShowLineNumbers="True"
+      HorizontalScrollBarVisibility="Auto"
+      VerticalScrollBarVisibility="Auto"
+      IsReadOnly="{Binding IsReadOnly, RelativeSource={RelativeSource AncestorType=UserControl}}"
+      Padding="8,4" />
+</UserControl>

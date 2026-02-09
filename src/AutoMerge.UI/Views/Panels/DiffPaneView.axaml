@@ -1,0 +1,77 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:AutoMerge.UI.Controls"
+             xmlns:converters="clr-namespace:AutoMerge.UI.Converters"
+             xmlns:localization="clr-namespace:AutoMerge.UI.Localization"
+             x:Class="AutoMerge.UI.Views.Panels.DiffPaneView">
+  
+  <UserControl.Resources>
+    <converters:PanelTitleToColorConverter x:Key="PanelTitleToColorConverter" />
+    <converters:PanelTitleToIconConverter x:Key="PanelTitleToIconConverter" />
+    <converters:PanelTitleToDescriptionConverter x:Key="PanelTitleToDescriptionConverter" />
+  </UserControl.Resources>
+  
+  <Border Background="{StaticResource SurfaceBrush}"
+          BorderBrush="{StaticResource BorderSubtleBrush}"
+          BorderThickness="1"
+          CornerRadius="4">
+    <Grid RowDefinitions="Auto,*">
+      
+      <!-- Panel Header (compact, BeyondCompare-style) -->
+      <Border Grid.Row="0"
+              Background="{Binding Title, Converter={StaticResource PanelTitleToColorConverter}}"
+              CornerRadius="4,4,0,0"
+              Padding="8,6">
+        <Grid ColumnDefinitions="Auto,*,Auto">
+          
+          <!-- Icon + Title (single line) -->
+          <StackPanel Orientation="Horizontal" Spacing="8" Grid.Column="0">
+            <TextBlock Text="{Binding Title, Converter={StaticResource PanelTitleToIconConverter}}"
+                       FontSize="13"
+                       VerticalAlignment="Center" />
+            <TextBlock Text="{Binding Title}" 
+                       Foreground="{StaticResource TextPrimaryBrush}"
+                       FontWeight="SemiBold"
+                       FontSize="13"
+                       VerticalAlignment="Center" />
+            <TextBlock Text="{Binding Title, Converter={StaticResource PanelTitleToDescriptionConverter}}"
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       FontSize="11"
+                       VerticalAlignment="Center"
+                       Opacity="0.8"
+                       Margin="4,0,0,0" />
+          </StackPanel>
+          
+          <!-- Read-only badge -->
+          <Border Grid.Column="2"
+                  Background="#20FFFFFF"
+                  CornerRadius="3"
+                  Padding="6,2"
+                  VerticalAlignment="Center"
+                  IsVisible="{Binding Content, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <TextBlock Text="{x:Static localization:UIStrings.DiffPaneReadOnlyBadge}"
+                       Foreground="{StaticResource TextSecondaryBrush}"
+                       FontSize="10"
+                       Opacity="0.9" />
+          </Border>
+        </Grid>
+      </Border>
+      
+      <!-- Code Editor -->
+      <Border Grid.Row="1" 
+              Background="#1A1A1E"
+              CornerRadius="0,0,4,4"
+              ClipToBounds="True">
+        <controls:CodeEditorControl
+            Text="{Binding Content, Mode=TwoWay}"
+            IsReadOnly="{Binding IsReadOnly}"
+            SyntaxLanguage="{Binding SyntaxLanguage}"
+            LineChanges="{Binding LineChanges}"
+            ScrollToLine="{Binding ScrollToLine}"
+            ScrollOffsetX="{Binding ScrollOffsetX, Mode=TwoWay}"
+            ScrollOffsetY="{Binding ScrollOffsetY, Mode=TwoWay}"
+            ShowConflictMarkers="True" />
+      </Border>
+    </Grid>
+  </Border>
+</UserControl>

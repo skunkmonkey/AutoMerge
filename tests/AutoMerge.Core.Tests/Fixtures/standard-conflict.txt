@@ -1,0 +1,9 @@
+Line before
+<<<<<<< HEAD
+local line 1
+local line 2
+=======
+remote line 1
+remote line 2
+>>>>>>> branch
+Line after

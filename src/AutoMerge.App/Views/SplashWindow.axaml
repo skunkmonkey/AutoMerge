@@ -1,0 +1,63 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="AutoMerge.App.Views.SplashWindow"
+        Width="420" Height="260"
+        CanResize="False"
+        WindowStartupLocation="CenterScreen"
+        SystemDecorations="None"
+        Background="Transparent"
+        TransparencyLevelHint="Transparent"
+        ExtendClientAreaToDecorationsHint="True"
+        Topmost="True"
+        ShowInTaskbar="False">
+
+  <Border CornerRadius="12"
+          Background="#1B1B1F"
+          BorderBrush="#3F3F46"
+          BorderThickness="1"
+          Padding="32,28"
+          ClipToBounds="True">
+    
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+      
+      <!-- App Icon + Title -->
+      <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="14" HorizontalAlignment="Center">
+        <Image Source="avares://AutoMerge.UI/Assets/AppIcon_32.ico"
+               Width="36" Height="36"
+               VerticalAlignment="Center" />
+        <TextBlock Text="AutoMerge"
+                   FontSize="28"
+                   FontWeight="Bold"
+                   Foreground="#FFFFFF"
+                   VerticalAlignment="Center" />
+      </StackPanel>
+      
+      <!-- Version -->
+      <TextBlock Grid.Row="1"
+                 x:Name="VersionText"
+                 FontSize="12"
+                 Foreground="#808080"
+                 HorizontalAlignment="Center"
+                 Margin="0,4,0,0" />
+      
+      <!-- Spacer -->
+
+      <!-- Status area -->
+      <StackPanel Grid.Row="3" Spacing="10">
+        <!-- Progress bar -->
+        <ProgressBar x:Name="ProgressBar"
+                     IsIndeterminate="True"
+                     Height="3"
+                     Foreground="#0078D4"
+                     Background="#2D2D32" />
+        
+        <!-- Status message -->
+        <TextBlock x:Name="StatusText"
+                   Text="Starting..."
+                   FontSize="12"
+                   Foreground="#B4B4B4"
+                   HorizontalAlignment="Center" />
+      </StackPanel>
+    </Grid>
+  </Border>
+</Window>

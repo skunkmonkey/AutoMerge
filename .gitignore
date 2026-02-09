@@ -1,0 +1,58 @@
+# Build outputs
+bin/
+obj/
+**/bin/
+**/obj/
+
+# User-specific files
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio
+.vs/
+.vscode/
+
+# Rider/JetBrains
+.idea/
+*.sln.iml
+
+# MSBuild
+*.cache
+*.log
+
+# NuGet
+*.nupkg
+**/packages/
+.nuget/
+
+# Test results
+TestResults/
+
+# Publish output
+**/publish/
+
+# Avalonia
+*.axaml.cs~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Coverage
+coverage/
+*.opencover.xml
+*.coverage
+
+# Misc
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swn
+*.swo
+
+# Installers
+*.exe

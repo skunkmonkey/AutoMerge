@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>AutoMerge</AssemblyName>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <ApplicationIcon>..\AutoMerge.UI\Assets\AppIcon_32.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AutoMerge.Core\AutoMerge.Core.csproj" />
+    <ProjectReference Include="..\AutoMerge.Logic\AutoMerge.Logic.csproj" />
+    <ProjectReference Include="..\AutoMerge.Infrastructure\AutoMerge.Infrastructure.csproj" />
+    <ProjectReference Include="..\AutoMerge.UI\AutoMerge.UI.csproj" />
+    <ProjectReference Include="..\AutoMerge.Resources\AutoMerge.Resources.csproj" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.3" />
+    <PackageReference Include="System.CommandLine" Version="*" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="*" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="ai-models.xml" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="Resources\Strings.resx" />
+  </ItemGroup>
+</Project>

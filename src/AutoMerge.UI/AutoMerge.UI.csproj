@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="AutoMerge.UI.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AutoMerge.Core\AutoMerge.Core.csproj" />
+    <ProjectReference Include="..\AutoMerge.Logic\AutoMerge.Logic.csproj" />
+    <ProjectReference Include="..\AutoMerge.Resources\AutoMerge.Resources.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\AppIcon_16.ico" />
+    <AvaloniaResource Include="Assets\AppIcon_32.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.3" />
+    <PackageReference Include="Avalonia.AvaloniaEdit" Version="11.2.0" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="Resources\Strings.resx" />
+  </ItemGroup>
+
+</Project>

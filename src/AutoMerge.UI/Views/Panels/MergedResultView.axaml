@@ -1,0 +1,159 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:AutoMerge.UI.Controls"
+             xmlns:localization="clr-namespace:AutoMerge.UI.Localization"
+             x:Class="AutoMerge.UI.Views.Panels.MergedResultView">
+  
+  <Border Background="{StaticResource SurfaceBrush}"
+          BorderBrush="{StaticResource BorderSubtleBrush}"
+          BorderThickness="1"
+          CornerRadius="4">
+    <Grid RowDefinitions="Auto,*">
+      
+      <!-- Panel Header -->
+      <Border Grid.Row="0"
+              Background="#3A1E5F"
+              CornerRadius="4,4,0,0"
+              Padding="8,6">
+        <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+          
+          <!-- Icon + Title -->
+          <StackPanel Orientation="Horizontal" Spacing="8" Grid.Column="0">
+            <TextBlock Text="✨" FontSize="13" VerticalAlignment="Center" />
+            <TextBlock Text="{x:Static localization:UIStrings.PanelTitleMergedResult}" 
+                       Foreground="{StaticResource TextPrimaryBrush}"
+                       FontWeight="SemiBold"
+                       FontSize="13"
+                       VerticalAlignment="Center" />
+          </StackPanel>
+          
+          <!-- Conflict Navigation -->
+          <StackPanel Grid.Column="1" 
+                      Orientation="Horizontal" 
+                      Spacing="4"
+                      Margin="16,0,0,0"
+                      VerticalAlignment="Center">
+            <Button Theme="{StaticResource SubtleButton}"
+                    Content="◀"
+                    Command="{Binding PreviousConflictCommand}"
+                    ToolTip.Tip="{x:Static localization:UIStrings.MergedResultPrevConflictTooltip}"
+                    Padding="6,3"
+                    FontSize="11" />
+            
+            <!-- Conflict Markers Warning Badge -->
+            <Border Background="#80F44336"
+                    CornerRadius="3"
+                    Padding="8,3"
+                    IsVisible="{Binding HasConflictMarkers}"
+                    VerticalAlignment="Center">
+              <TextBlock Foreground="{StaticResource TextPrimaryBrush}"
+                         FontSize="11"
+                         FontWeight="Medium">
+                                                                <Run Text="⚠"/>
+                                                                <Run Text=" "/>
+                                                                <Run Text="{x:Static localization:UIStrings.MergedResultConflictBadgePrefix}"/>
+                                                                <Run Text=" "/>
+                <Run Text="{Binding CurrentConflictDisplay}"/>
+              </TextBlock>
+            </Border>
+            
+            <!-- Auto-Resolved Success Badge -->
+            <Border Background="#404CAF50"
+                    CornerRadius="3"
+                    Padding="8,3"
+                    IsVisible="{Binding HasAutoResolved}"
+                    VerticalAlignment="Center">
+              <TextBlock Foreground="#4CAF50"
+                         FontSize="11"
+                         FontWeight="Medium">
+                <Run Text="✓ "/>
+                <Run Text="{Binding AutoResolvedCount}"/>
+                                                                <Run Text=" "/>
+                                                                <Run Text="{x:Static localization:UIStrings.MergedResultAutoResolvedBadgeLabel}"/>
+              </TextBlock>
+            </Border>
+            
+            <!-- Approval Progress Badge -->
+            <Border Background="#40F44336"
+                    CornerRadius="3"
+                    Padding="8,3"
+                    IsVisible="{Binding !AllConflictsApproved}"
+                    VerticalAlignment="Center">
+              <TextBlock Foreground="#F44336"
+                         FontSize="11"
+                         FontWeight="Medium">
+                <Run Text="! "/>
+                <Run Text="{Binding UnapprovedCount}"/>
+                <Run Text=" need review"/>
+              </TextBlock>
+            </Border>
+            
+            <!-- All Approved Badge -->
+            <Border Background="#404CAF50"
+                    CornerRadius="3"
+                    Padding="8,3"
+                    IsVisible="{Binding AllConflictsApproved}"
+                    VerticalAlignment="Center">
+              <TextBlock Foreground="#4CAF50"
+                         FontSize="11"
+                         FontWeight="Medium"
+                         Text="✓ All reviewed"/>
+            </Border>
+            
+            <Button Theme="{StaticResource SubtleButton}"
+                    Content="▶"
+                    Command="{Binding NextConflictCommand}"
+                    ToolTip.Tip="{x:Static localization:UIStrings.MergedResultNextConflictTooltip}"
+                    Padding="6,3"
+                    FontSize="11" />
+          </StackPanel>
+          
+          <!-- Revert Buttons -->
+          <StackPanel Grid.Column="3" 
+                      Orientation="Horizontal" 
+                      Spacing="4">
+            <Button Theme="{StaticResource SubtleButton}"
+                    Content="{x:Static localization:UIStrings.MergedResultRevertToBaseButton}" 
+                    Command="{Binding RevertToBaseCommand}"
+                    ToolTip.Tip="{x:Static localization:UIStrings.MergedResultRevertToBaseTooltip}"
+                    Padding="8,4"
+                    FontSize="11" />
+            
+            <Button Theme="{StaticResource SubtleButton}"
+                    Content="{x:Static localization:UIStrings.MergedResultRevertToLocalButton}" 
+                    Command="{Binding RevertToLocalCommand}"
+                    ToolTip.Tip="{x:Static localization:UIStrings.MergedResultRevertToLocalTooltip}"
+                    Padding="8,4"
+                    FontSize="11" />
+            
+            <Button Theme="{StaticResource SubtleButton}"
+                    Content="{x:Static localization:UIStrings.MergedResultRevertToRemoteButton}" 
+                    Command="{Binding RevertToRemoteCommand}"
+                    ToolTip.Tip="{x:Static localization:UIStrings.MergedResultRevertToRemoteTooltip}"
+                    Padding="8,4"
+                    FontSize="11" />
+          </StackPanel>
+        </Grid>
+      </Border>
+      
+      <!-- Code Editor (Editable) -->
+      <Border Grid.Row="1" 
+              Background="#1A1A1E"
+              CornerRadius="0,0,4,4"
+              ClipToBounds="True">
+        <controls:CodeEditorControl
+            x:Name="MergedEditor"
+            Text="{Binding Content, Mode=TwoWay}"
+            IsReadOnly="False"
+            SyntaxLanguage="{Binding SyntaxLanguage}"
+            ScrollToLine="{Binding ScrollToLine}"
+            ScrollOffsetX="{Binding ScrollOffsetX, Mode=TwoWay}"
+            ScrollOffsetY="{Binding ScrollOffsetY, Mode=TwoWay}"
+            LineChanges="{Binding LineChanges}"
+            AutoResolvedRegions="{Binding AutoResolvedRegions}"
+            ConflictApprovalItems="{Binding ApprovalItems}"
+            ShowConflictMarkers="True" />
+      </Border>
+    </Grid>
+  </Border>
+</UserControl>

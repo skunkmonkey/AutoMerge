@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="CopilotClientStartFailed" xml:space="preserve">
+    <value>Failed to start Copilot client.</value>
+  </data>
+  <data name="CopilotCliNotFound" xml:space="preserve">
+    <value>GitHub Copilot CLI not found. Install it with: npm install -g @github/copilot</value>
+  </data>
+  <data name="CopilotCliAuthRequired" xml:space="preserve">
+    <value>Please sign in to GitHub Copilot: run 'copilot' then type /login</value>
+  </data>
+  <data name="CopilotConnectionFailedFormat" xml:space="preserve">
+    <value>Copilot connection failed: {0}</value>
+  </data>
+  <data name="CopilotAnalysisFailed" xml:space="preserve">
+    <value>Copilot analysis failed.</value>
+  </data>
+  <data name="AiProposedResolution" xml:space="preserve">
+    <value>AI-proposed resolution</value>
+  </data>
+  <data name="CopilotResolutionProposalFailed" xml:space="preserve">
+    <value>Copilot resolution proposal failed.</value>
+  </data>
+  <data name="RefinedMessageFormat" xml:space="preserve">
+    <value>Refined: {0}</value>
+  </data>
+  <data name="CopilotRefinementFailed" xml:space="preserve">
+    <value>Copilot refinement failed.</value>
+  </data>
+  <data name="CopilotExplanationFailed" xml:space="preserve">
+    <value>Copilot explanation failed.</value>
+  </data>
+  <data name="CopilotIntentResearchFailedFormat" xml:space="preserve">
+    <value>Copilot intent research failed for {0}.</value>
+  </data>
+  <data name="ClientNotStarted" xml:space="preserve">
+    <value>Client not started.</value>
+  </data>
+  <data name="SessionError" xml:space="preserve">
+    <value>Session error</value>
+  </data>
+  <data name="AiRequestTimeoutFormat" xml:space="preserve">
+    <value>AI request timed out after {0} seconds.</value>
+  </data>
+  <data name="MockLocalChangeSummary" xml:space="preserve">
+    <value>Local change summary</value>
+  </data>
+  <data name="MockRemoteChangeSummary" xml:space="preserve">
+    <value>Remote change summary</value>
+  </data>
+  <data name="MockConflictReason" xml:space="preserve">
+    <value>Mock conflict reason</value>
+  </data>
+  <data name="MockSuggestedApproach" xml:space="preserve">
+    <value>Mock suggested approach</value>
+  </data>
+  <data name="MockResolvedContent" xml:space="preserve">
+    <value>// Mock resolved content</value>
+  </data>
+  <data name="MockResolutionExplanation" xml:space="preserve">
+    <value>Mock resolution explanation</value>
+  </data>
+  <data name="MockExplanation" xml:space="preserve">
+    <value>Mock explanation.</value>
+  </data>
+  <data name="MockModelName" xml:space="preserve">
+    <value>gpt-4.1</value>
+  </data>
+  <data name="MockLocalIntent" xml:space="preserve">
+    <value>Local intent: The developer refactored the method to improve readability and added error handling.</value>
+  </data>
+  <data name="MockRemoteIntent" xml:space="preserve">
+    <value>Remote intent: The developer added new functionality and updated the API surface.</value>
+  </data>
+  <data name="MergeAgentSystemPrompt" xml:space="preserve">
+    <value>You are a world-class Git merge conflict resolution assistant. Your job is to analyze merge conflicts, explain the causes, and propose safe resolutions. Always explain your reasoning and trade-offs. Do not invent code that is not supported by the inputs.</value>
+  </data>
+  <data name="AnalysisPromptTemplate" xml:space="preserve">
+    <value>Analyze the following Git merge conflict. Describe what changed on the local and remote sides, why the conflict occurred, and summarize intent. Provide a concise, structured explanation.
+
+BASE:
+{BASE}
+
+LOCAL:
+{LOCAL}
+
+REMOTE:
+{REMOTE}
+
+MERGED WITH MARKERS:
+{MERGED}</value>
+  </data>
+  <data name="ResolutionPromptTemplate" xml:space="preserve">
+    <value>Propose a clean Git merge resolution for the following conflict. Preserve intent from both sides where possible. Output format (required):
+RESOLVED_CONTENT:
+&#96;&#96;&#96;text
+&lt;full resolved file content&gt;
+&#96;&#96;&#96;
+EXPLANATION:
+&lt;short explanation&gt;
+Rules: Do not include diff or patch output. Do not include conflict markers. Include only one code block containing the full resolved content.
+
+PREFERENCES:
+{PREFERENCES}
+
+BASE:
+{BASE}
+
+LOCAL:
+{LOCAL}
+
+REMOTE:
+{REMOTE}
+
+MERGED WITH MARKERS:
+{MERGED}</value>
+  </data>
+  <data name="RefinementPromptTemplate" xml:space="preserve">
+    <value>Refine the proposed merge resolution based on the user's request. Maintain Git conflict resolution correctness and explain any changes. Output format (required):
+RESOLVED_CONTENT:
+&#96;&#96;&#96;text
+&lt;full resolved file content&gt;
+&#96;&#96;&#96;
+EXPLANATION:
+&lt;short explanation&gt;
+Rules: Do not include diff or patch output. Do not include conflict markers. Include only one code block containing the full resolved content.
+
+USER REQUEST:
+{USER_MESSAGE}
+
+CURRENT RESOLUTION:
+{CURRENT_RESOLUTION}</value>
+  </data>
+  <data name="IntentResearchPromptTemplate" xml:space="preserve">
+    <value>You are analyzing one side of a Git merge conflict to determine the developer's intent. Compare the BASE version (common ancestor) with the {VERSION} version and describe:
+1. What specific changes were made and why (the developer's intent)
+2. What problem or feature the changes address
+3. Any patterns, refactorings, or architectural decisions visible in the changes
+4. Which changes are critical to preserve vs. incidental formatting/style changes
+
+Be concise but thorough. Focus on semantic intent, not line-by-line diffs.
+
+BASE:
+{BASE}
+
+{VERSION}:
+{CONTENT}</value>
+  </data>
+  <data name="IntentAwareResolutionPromptTemplate" xml:space="preserve">
+    <value>Propose a clean Git merge resolution for the following conflict. You have been provided with a thorough analysis of the intent behind each side's changes. Use these intents to make informed decisions about how to merge.
+
+LOCAL INTENT:
+{LOCAL_INTENT}
+
+REMOTE INTENT:
+{REMOTE_INTENT}
+
+Preserve the intent from both sides where possible. When intents conflict, explain the trade-off and choose the resolution that best preserves correctness.
+
+Output format (required):
+RESOLVED_CONTENT:
+&#96;&#96;&#96;text
+&lt;full resolved file content&gt;
+&#96;&#96;&#96;
+EXPLANATION:
+&lt;short explanation of how both intents were preserved&gt;
+Rules: Do not include diff or patch output. Do not include conflict markers. Include only one code block containing the full resolved content.
+
+PREFERENCES:
+{PREFERENCES}
+
+BASE:
+{BASE}
+
+LOCAL:
+{LOCAL}
+
+REMOTE:
+{REMOTE}
+
+MERGED WITH MARKERS:
+{MERGED}</value>
+  </data>
+</root>

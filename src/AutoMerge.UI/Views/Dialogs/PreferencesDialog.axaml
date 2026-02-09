@@ -1,0 +1,164 @@
+<Window xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:models="clr-namespace:AutoMerge.Core.Models;assembly=AutoMerge.Core"
+  xmlns:localization="clr-namespace:AutoMerge.UI.Localization"
+  x:Class="AutoMerge.UI.Views.Dialogs.PreferencesDialog"
+  Width="520" Height="520"
+  Title="{x:Static localization:UIStrings.PreferencesDialogTitle}"
+  Background="{StaticResource AppBackgroundBrush}"
+  WindowStartupLocation="CenterOwner"
+  CanResize="False">
+  
+  <Border Background="{StaticResource SurfaceBrush}"
+          CornerRadius="0"
+          Margin="0">
+    <Grid RowDefinitions="Auto,*,Auto">
+      
+      <!-- Header -->
+      <Border Grid.Row="0"
+              Background="{StaticResource SurfaceElevatedBrush}"
+              Padding="24,20">
+        <StackPanel Spacing="4">
+          <TextBlock Text="{x:Static localization:UIStrings.PreferencesDialogHeaderTitle}" 
+                     FontSize="20" 
+                     FontWeight="Bold"
+                     Foreground="{StaticResource TextPrimaryBrush}" />
+          <TextBlock Text="{x:Static localization:UIStrings.PreferencesDialogHeaderSubtitle}"
+                     FontSize="12"
+                     Foreground="{StaticResource TextSecondaryBrush}" />
+        </StackPanel>
+      </Border>
+      
+      <!-- Settings Content -->
+      <ScrollViewer Grid.Row="1" Padding="24">
+        <StackPanel Spacing="24">
+          
+          <!-- AI Settings Section -->
+          <StackPanel Spacing="12">
+            <TextBlock Text="{x:Static localization:UIStrings.PreferencesDialogAiSectionTitle}"
+                       FontSize="11"
+                       FontWeight="Bold"
+                       Foreground="{StaticResource TextTertiaryBrush}"
+                       Margin="0,0,0,4" />
+            
+            <Border Background="{StaticResource SurfaceElevatedBrush}"
+                    CornerRadius="8"
+                    Padding="16">
+              <StackPanel Spacing="16">
+                
+                <!-- AI Model Selection -->
+                <Grid ColumnDefinitions="*,Auto">
+                  <StackPanel Grid.Column="0" Spacing="2">
+                        <TextBlock Text="{x:Static localization:UIStrings.PreferencesDialogAiModelTitle}"
+                               FontSize="13"
+                               Foreground="{StaticResource TextPrimaryBrush}" />
+                        <TextBlock Text="{x:Static localization:UIStrings.PreferencesDialogAiModelDescription}"
+                               FontSize="11"
+                               Foreground="{StaticResource TextTertiaryBrush}" />
+                  </StackPanel>
+                  <AutoCompleteBox Grid.Column="1"
+                            Width="160"
+                            MinimumPrefixLength="0"
+                            FilterMode="Contains"
+                            ItemsSource="{Binding AiModelOptions}"
+                            Text="{Binding AiModel}"
+                          Watermark="{x:Static localization:UIStrings.PreferencesDialogAiModelWatermark}" />
+                </Grid>
+                
+                <Border Height="1" Background="{StaticResource BorderSubtleBrush}" />
+                
+                <!-- Default Bias -->
+                <Grid ColumnDefinitions="*,Auto">
+                  <StackPanel Grid.Column="0" Spacing="2">
+                    <TextBlock Text="{x:Static localization:UIStrings.PreferencesDialogDefaultBiasTitle}"
+                               FontSize="13"
+                               Foreground="{StaticResource TextPrimaryBrush}" />
+                    <TextBlock Text="{x:Static localization:UIStrings.PreferencesDialogDefaultBiasDescription}"
+                               FontSize="11"
+                               Foreground="{StaticResource TextTertiaryBrush}" />
+                  </StackPanel>
+                  <ComboBox Grid.Column="1"
+                            Width="140"
+                            ItemsSource="{Binding DefaultBiasOptions}"
+                            SelectedItem="{Binding DefaultBias}" />
+                </Grid>
+                
+                <Border Height="1" Background="{StaticResource BorderSubtleBrush}" />
+                
+                <!-- Auto-resolve -->
+                <Grid ColumnDefinitions="*,Auto">
+                  <StackPanel Grid.Column="0" Spacing="2">
+                    <TextBlock Text="{x:Static localization:UIStrings.PreferencesDialogAutoResolveTitle}"
+                               FontSize="13"
+                               Foreground="{StaticResource TextPrimaryBrush}" />
+                    <TextBlock Text="{x:Static localization:UIStrings.PreferencesDialogAutoResolveDescription}"
+                               FontSize="11"
+                               Foreground="{StaticResource TextTertiaryBrush}" />
+                  </StackPanel>
+                  <ToggleSwitch Grid.Column="1" 
+                                IsChecked="{Binding AutoAnalyzeOnLoad}"
+                                OnContent=""
+                                OffContent="" />
+                </Grid>
+              </StackPanel>
+            </Border>
+          </StackPanel>
+          
+          <!-- Appearance Section -->
+          <StackPanel Spacing="12">
+            <TextBlock Text="{x:Static localization:UIStrings.PreferencesDialogAppearanceSectionTitle}"
+                       FontSize="11"
+                       FontWeight="Bold"
+                       Foreground="{StaticResource TextTertiaryBrush}"
+                       Margin="0,0,0,4" />
+            
+            <Border Background="{StaticResource SurfaceElevatedBrush}"
+                    CornerRadius="8"
+                    Padding="16">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Spacing="2">
+                  <TextBlock Text="{x:Static localization:UIStrings.PreferencesDialogThemeTitle}"
+                             FontSize="13"
+                             Foreground="{StaticResource TextPrimaryBrush}" />
+                  <TextBlock Text="{x:Static localization:UIStrings.PreferencesDialogThemeDescription}"
+                             FontSize="11"
+                             Foreground="{StaticResource TextTertiaryBrush}" />
+                </StackPanel>
+                <ComboBox Grid.Column="1"
+                          Width="140"
+                          ItemsSource="{Binding ThemeOptions}"
+                          SelectedItem="{Binding Theme}" />
+              </Grid>
+            </Border>
+          </StackPanel>
+          
+        </StackPanel>
+      </ScrollViewer>
+      
+      <!-- Footer Actions -->
+      <Border Grid.Row="2"
+              Background="{StaticResource SurfaceElevatedBrush}"
+              BorderBrush="{StaticResource BorderSubtleBrush}"
+              BorderThickness="0,1,0,0"
+              Padding="24,16">
+        <Grid ColumnDefinitions="Auto,*,Auto">
+          <Button Grid.Column="0"
+                  Theme="{StaticResource SubtleButton}"
+                  Content="{x:Static localization:UIStrings.PreferencesDialogResetDefaultsButton}"
+                  Command="{Binding ResetToDefaultsCommand}" />
+          
+          <StackPanel Grid.Column="2" 
+                      Orientation="Horizontal" 
+                      Spacing="8">
+            <Button Theme="{StaticResource SecondaryButton}"
+                        Content="{x:Static localization:UIStrings.PreferencesDialogCancelButton}"
+                    Click="OnCancelClicked" />
+            <Button Theme="{StaticResource PrimaryButton}"
+                        Content="{x:Static localization:UIStrings.PreferencesDialogSaveChangesButton}"
+                    Click="OnSaveClicked" />
+          </StackPanel>
+        </Grid>
+      </Border>
+    </Grid>
+  </Border>
+</Window>
